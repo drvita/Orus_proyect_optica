@@ -21,15 +21,14 @@ class CreateCategoriasTable extends Migration
     public function up()
     {
         Schema::create($this->tableName, function (Blueprint $table) {
-            $table->engine = 'InnoDB';
-            $table->increments('id');
+            $table->id();
             $table->integer('padre');
             $table->string('name', 50);
             $table->string('descripcion', 45)->nullable();
             $table->integer('user_id')->nullable();
-
+            $table->timestamps();
+            /*
             $table->index(["padre"], 'categoria_f_idx');
-
             $table->index(["user_id"], 'user_id_idx');
 
 
@@ -37,11 +36,11 @@ class CreateCategoriasTable extends Migration
                 ->references('id')->on('categorias')
                 ->onDelete('no action')
                 ->onUpdate('no action');
-
             $table->foreign('user_id', 'user_id_idx')
                 ->references('id')->on('users')
                 ->onDelete('no action')
                 ->onUpdate('no action');
+            */
         });
     }
 

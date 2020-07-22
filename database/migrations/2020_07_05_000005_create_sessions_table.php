@@ -21,24 +21,22 @@ class CreateSessionsTable extends Migration
     public function up()
     {
         Schema::create($this->tableName, function (Blueprint $table) {
-            $table->engine = 'InnoDB';
-            $table->increments('id');
+            $table->id();
             $table->string('session_id', 40)->default('0');
             $table->string('ip_address', 45)->default('0');
             $table->string('user_agent', 120);
             $table->dateTime('last_activity');
             $table->text('user_data');
-            $table->integer('user_id');
-
+            $table->foreignID('user_id')->constrained();
+            /*
             $table->index(["user_id"], 'user_id_idx');
-
             $table->index(["last_activity"], 'last_activity_idx');
-
 
             $table->foreign('user_id', 'user_id_idx')
                 ->references('id')->on('users')
                 ->onDelete('no action')
                 ->onUpdate('no action');
+            */
         });
     }
 

@@ -21,22 +21,21 @@ class CreateStoreLotTable extends Migration
     public function up()
     {
         Schema::create($this->tableName, function (Blueprint $table) {
-            $table->engine = 'InnoDB';
-            $table->increments('id');
-            $table->integer('item_id');
+            $table->id();
             $table->string('bill', 20)->default('--');
             $table->text('base64');
             $table->decimal('cost', 10, 2);
             $table->decimal('price', 10, 2);
             $table->integer('amount');
-
+            $table->foreignId('store_items_id')->constrained();
+            /*
             $table->index(["item_id"], 'item_id_idx');
-
 
             $table->foreign('item_id', 'item_id_idx')
                 ->references('id')->on('store_items')
                 ->onDelete('no action')
                 ->onUpdate('no action');
+            */
         });
     }
 

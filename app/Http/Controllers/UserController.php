@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Http\Resources\User as UserResource;
 Use App\User;
 
 class UserController extends Controller
@@ -19,8 +20,8 @@ class UserController extends Controller
         if(! $users){
             abort(404);
         }
-        $return['data'] = $users;
-        return $return;
+        //$return['data'] = $users;
+        return UserResource::collection($users);
     }
     /**
      * Store a newly created resource in storage.
@@ -36,7 +37,7 @@ class UserController extends Controller
             'password' => Hash::make($request->input('password')),
             'api_token' => hash('sha256', Str::random(60))
         ]);
-        return $user;
+        return New UserResource($user);
     }
     /**
      * Display the specified resource.
@@ -45,7 +46,7 @@ class UserController extends Controller
      */
     public function show($id){
         $user = User::find($id);
-        return $user;
+        return New UserResource($user);
     }
     /**
      * Update the specified resource in storage.
@@ -54,13 +55,21 @@ class UserController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id){
-        $user = $this->show($id);
+        $user = User::find($id);
+        /*
+        $user->name = $request->input('name');
+        $user->username = $request->input('username');
+        $user->rol = $request->input('rol');
+        $user->api_token = hash('sha256', Str::random(60));
+        $user->save();
+        */
         $user->fill([
             'name' => $request->input('name'),
+            'username' => $request->input('username'),
             'rol' => $request->input('rol'),
             'api_token' => hash('sha256', Str::random(60))
         ])->save();
-        return $user;
+        return New UserResource($user);
     }
     /**
      * Remove the specified resource from storage.
@@ -70,6 +79,6 @@ class UserController extends Controller
     public function destroy($id){
         $user = $this->show($id);
         $user->delete();
-        return $user;
+        return New UserResource($user);
     }
 }

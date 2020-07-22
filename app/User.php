@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class User extends Model {
@@ -12,7 +13,9 @@ class User extends Model {
     protected $hidden = [
         "password","remember_token","api_token"
     ];
-    
+    protected $dates = [
+        'updated_at','created_at'
+    ];
     public function getAuthIdentifier(){
         return 1;
     }

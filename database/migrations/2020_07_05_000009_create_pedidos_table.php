@@ -21,10 +21,7 @@ class CreatePedidosTable extends Migration
     public function up()
     {
         Schema::create($this->tableName, function (Blueprint $table) {
-            $table->engine = 'InnoDB';
-            $table->increments('id');
-            $table->integer('test_id');
-            $table->integer('id_cliente');
+            $table->id();
             $table->string('armazon_name', 250)->nullable();
             $table->string('armazon_code', 20)->nullable();
             $table->text('observaciones')->nullable();
@@ -33,30 +30,28 @@ class CreatePedidosTable extends Migration
             $table->integer('ncaja')->nullable();
             $table->text('mensajes');
             $table->text('items');
-            $table->integer('user_id');
+            $table->foreignId('examenes_id')->constrained();
+            $table->foreignId('contact_id')->constrained();
+            $table->foreignId('user_id')->constrained();
             $table->integer('status');
-
+            /*
             $table->index(["id_cliente"], 'contacto_id_idx');
-
             $table->index(["user_id"], 'user_id_idx');
-
             $table->index(["test_id"], 'test_id_idx');
-
 
             $table->foreign('id_cliente', 'contacto_id_idx')
                 ->references('id')->on('contactos')
                 ->onDelete('no action')
                 ->onUpdate('no action');
-
             $table->foreign('user_id', 'user_id_idx')
                 ->references('id')->on('users')
                 ->onDelete('no action')
                 ->onUpdate('no action');
-
             $table->foreign('test_id', 'test_id_idx')
                 ->references('id')->on('examenes')
                 ->onDelete('no action')
                 ->onUpdate('no action');
+            */
         });
     }
 

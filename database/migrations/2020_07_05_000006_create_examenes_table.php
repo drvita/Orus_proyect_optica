@@ -21,9 +21,7 @@ class CreateExamenesTable extends Migration
     public function up()
     {
         Schema::create($this->tableName, function (Blueprint $table) {
-            $table->engine = 'InnoDB';
-            $table->increments('id');
-            $table->integer('cliente_id');
+            $table->id();
             $table->integer('edad')->default('0');
             $table->string('keratometriaoi', 13)->nullable();
             $table->string('keratometriaod', 13)->nullable();
@@ -91,23 +89,23 @@ class CreateExamenesTable extends Migration
             $table->tinyInteger('d_fcloi')->nullable();
             $table->date('d_fclod_time')->nullable();
             $table->date('d_fcloi_time')->nullable();
-            $table->integer('user_id')->nullable();
+            $table->foreignId('user_id')->constrained();
+            $table->foreignId('contact_id')->constrained();
             $table->integer('status')->nullable();
-
+            $table->timestamps();
+            /*
             $table->index(["user_id"], 'user_id_idx');
-
             $table->index(["cliente_id"], 'id_contacto_idx');
-
 
             $table->foreign('cliente_id', 'id_contacto_idx')
                 ->references('id')->on('contactos')
                 ->onDelete('no action')
                 ->onUpdate('no action');
-
             $table->foreign('user_id', 'user_id_idx')
                 ->references('id')->on('users')
                 ->onDelete('no action')
                 ->onUpdate('no action');
+            */
         });
     }
 
