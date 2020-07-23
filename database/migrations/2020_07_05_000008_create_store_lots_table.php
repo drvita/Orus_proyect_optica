@@ -4,13 +4,13 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateStoreLotTable extends Migration
+class CreateStoreLotsTable extends Migration
 {
     /**
      * Schema table name to migrate
      * @var string
      */
-    public $tableName = 'store_lot';
+    public $tableName = 'store_lots';
 
     /**
      * Run the migrations.
@@ -28,14 +28,6 @@ class CreateStoreLotTable extends Migration
             $table->decimal('price', 10, 2);
             $table->integer('amount');
             $table->foreignId('store_items_id')->constrained();
-            /*
-            $table->index(["item_id"], 'item_id_idx');
-
-            $table->foreign('item_id', 'item_id_idx')
-                ->references('id')->on('store_items')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            */
         });
     }
 

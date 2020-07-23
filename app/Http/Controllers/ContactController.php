@@ -5,76 +5,65 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Contact as ContactResource;
-use App\Contact;
+use App\Http\Requests\Contact as ContactRequests;
+use App\Models\Contact;
 
-class ContactController extends Controller
-{
+class ContactController extends Controller{
+    protected $contact;
+
+    public function __construct(Contact $contact){
+        $this->contact = $contact;
+    }
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Muestra la lista de contactos
+     * @return Json api rest
      */
     public function index(){
-        
-        $contacts = Contact::all();
-        if(! $contacts){
-            abort(404);
-        }
-        return ContactResource::collection($contacts);
+        return ContactResource::collection(
+            $this->contact::all()
+        );
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Almacena un nuevo contacto
+     * @param  $request a traves del body json
+     * @return Json api rest
      */
-    public function store(Request $request)
-    {
-        $contact = Contact::create([
-            'name' => $request->input('name'),
-            'rfc' => $request->input('rfc'),
-            'email' => $request->input('email'),
-            'type' => $request->input('type'),
-            'telnumbers' => $request->input('telnumbers'),
-            'birthday' => $request->input('birthday'),
-            'domicilio' => $request->input('domicilio'),
-            'user_id' => Auth::id()
-        ]);
+    public function store(ContactRequests $request){
+        $request['user_id']=Auth::id();
+        $contact = $this->contact->create($request->all());
         return New ContactResource($contact);
     }
 
     /**
-     * Display the specified resource.
-     *
+     * Muestra un contacto en espesifico
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Json api rest
      */
-    public function show($id)
-    {
-        //
+    public function show(Contact $contact){
+        return New ContactResource($contact);
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
+     * Actualiza un contacto en espesifico
+     * @param  $request body json
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Json api rest
      */
-    public function update(Request $request, $id)
-    {
-        //
+    public function update(ContactRequests $request, Contact $contact){
+        
+        $request['user_id']=$contact->user_id;
+        $contact->update( $request->all() );
+        return New ContactResource($contact);
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
+     * Elimina un contacto en espesifico
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Json api rest
      */
-    public function destroy($id)
-    {
-        //
+    public function destroy(Contact $contact){
+        $contact->delete();
+        return response()->json(null, 204);
     }
 }

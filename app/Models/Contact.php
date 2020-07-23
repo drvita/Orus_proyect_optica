@@ -1,11 +1,9 @@
 <?php
 
-namespace App;
-
+namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Contact extends Model{
-
     protected $table = "contacts";
     protected $fillable = [
         "name","rfc","email","type","telnumbers","birthday","domicilio","user_id"
@@ -13,7 +11,8 @@ class Contact extends Model{
     protected $hidden = [];
     protected $dates = [
         'updated_at',
-        'created_at'
+        'created_at',
+        'birthday'
     ];
     public function user(){
         return $this->belongsTo('App\User');

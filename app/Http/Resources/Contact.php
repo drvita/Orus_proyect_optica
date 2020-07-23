@@ -1,36 +1,22 @@
 <?php
 
 namespace App\Http\Resources;
-
-use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class Contact extends JsonResource
-{
-    /**
-     * Transform the resource into an array.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array
-     */
+class Contact extends JsonResource {
+
     public function toArray($request){
-
-        Carbon::setLocale('es');
-        $create_at = new Carbon($this->created_at);
-        $updated_at = new Carbon($this->updated_at);
-
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'rfc' => $this->rfc,
-            'email' => $this->email,
-            'type' => $this->type,
-            'telnumbers' => $this->telnumbers,
-            'birthday' => $this->birthday,
-            'domicilio' => $this->domicilio,
-            'user_create' => $this->user->name,
-            'created_at' => $create_at->diffForHumans(),
-            'updated_at' => $updated_at->diffForHumans(),
-        ];
+        $return['id'] = $this->id;
+        $return['nombre'] = $this->name;
+        $return['rfc'] = $this->rfc;
+        $return['email'] = $this->email;
+        $return['tipo'] = $this->type;
+        $return['telefonos'] = $this->telnumbers;
+        $return['f_nacimiento'] = ($this->birthday)?$this->birthday->toFormattedDateString():null;
+        $return['domicilio'] = $this->domicilio;
+        $return['created_user'] = $this->user->name;
+        $return['created_at'] = $this->created_at->diffForHumans();
+        $return['updated_at'] = $this->updated_at->diffForHumans();
+        return $return;
     }
 }

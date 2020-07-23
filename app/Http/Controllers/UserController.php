@@ -11,8 +11,8 @@ Use App\User;
 class UserController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     * @return \Illuminate\Http\Response
+     * Muestra la lista de usuarios en sistema
+     * @return Json api rest
      */
     public function index(){
         $users = User::all();
@@ -24,9 +24,9 @@ class UserController extends Controller
         return UserResource::collection($users);
     }
     /**
-     * Store a newly created resource in storage.
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Registra un nuevo usuario en la base de datos.
+     * @param  $request que se traen de post body json
+     * @return Json api rest
      */
     public function store(Request $request){
         $user = User::create([
@@ -40,44 +40,41 @@ class UserController extends Controller
         return New UserResource($user);
     }
     /**
-     * Display the specified resource.
+     * Muestra unj usuario espesifico
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Json api rest
      */
-    public function show($id){
-        $user = User::find($id);
+    public function show(User $user){
         return New UserResource($user);
     }
     /**
-     * Update the specified resource in storage.
-     * @param  \Illuminate\Http\Request  $request
+     * Actualiza el registro de un susuario
+     * @param  $request que se traen del body json
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Json api rest
      */
-    public function update(Request $request, $id){
-        $user = User::find($id);
-        /*
+    public function update(Request $request, User $user){
         $user->name = $request->input('name');
         $user->username = $request->input('username');
         $user->rol = $request->input('rol');
         $user->api_token = hash('sha256', Str::random(60));
         $user->save();
-        */
+        /*
         $user->fill([
             'name' => $request->input('name'),
             'username' => $request->input('username'),
             'rol' => $request->input('rol'),
             'api_token' => hash('sha256', Str::random(60))
         ])->save();
+        */
         return New UserResource($user);
     }
     /**
-     * Remove the specified resource from storage.
+     * Elimina un usuario en espesifico.
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Json api rest
      */
-    public function destroy($id){
-        $user = $this->show($id);
+    public function destroy(User $user){
         $user->delete();
         return New UserResource($user);
     }

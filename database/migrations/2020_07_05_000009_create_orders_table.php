@@ -4,13 +4,13 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreatePedidosTable extends Migration
+class CreateOrdersTable extends Migration
 {
     /**
      * Schema table name to migrate
      * @var string
      */
-    public $tableName = 'pedidos';
+    public $tableName = 'orders';
 
     /**
      * Run the migrations.
@@ -30,28 +30,10 @@ class CreatePedidosTable extends Migration
             $table->integer('ncaja')->nullable();
             $table->text('mensajes');
             $table->text('items');
-            $table->foreignId('examenes_id')->constrained();
+            $table->foreignId('exam_id')->constrained();
             $table->foreignId('contact_id')->constrained();
             $table->foreignId('user_id')->constrained();
             $table->integer('status');
-            /*
-            $table->index(["id_cliente"], 'contacto_id_idx');
-            $table->index(["user_id"], 'user_id_idx');
-            $table->index(["test_id"], 'test_id_idx');
-
-            $table->foreign('id_cliente', 'contacto_id_idx')
-                ->references('id')->on('contactos')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            $table->foreign('user_id', 'user_id_idx')
-                ->references('id')->on('users')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            $table->foreign('test_id', 'test_id_idx')
-                ->references('id')->on('examenes')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            */
         });
     }
 

@@ -30,30 +30,9 @@ class CreateStoreItemsTable extends Migration
             $table->string('unit', 4);
             $table->integer('cant');
             $table->float('price');
-            $table->foreignId('categoria_id')->constrained();
+            $table->foreignId('category_id')->constrained();
             $table->foreignId('contact_id')->constrained();
             $table->foreignId('user_id')->constrained();
-            /*
-            $table->index(["user_id"], 'user_id_idx');
-            $table->index(["supplier_id"], 'contacto_id_idx');
-            $table->index(["cat_id"], 'category_idx');
-            $table->unique(["code"], 'code_UNIQUE');
-            $table->unique(["codebar"], 'codebar_UNIQUE');
-            $table->unique(["name"], 'name_UNIQUE');
-
-            $table->foreign('cat_id', 'category_idx')
-                ->references('id')->on('categorias')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            $table->foreign('supplier_id', 'contacto_id_idx')
-                ->references('id')->on('contactos')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            $table->foreign('user_id', 'user_id_idx')
-                ->references('id')->on('users')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            */
         });
     }
 

@@ -4,13 +4,13 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateExamenesTable extends Migration
+class CreateExamsTable extends Migration
 {
     /**
      * Schema table name to migrate
      * @var string
      */
-    public $tableName = 'examenes';
+    public $tableName = 'exams';
 
     /**
      * Run the migrations.
@@ -93,19 +93,6 @@ class CreateExamenesTable extends Migration
             $table->foreignId('contact_id')->constrained();
             $table->integer('status')->nullable();
             $table->timestamps();
-            /*
-            $table->index(["user_id"], 'user_id_idx');
-            $table->index(["cliente_id"], 'id_contacto_idx');
-
-            $table->foreign('cliente_id', 'id_contacto_idx')
-                ->references('id')->on('contactos')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            $table->foreign('user_id', 'user_id_idx')
-                ->references('id')->on('users')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            */
         });
     }
 
