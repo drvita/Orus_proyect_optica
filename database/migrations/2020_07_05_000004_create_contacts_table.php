@@ -23,12 +23,12 @@ class CreateContactsTable extends Migration
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('rfc', 15)->unique();
+            $table->string('rfc', 15)->nullable()->unique();
             $table->string('email', 100)->nullable();
             $table->integer('type');
             $table->text('telnumbers');
             $table->date('birthday')->nullable();
-            $table->text('domicilio');
+            $table->text('domicilio')->nullable();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
             /*

@@ -4,13 +4,13 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateVentasTable extends Migration
+class CreateSalesTable extends Migration
 {
     /**
      * Schema table name to migrate
      * @var string
      */
-    public $tableName = 'ventas';
+    public $tableName = 'sales';
 
     /**
      * Run the migrations.
@@ -31,27 +31,8 @@ class CreateVentasTable extends Migration
             $table->float('total');
             $table->text('banco')->nullable();
             $table->foreignId('contact_id')->constrained();
-            $table->foreignId('pedido_id')->nullable()->constrained();
+            $table->foreignId('order_id')->nullable()->constrained();
             $table->foreignId('user_id')->constrained();
-            /*
-            $table->index(["pedido_id"], 'pedido_id_idx');
-            $table->index(["cliente_id"], 'contacto_id_idx');
-            $table->index(["user_id"], 'user_id_idx');
-            $table->unique(["session"], 'session_UNIQUE');
-
-            $table->foreign('cliente_id', 'contacto_id_idx')
-                ->references('id')->on('contactos')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            $table->foreign('pedido_id', 'pedido_id_idx')
-                ->references('id')->on('pedidos')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            $table->foreign('user_id', 'user_id_idx')
-                ->references('id')->on('users')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            */
         });
     }
 
