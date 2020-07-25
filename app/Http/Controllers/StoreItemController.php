@@ -1,64 +1,67 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\StoreItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\StoreItem as StoreResources;
+use App\Http\Requests\StoreItem as StoreRequests;
 
-class StoreItemController extends Controller
-{
+class StoreItemController extends Controller{
+    protected $store;
+
+    public function __construct(StoreItem $store){
+        $this->store = $store;
+    }
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Muestra una lista de los productos en almacen
+     * @return Json api rest
      */
-    public function index()
-    {
-        //
+    public function index(){
+        return StoreResources::collection(
+            $this->store::all()
+        );
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Almacena un nuevo producto
+     * @param  $request datos a almacenar a traves del body en formato json
+     * @return Json api rest
      */
-    public function store(Request $request)
-    {
-        //
+    public function store(StoreRequests $request){
+        $request['user_id']=Auth::id();
+        $store = $this->store->create($request->all());
+        return new StoreResources($store);
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\StoreItem  $storeItem
-     * @return \Illuminate\Http\Response
+     * Muestra un producto en espesifico
+     * @param  $store identificador del producto
+     * @return Json api rest
      */
-    public function show(StoreItem $storeItem)
-    {
-        //
+    public function show(StoreItem $store){
+        return new StoreResources($store);
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\StoreItem  $storeItem
-     * @return \Illuminate\Http\Response
+     * Actualiza un producto en espesifico
+     * @param  $request datos del producto a actualizar
+     * @param  $store identificador del producto a actualizar
+     * @return Json api rest
      */
-    public function update(Request $request, StoreItem $storeItem)
-    {
-        //
+    public function update(StoreRequests $request, StoreItem $store){
+        $request['user_id']=$store->user_id;
+        $store->update( $request->all() );
+        return New StoreResources($store);
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\StoreItem  $storeItem
-     * @return \Illuminate\Http\Response
+     * Elimina un producto en espesifico
+     * @param  $storeItem identificador del producto
+     * @return null 204
      */
-    public function destroy(StoreItem $storeItem)
-    {
-        //
+    public function destroy(StoreItem $store){
+        $store->delete();
+        return response()->json(null, 204);
     }
 }

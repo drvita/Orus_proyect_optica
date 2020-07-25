@@ -1,64 +1,67 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\Order as OrderResources;
+use App\Http\Requests\Order as OrderRequests;
 
-class OrderController extends Controller
-{
+class OrderController extends Controller{
+    protected $order;
+
+    public function __construct(Order $order){
+        $this->order = $order;
+    }
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Muestra lista de ordenes
+     * @return Json api rest
      */
-    public function index()
-    {
-        //
+    public function index(){
+        return OrderResources::collection(
+            $this->order::all()
+        );
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Almacena una nueva orden de pedido
+     * @param  $request de body en Json
+     * @return Json api rest
      */
-    public function store(Request $request)
-    {
-        //
+    public function store(OrderRequests $request){
+        $request['user_id']=Auth::id();
+        $order = $this->order->create($request->all());
+        return new OrderResources($order);
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
+     * Muestra una orden en espesifico
+     * @param  $order identificador de la orden
+     * @return Json api rest
      */
-    public function show(Order $order)
-    {
-        //
+    public function show(Order $order){
+        return new OrderResources($order);
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
+     * Actualiza una orden espesifica
+     * @param  $request datos a actualizar por medio de body en Json
+     * @param  $order identificador de la orden a actualizar
+     * @return Json api rest
      */
-    public function update(Request $request, Order $order)
-    {
-        //
+    public function update(Request $request, Order $order){
+        $request['user_id']=$order->user_id;
+        $order->update( $request->all() );
+        return New OrderResources($order);
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
+     * Elimina una orden
+     * @param  $order identificador de la orden
+     * @return null 404
      */
-    public function destroy(Order $order)
-    {
-        //
+    public function destroy(Order $order){
+        $order->delete();
+        return response()->json(null, 204);
     }
 }

@@ -33,6 +33,7 @@ class CreateSalesTable extends Migration
             $table->foreignId('contact_id')->constrained();
             $table->foreignId('order_id')->nullable()->constrained();
             $table->foreignId('user_id')->constrained();
+            $table->timestamps();
         });
     }
 

@@ -1,64 +1,67 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Auth;
 use App\Models\Exam;
 use Illuminate\Http\Request;
+use App\Http\Resources\Exam as ExamResources;
+use App\Http\Requests\Exam as ExamRequests;
 
-class ExamController extends Controller
-{
+class ExamController extends Controller{
+    protected $exam;
+
+    public function __construct(Exam $exam){
+        $this->exam = $exam;
+    }
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Muestra una lista de examenes
+     * @return Json api rest
      */
-    public function index()
-    {
-        //
+    public function index(){
+        return ExamResources::collection(
+            $this->exam::all()
+        );
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Alacena un nuevo examen
+     * @param  $request body en json
+     * @return Json api rest
      */
-    public function store(Request $request)
-    {
-        //
+    public function store(ExamRequests $request){
+        $request['user_id']=Auth::id();
+        $exam = $this->exam->create($request->all());
+        return new ExamResources($exam);
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Exam  $exam
-     * @return \Illuminate\Http\Response
+     * Muestra un examen en espesifico
+     * @param  $exam id que proviene de la URL
+     * @return Json api rest
      */
-    public function show(Exam $exam)
-    {
-        //
+    public function show(Exam $exam){
+        return new ExamResources($exam);
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Exam  $exam
-     * @return \Illuminate\Http\Response
+     * Actualiza un examen en espesifico
+     * @param  $request proveniente del body en json
+     * @param  $exam identificador del examen
+     * @return Json api rest
      */
-    public function update(Request $request, Exam $exam)
-    {
-        //
+    public function update(ExamRequests $request, Exam $exam){
+        $request['user_id']=$exam->user_id;
+        $exam->update( $request->all() );
+        return New ExamResources($exam);
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Exam  $exam
-     * @return \Illuminate\Http\Response
+     * Elimina un examen en espesifico
+     * @param  $exam identificador del examen
+     * @return Json api rest
      */
-    public function destroy(Exam $exam)
-    {
-        //
+    public function destroy(Exam $exam){
+        $exam->delete();
+        return response()->json(null, 204);
     }
 }

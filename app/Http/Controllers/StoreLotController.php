@@ -4,61 +4,65 @@ namespace App\Http\Controllers;
 
 use App\Models\StoreLot;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\StoreLot as StoreResources;
+use App\Http\Requests\StoreLot as StoreRequests;
 
-class StoreLotController extends Controller
-{
+class StoreLotController extends Controller{
+    protected $item;
+
+    public function __construct(StoreLot $item){
+        $this->item = $item;
+    }
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Muestra una lista de ingreso de lotes de producto
+     * @return Json api
      */
-    public function index()
-    {
-        //
+    public function index(){
+        return StoreResources::collection(
+            $this->item::all()
+        );
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Almacena un lote relacionado con un producto
+     * @param  $request campos del lote a traves del body en Json
+     * @return Json api rest
      */
-    public function store(Request $request)
-    {
-        //
+    public function store(StoreRequests $request){
+        $request['user_id']=Auth::id();
+        $item = $this->item->create($request->all());
+        return new StoreResources($store);
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\StoreLot  $storeLot
-     * @return \Illuminate\Http\Response
+     * Muestra un lote en espesifico
+     * @param  $storeLot identificador del lote
+     * @return Json api rest
      */
-    public function show(StoreLot $storeLot)
-    {
-        //
+    public function show(StoreLot $item){
+        return new StoreResources($item);
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\StoreLot  $storeLot
-     * @return \Illuminate\Http\Response
+     * Actualiza un lote en espesifico
+     * @param  $request datos a traves del body en json
+     * @param  $storeLot identificador del lote
+     * @return json api rest
      */
-    public function update(Request $request, StoreLot $storeLot)
-    {
-        //
+    public function update(StoreRequests $request, StoreLot $item){
+        $request['user_id']=$item->user_id;
+        $item->update( $request->all() );
+        return New StoreResources($item);
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\StoreLot  $storeLot
-     * @return \Illuminate\Http\Response
+     * Eliminamos un lote en espesifico
+     * @param  $storeLot identificador del lote
+     * @return null 204
      */
-    public function destroy(StoreLot $storeLot)
-    {
-        //
+    public function destroy(StoreLot $item){
+        $item->delete();
+        return response()->json(null, 204);
     }
 }

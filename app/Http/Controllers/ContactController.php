@@ -51,7 +51,6 @@ class ContactController extends Controller{
      * @return Json api rest
      */
     public function update(ContactRequests $request, Contact $contact){
-        
         $request['user_id']=$contact->user_id;
         $contact->update( $request->all() );
         return New ContactResource($contact);

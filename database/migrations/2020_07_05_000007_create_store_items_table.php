@@ -23,16 +23,16 @@ class CreateStoreItemsTable extends Migration
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
             $table->string('code', 18)->unique();
-            $table->string('codebar', 100)->unique()->nullable();
-            $table->string('grad', 12);
-            $table->string('brand', 25);
+            $table->string('codebar', 100)->nullable()->unique();
+            $table->string('grad', 12)->nullable();
+            $table->string('brand', 25)->nullable();
             $table->string('name', 150)->unique();
             $table->string('unit', 4);
-            $table->integer('cant');
-            $table->float('price');
+            $table->integer('cant')->nullable();
+            $table->float('price')->nullable();
             $table->foreignId('category_id')->constrained();
-            $table->foreignId('contact_id')->constrained();
             $table->foreignId('user_id')->constrained();
+            $table->timestamps();
         });
     }
 

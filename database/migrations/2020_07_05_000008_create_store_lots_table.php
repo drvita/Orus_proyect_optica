@@ -22,12 +22,14 @@ class CreateStoreLotsTable extends Migration
     {
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
-            $table->string('bill', 20)->default('--');
-            $table->text('base64');
-            $table->decimal('cost', 10, 2);
+            $table->string('bill', 20)->nullable();
+            $table->text('base64')->nullable();
+            $table->decimal('cost', 10, 2)->nullable();
             $table->decimal('price', 10, 2);
             $table->integer('amount');
             $table->foreignId('store_items_id')->constrained();
+            $table->foreignId('user_id')->constrained();
+            $table->timestamps();
         });
     }
 

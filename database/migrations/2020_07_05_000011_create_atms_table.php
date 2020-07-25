@@ -28,19 +28,7 @@ class CreateAtmsTable extends Migration
             $table->float('venta')->nullable();
             $table->foreignId('session_id', 120)->nullable()->constrained();
             $table->foreignId('user_id')->constrained();
-            /*
-            $table->index(["session_id"], 'ventas_session_idx');
-            $table->index(["user_id"], 'user_id_idx');
-
-            $table->foreign('user_id', 'user_id_idx')
-                ->references('id')->on('users')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            $table->foreign('session_id', 'ventas_session_idx')
-                ->references('session')->on('ventas')
-                ->onDelete('no action')
-                ->onUpdate('no action');
-            */
+            $table->timestamps();
         });
     }
 
