@@ -25,8 +25,8 @@ class CreateAtmsTable extends Migration
             $table->float('efectivo')->nullable();
             $table->float('tarjetas')->nullable();
             $table->float('cheques')->nullable();
-            $table->float('venta')->nullable();
-            $table->foreignId('session_id', 120)->nullable()->constrained();
+            $table->float('venta');
+            //$table->foreignId('session_id', 120)->constrained();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });

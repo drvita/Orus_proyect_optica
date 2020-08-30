@@ -17,10 +17,22 @@ class ExamController extends Controller{
      * Muestra una lista de examenes
      * @return Json api rest
      */
-    public function index(){
-        return ExamResources::collection(
-            $this->exam::all()
-        );
+    public function index(Request $request){
+        $orderby = $request->orderby? $request->orderby : "created_at";
+        $order = $request->order=="desc"? "desc" : "asc";
+
+        if($request->search){
+            $exams = $this->exam
+                ->orderBy($orderby, $order)
+                ->where('paciente',"LIKE","%$request->search%")
+                ->paginate(10);
+        } else {
+            $exams = $this->exam
+                ->orderBy($orderby, $order)
+                ->paginate(10);
+        }
+
+        return ExamResources::collection($exams);
     }
 
     /**

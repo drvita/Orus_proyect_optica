@@ -8,19 +8,33 @@ use Illuminate\Support\Str;
 use App\Http\Resources\User as UserResource;
 Use App\User;
 
-class UserController extends Controller
-{
+class UserController extends Controller{
+    public function __construct(User $user){
+        $this->user = $user;
+    }
     /**
      * Muestra la lista de usuarios en sistema
      * @return Json api rest
      */
-    public function index(){
-        $users = User::all();
-        //dd($users);
-        if(! $users){
-            abort(404);
+    public function index(Request $request){
+        $orderby = $request->orderby? $request->orderby : "created_at";
+        $order = $request->order=="desc"? "desc" : "asc";
+
+        if($request->search){
+            $users = $this->user
+                ->orderBy($orderby, $order)
+                ->where(function($q) use($request){
+                    $q->where('name',"LIKE","%$request->search%")
+                        ->orWhere('email',"LIKE","$request->search%")
+                        ->orWhere('username',"LIKE","%$request->search%");
+                })
+                ->paginate(10);
+        } else {
+            $users = $this->user
+                ->orderBy($orderby, $order)
+                ->paginate(10);
         }
-        //$return['data'] = $users;
+
         return UserResource::collection($users);
     }
     /**
@@ -54,19 +68,8 @@ class UserController extends Controller
      * @return Json api rest
      */
     public function update(Request $request, User $user){
-        $user->name = $request->input('name');
-        $user->username = $request->input('username');
-        $user->rol = $request->input('rol');
-        $user->api_token = hash('sha256', Str::random(60));
-        $user->save();
-        /*
-        $user->fill([
-            'name' => $request->input('name'),
-            'username' => $request->input('username'),
-            'rol' => $request->input('rol'),
-            'api_token' => hash('sha256', Str::random(60))
-        ])->save();
-        */
+        if($request['password']) $request['password'] = Hash::make($request->input('password'));
+        $user->update( $request->all() );
         return New UserResource($user);
     }
     /**

@@ -18,10 +18,16 @@ class StoreLotController extends Controller{
      * Muestra una lista de ingreso de lotes de producto
      * @return Json api
      */
-    public function index(){
-        return StoreResources::collection(
-            $this->item::all()
-        );
+    public function index(Request $request){
+        if($request->store_items_id){
+            $items = $this->item
+                    ->where('store_items_id',$request->store_items_id)
+                    ->paginate(10);
+        } else {
+            $items = $this->item::paginate(10);
+        }
+        
+        return StoreResources::collection($items);
     }
 
     /**
@@ -32,7 +38,7 @@ class StoreLotController extends Controller{
     public function store(StoreRequests $request){
         $request['user_id']=Auth::id();
         $item = $this->item->create($request->all());
-        return new StoreResources($store);
+        return new StoreResources($item);
     }
 
     /**

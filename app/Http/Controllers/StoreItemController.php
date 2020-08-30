@@ -17,10 +17,25 @@ class StoreItemController extends Controller{
      * Muestra una lista de los productos en almacen
      * @return Json api rest
      */
-    public function index(){
-        return StoreResources::collection(
-            $this->store::all()
-        );
+    public function index(Request $request){
+        $orderby = $request->orderby? $request->orderby : "created_at";
+        $order = $request->order=="desc"? "desc" : "asc";
+
+        if($request->search){
+            $items = $this->store
+                ->orderBy($orderby, $order)
+                ->where(function($q) use($request){
+                    $q->where('name',"LIKE","%$request->search%")
+                        ->orWhere('code',"LIKE","$request->search%");
+                })
+                ->paginate(10);
+        } else {
+            $items = $this->store
+                ->orderBy($orderby, $order)
+                ->paginate(10);
+        }
+        
+        return StoreResources::collection($items);
     }
 
     /**

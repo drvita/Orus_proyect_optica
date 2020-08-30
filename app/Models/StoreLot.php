@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Model;
+use App\Models\StoreItem;
 
 class StoreLot extends Model{
     protected $table = "store_lots";
@@ -19,5 +19,19 @@ class StoreLot extends Model{
     }
     public function producto(){
         return $this->belongsTo('App\Models\StoreItem','store_items_id');
+    }
+    
+    protected static function booted(){
+        static::created(function ($item) {
+            $updateItem = StoreItem::find($item->store_items_id);
+            $updateItem->cant += $item->amount;
+            $updateItem->price = $item->price;
+            $updateItem->save();
+        });
+        static::deleted(function ($item) {
+            $updateItem = StoreItem::find($item->store_items_id);
+            $updateItem->cant -= $item->amount;
+            $updateItem->save();
+        });
     }
 }

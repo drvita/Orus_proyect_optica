@@ -23,7 +23,8 @@ class CreateBrandsTable extends Migration
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
             $table->string('name', 50);
-            $table->integer('supplier');
+            $table->foreignId('contact_id')->constrained();
+            $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });
     }

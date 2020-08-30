@@ -12,7 +12,7 @@ class StoreLot extends JsonResource{
         $return['costo'] = $this->cost;
         $return['precio'] = $this->price;
         $return['cantidades'] = $this->amount;
-        $return['producto'] = ($this->producto)? $this->producto->name : null;
+        $return['producto'] = ($this->producto)? $this->producto->name : '';
         $return['created'] = $this->user->name;
         $return['created_at'] = $this->created_at->diffForHumans();
         $return['updated_at'] = $this->updated_at->diffForHumans();

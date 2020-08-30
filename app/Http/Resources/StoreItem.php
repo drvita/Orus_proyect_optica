@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\CategoryShort as CategoryResource;
 
 class StoreItem extends JsonResource{
 
@@ -9,11 +10,12 @@ class StoreItem extends JsonResource{
         $return['id'] = $this->id;
         $return['producto'] = $this->name;
         $return['codigo'] = $this->code;
-        $return['c_barra'] = $this->codebar;
+        $return['c_barra'] = $this->codebar ? $this->codebar : '';
+        $return['marca'] = $this->brand;
         $return['unidad'] = $this->unit;
         $return['cantidades'] = $this->cant;
         $return['precio'] = $this->price;
-        $return['categoria'] = $this->categoria->name;
+        $return['categoria'] = new CategoryResource($this->categoria);
         $return['created'] = $this->user->name;
         $return['created_at'] = $this->created_at->diffForHumans();
         $return['updated_at'] = $this->updated_at->diffForHumans();

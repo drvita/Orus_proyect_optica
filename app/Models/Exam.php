@@ -8,7 +8,7 @@ class Exam extends Model{
     protected $table = "exams";
     protected $fillable = [
         "edad","keratometriaoi","keratometriaod","pantalleooi","pantalleood","interrogatorio",
-        "cefalea","","c_intensidad","frontal","temporal","occipital","generality",
+        "cefalea","c_frecuencia","c_intensidad","frontal","temporal","occipital","generality",
         "temporaoi","temporaod","coa","aopp","aopf","avsloi","avslod","avcgaoi","avcgaod",
         "cvoi","cvod","oftalmoscopia","rsoi","rsod","diagnostico","presbicie","txoftalmico",
         "esferaoi","esferaod","cilindroi","cilindrod","ejeoi","ejeod","adicioni","adiciond",

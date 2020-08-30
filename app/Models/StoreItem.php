@@ -20,4 +20,7 @@ class StoreItem extends Model{
     public function categoria(){
         return $this->belongsTo('App\Models\Category','category_id');
     }
+    public function lote(){
+        return $this->hasMany('App\Models\StoreLot','store_items_id');
+    }
 }
