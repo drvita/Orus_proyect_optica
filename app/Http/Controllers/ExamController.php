@@ -21,16 +21,13 @@ class ExamController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
 
-        if($request->search){
-            $exams = $this->exam
+        $exams = $this->exam
                 ->orderBy($orderby, $order)
-                ->where('paciente',"LIKE","%$request->search%")
+                ->Paciente($request->search)
+                ->ExamsByPaciente($request->id)
+                ->Date($request->date)
+                ->Status($request->status)
                 ->paginate(10);
-        } else {
-            $exams = $this->exam
-                ->orderBy($orderby, $order)
-                ->paginate(10);
-        }
 
         return ExamResources::collection($exams);
     }

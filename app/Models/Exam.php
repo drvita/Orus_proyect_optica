@@ -28,4 +28,27 @@ class Exam extends Model{
     public function user(){
         return $this->belongsTo('App\User');
     }
+    public function scopePaciente($query, $name){
+        if(trim($name) != ""){
+            $query->whereHas('paciente', function($query) use ($name){
+                $query->where('name',"LIKE","%$name%");
+            });
+        }
+    }
+    public function scopeExamsByPaciente($query, $search){
+        if(trim($search) != ""){
+            $query->where("contact_id",$search);
+        }
+    }
+    public function scopeDate($query, $search){
+        if(trim($search) != ""){
+            $query->whereDate("created_at",$search);
+        }
+    }
+    public function scopeStatus($query, $search){
+        if(trim($search) != ""){
+            $query->where("status",$search);
+        }
+    }
+
 }

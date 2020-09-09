@@ -22,4 +22,13 @@ class Category extends Model{
     public function categories(){
         return $this->hasMany('App\Models\Category');
     }
+    public function scopeCategoryId($query, $search){
+        if(trim($search) != ""){
+            if($search === "raiz"){
+                $query->where("category_id",null);
+            } else {
+                $query->where("category_id",$search);
+            }
+        }
+    }
 }

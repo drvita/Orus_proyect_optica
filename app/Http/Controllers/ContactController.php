@@ -22,20 +22,12 @@ class ContactController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
 
-        if($request->search){
-            $contacts = $this->contact
+        $contacts = $this->contact
                 ->orderBy($orderby, $order)
-                ->where(function($q) use($request){
-                    $q->where('name',"LIKE","%$request->search%")
-                        ->orWhere('email',"LIKE","$request->search%")
-                        ->orWhere('rfc',"LIKE","$request->search%");
-                })
+                ->SearchUser($request->search)
+                ->Type($request->type)
+                ->Business($request->business)
                 ->paginate(10);
-        } else {
-            $contacts = $this->contact
-                ->orderBy($orderby, $order)
-                ->paginate(10);
-        }
 
         return ContactResource::collection($contacts);
     }

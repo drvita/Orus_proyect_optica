@@ -8,15 +8,21 @@ use App\Models\Category;
 
 class CategoryController extends Controller
 {
+    public function __construct(Category $category){
+        $this->category = $category;
+    }
     /**
      * Muestra una lista de categorias
      * @return Json api rest
      */
-    public function index(){
-        $category = Category::all();
-        if(! $category){
-            abort(404);
-        }
+    public function index(Request $request){
+        $orderby = $request->orderby? $request->orderby : "category_id";
+        $order = $request->order=="desc"? "desc" : "asc";
+
+        $category = $this->category
+                ->orderBy($orderby, $order)
+                ->CategoryId($request->categoryid)
+                ->paginate(10);
         return CategoryResource::collection($category);
     }
 
@@ -66,6 +72,6 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category){
         $category->delete();
-        return New CategoryResource($category);
+        return response()->json(null, 204);
     }
 }

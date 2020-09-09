@@ -11,6 +11,7 @@ class Contact extends JsonResource {
         $return['rfc'] = $this->rfc? $this->rfc : '';
         $return['email'] = $this->email;
         $return['tipo'] = $this->type;
+        $return['empresa'] = $this->business;
         $return['telefonos'] = $this->telnumbers;
         $return['f_nacimiento'] = ($this->birthday)?$this->birthday->format('Y-m-d'):null;
         $return['domicilio'] = $this->domicilio;

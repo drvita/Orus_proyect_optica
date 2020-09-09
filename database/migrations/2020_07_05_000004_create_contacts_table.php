@@ -26,6 +26,7 @@ class CreateContactsTable extends Migration
             $table->string('rfc', 15)->nullable()->unique();
             $table->string('email', 100)->nullable();
             $table->integer('type');
+            $table->integer('business');
             $table->text('telnumbers');
             $table->date('birthday')->nullable();
             $table->text('domicilio')->nullable();

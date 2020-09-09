@@ -26,5 +26,6 @@ class AppServiceProvider extends ServiceProvider
         setlocale(LC_ALL, "es_MX.UTF-8");
         //Carbon::setLocale(config('app.locale'));
         Carbon::setLocale('es_MX.UTF-8');
+        date_default_timezone_set('America/Mexico_City');
     }
 }

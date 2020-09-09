@@ -82,13 +82,13 @@ class CreateExamsTable extends Migration
             $table->string('pc_time', 60)->nullable();
             $table->string('tablet_time', 60)->nullable();
             $table->string('movil_time', 60)->nullable();
-            $table->date('d_time')->nullable();
+            $table->string('d_time')->nullable();
             $table->string('d_media', 60)->nullable();
             $table->date('d_test')->nullable();
             $table->tinyInteger('d_fclod')->nullable();
             $table->tinyInteger('d_fcloi')->nullable();
-            $table->date('d_fclod_time')->nullable();
-            $table->date('d_fcloi_time')->nullable();
+            $table->string('d_fclod_time')->nullable();
+            $table->string('d_fcloi_time')->nullable();
             $table->foreignId('user_id')->constrained();
             $table->foreignId('contact_id')->constrained();
             $table->integer('status')->nullable()->default('0');
