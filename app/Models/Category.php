@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 class Category extends Model{
     protected $table = "categories";
     protected $fillable = [
-        "name","descripcion","category_id","user_id"
+        "name","category_id","user_id"
     ];
     protected $hidden = [];
     protected $dates = [

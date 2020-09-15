@@ -20,7 +20,10 @@ class ExamShort extends JsonResource{
         $return['dpod'] = $this->dpod;
         $return['alturaoi'] = $this->alturaoi;
         $return['alturaod'] = $this->alturaod;
+        $return['recomendacion'] = $this->category_id;
         $return['estado'] = ($this->status)?"Terminado":"En proceso";
+        $return['created'] = $this->user->name;
+        $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         return $return;
     }
 }

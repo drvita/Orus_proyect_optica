@@ -17,10 +17,15 @@ class OrderController extends Controller{
      * Muestra lista de ordenes
      * @return Json api rest
      */
-    public function index(){
-        return OrderResources::collection(
-            $this->order::all()
-        );
+    public function index(Request $request){
+        $orderby = $request->orderby? $request->orderby : "created_at";
+        $order = $request->order=="desc"? "desc" : "asc";
+
+        $order = $this->order
+                ->orderBy($orderby, $order)
+                ->paginate(10);
+
+        return OrderResources::collection($order);
     }
 
     /**
