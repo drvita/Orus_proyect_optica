@@ -24,7 +24,7 @@ class ExamController extends Controller{
         $exams = $this->exam
                 ->orderBy($orderby, $order)
                 ->Paciente($request->search)
-                ->ExamsByPaciente($request->id)
+                ->ExamsByPaciente($request->paciente)
                 ->Date($request->date)
                 ->Status($request->status)
                 ->paginate(10);

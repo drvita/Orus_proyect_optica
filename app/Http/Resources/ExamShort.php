@@ -22,6 +22,7 @@ class ExamShort extends JsonResource{
         $return['alturaod'] = $this->alturaod;
         $return['recomendacion'] = $this->category_id;
         $return['estado'] = ($this->status)?"Terminado":"En proceso";
+        $return['category_id'] = $this->category_id;
         $return['created'] = $this->user->name;
         $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         return $return;

@@ -21,19 +21,10 @@ class StoreItemController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
 
-        if($request->search){
-            $items = $this->store
+        $items = $this->store
                 ->orderBy($orderby, $order)
-                ->where(function($q) use($request){
-                    $q->where('name',"LIKE","%$request->search%")
-                        ->orWhere('code',"LIKE","$request->search%");
-                })
+                ->SearchItem($request->search)
                 ->paginate(10);
-        } else {
-            $items = $this->store
-                ->orderBy($orderby, $order)
-                ->paginate(10);
-        }
         
         return StoreResources::collection($items);
     }
