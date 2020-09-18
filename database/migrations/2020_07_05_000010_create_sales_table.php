@@ -22,7 +22,6 @@ class CreateSalesTable extends Migration
     {
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
-            $table->string('session', 120)->unique();
             $table->text('items');
             $table->string('metodopago', 30)->default('EFECTIVO');
             $table->float('subtotal');

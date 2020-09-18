@@ -15,7 +15,7 @@ class Order extends JsonResource{
         $return['mensajes'] = $this->mensajes;
         $return['caja'] = $this->ncaja;
         $return['folio_lab'] = $this->npedidolab;
-        $return['laboratorio'] = $this->laboratorio;
+        $return['laboratorio'] = new ContactShort($this->laboratorio);
         $return['observaciones'] = $this->observaciones;
         $return['armazon_code'] = $this->armazon_code;
         $return['armazon_name'] = $this->armazon_name;
