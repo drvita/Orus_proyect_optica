@@ -1,13 +1,13 @@
 <?php
 
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Model;
+use App\Models\StoreItem;
 
 class Sale extends Model{
     protected $table = "sales";
     protected $fillable = [
-        "session","items","metodopago","subtotal","descuento","anticipo","total","banco",
+        "metodopago","subtotal","descuento","anticipo","total","banco",
         "contact_id","order_id","user_id"
     ];
     protected $hidden = [];
@@ -23,5 +23,16 @@ class Sale extends Model{
     }
     public function pedido(){
         return $this->belongsTo('App\Models\Order','order_id');
+    }
+
+    protected static function booted(){
+        static::created(function ($sale) {
+            $items = json_decode($sale->pedido->items, true);
+            foreach($items as $item){
+                $updateItem = StoreItem::find($item['id']);
+                $updateItem->cant -= $item['cant'];
+                $updateItem->save();
+            }
+        });
     }
 }

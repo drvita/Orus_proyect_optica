@@ -4,13 +4,13 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateSalesTable extends Migration
+class CreateSalesItemsTable extends Migration
 {
     /**
      * Schema table name to migrate
      * @var string
      */
-    public $tableName = 'sales';
+    public $tableName = 'sales_items';
 
     /**
      * Run the migrations.
@@ -22,14 +22,12 @@ class CreateSalesTable extends Migration
     {
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
-            $table->string('metodopago', 30)->default('EFECTIVO');
-            $table->float('subtotal')->default(0);
-            $table->float('descuento')->nullable();
-            $table->float('anticipo')->nullable();
-            $table->float('total')->default(0);
-            $table->text('banco')->nullable();
-            $table->foreignId('contact_id')->constrained();
-            $table->foreignId('order_id')->nullable()->constrained();
+            $table->float('cant');
+            $table->float('price');
+            $table->float('subtotal');
+            $table->integer('inStorage')->default(0);
+            $table->string('session', 100);
+            $table->foreignId('store_items_id')->constrained();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });

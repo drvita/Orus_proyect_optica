@@ -22,18 +22,16 @@ class CreateOrdersTable extends Migration
     {
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
-            $table->string('armazon_name', 250)->nullable();
-            $table->string('armazon_code', 20)->nullable();
+            $table->string('session', 100);
             $table->text('observaciones')->nullable();
             $table->string('npedidolab', 12)->nullable();
             $table->integer('ncaja')->nullable();
+            $table->integer('status')->default('0');
             $table->text('mensajes')->nullable();
-            $table->text('items');
             $table->foreignId('lab_id')->nullable()->constrained('contacts');
             $table->foreignId('exam_id')->nullable()->constrained();
             $table->foreignId('contact_id')->constrained();
             $table->foreignId('user_id')->constrained();
-            $table->integer('status')->default('0');
             $table->timestamps();
         });
     }

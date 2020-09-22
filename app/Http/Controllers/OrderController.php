@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Order as OrderResources;
 use App\Http\Requests\Order as OrderRequests;
+use App\Events\OrderUpdated;
 
 class OrderController extends Controller{
     protected $order;
@@ -36,6 +37,7 @@ class OrderController extends Controller{
     public function store(OrderRequests $request){
         $request['user_id']=Auth::id();
         $order = $this->order->create($request->all());
+        event(new OrderUpdated($order));
         return new OrderResources($order);
     }
 
@@ -57,6 +59,7 @@ class OrderController extends Controller{
     public function update(Request $request, Order $order){
         $request['user_id']=$order->user_id;
         $order->update( $request->all() );
+        event(new OrderUpdated($order));
         return New OrderResources($order);
     }
 

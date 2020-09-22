@@ -91,7 +91,7 @@ class CreateExamsTable extends Migration
             $table->string('d_fcloi_time')->nullable();
             $table->foreignId('user_id')->constrained();
             $table->foreignId('contact_id')->constrained();
-            $table->foreignId('category_id')->nullable()->constrained()->default('0');
+            $table->foreignId('category_id')->nullable()->constrained();
             $table->integer('status')->nullable()->default('0');
             $table->timestamps();
         });

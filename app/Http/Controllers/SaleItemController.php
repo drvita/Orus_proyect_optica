@@ -1,17 +1,17 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Sale;
+use App\Models\SaleItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Resources\Sale as SaleResources;
-use App\Http\Requests\Sale as SaleRequests;
+use App\Http\Resources\SaleItem as ItemResources;
+use App\Http\Requests\SaleItem as ItemRequests;
 
-class SaleController extends Controller{
-    protected $sale;
+class SaleItemController extends Controller{
+    protected $item;
 
-    public function __construct(Sale $sale){
-        $this->sale = $sale;
+    public function __construct(SaleItem $item){
+        $this->item = $item;
     }
     /**
      * Muestra una lista de ventas
@@ -21,10 +21,10 @@ class SaleController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
 
-        $sale = $this->sale
+        $item = $this->item
                 ->orderBy($orderby, $order)
                 ->paginate(10);
-        return SaleResources::collection($sale);
+        return ItemResources::collection($item);
     }
 
     /**
@@ -32,10 +32,10 @@ class SaleController extends Controller{
      * @param  $request datos de la venta por body en json
      * @return json api rest
      */
-    public function store(SaleRequests $request){
+    public function store(ItemRequests $request){
         $request['user_id'] = Auth::id();
-        $sale = $this->sale->create( $request->all() );
-        return new SaleResources($sale);
+        $item = $this->item->create( $request->all() );
+        return new ItemResources($item);
     }
 
     /**
@@ -43,8 +43,9 @@ class SaleController extends Controller{
      * @param  $sale identificador de la venta
      * @return Json api rest
      */
-    public function show(Sale $sale){
-        return new SaleResources($sale);
+    public function show($id){
+        $item = $this->item::find($id);
+        return new ItemResources($item);
     }
 
     /**
@@ -53,10 +54,11 @@ class SaleController extends Controller{
      * @param  $sale identificador de la venta
      * @return Json api rest
      */
-    public function update(SaleRequests $request, Sale $sale){
-        $request['user_id']=$sale->user_id;
-        $sale->update( $request->all() );
-        return New SaleResources($sale);
+    public function update(ItemRequests $request, $id){
+        $item = $this->item::find($id);
+        $request['user_id']=$item->user_id;
+        $item->update( $request->all() );
+        return New ItemResources($item);
     }
 
     /**
@@ -64,8 +66,9 @@ class SaleController extends Controller{
      * @param  $sale identificador de la venta
      * @return null 204
      */
-    public function destroy(Sale $sale){
-        $sale->delete();
+    public function destroy($id){
+        $item = $this->item::find($id);
+        $item->delete();
         return response()->json(null, 204);
     }
 }

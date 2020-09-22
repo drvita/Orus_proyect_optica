@@ -15,6 +15,7 @@ Route::middleware('auth:api')->apiResource('store','StoreItemController');
 Route::middleware('auth:api')->apiResource('items','StoreLotController');
 Route::middleware('auth:api')->apiResource('orders','OrderController');
 Route::middleware('auth:api')->apiResource('sales','SaleController');
+Route::middleware('auth:api')->apiResource('salesItems','SaleItemController');
 Route::middleware('auth:api')->apiResource('atms','AtmController');
 Route::middleware('auth:api')->apiResource('brands','BrandController');
 Route::middleware('auth:api')->apiResource('users','UserController');

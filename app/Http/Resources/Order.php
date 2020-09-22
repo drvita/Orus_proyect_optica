@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 use App\Http\Resources\ContactShort;
 use App\Http\Resources\ExamShort;
+use App\Http\Resources\SaleItem;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class Order extends JsonResource{
@@ -11,14 +12,13 @@ class Order extends JsonResource{
         $return['id'] = $this->id;
         $return['paciente'] = new ContactShort($this->paciente);
         $return['examen'] = new ExamShort($this->examen);
-        $return['productos'] = $this->items;
+        $return['session'] = $this->session;
+        $return['productos'] = SaleItem::collection($this->items);
         $return['mensajes'] = $this->mensajes;
         $return['caja'] = $this->ncaja;
         $return['folio_lab'] = $this->npedidolab;
         $return['laboratorio'] = new ContactShort($this->laboratorio);
         $return['observaciones'] = $this->observaciones;
-        $return['armazon_code'] = $this->armazon_code;
-        $return['armazon_name'] = $this->armazon_name;
         $return['estado'] = $this->status;
         $return['created'] = $this->user->name;
         $return['created_at'] = $this->created_at->diffForHumans();
