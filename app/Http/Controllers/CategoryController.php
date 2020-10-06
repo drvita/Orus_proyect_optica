@@ -36,7 +36,7 @@ class CategoryController extends Controller
             'name' => $request->input('name'),
             'descripcion' => $request->input('descripcion'),
             'category_id' => $request->input('category_id'),
-            'user_id' => Auth::id()
+            'user_id' => Auth::user()->id
         ]);
         return New CategoryResource($category);
     }

@@ -38,7 +38,7 @@ class ExamController extends Controller{
      * @return Json api rest
      */
     public function store(ExamRequests $request){
-        $request['user_id']=Auth::id();
+        $request['user_id']= Auth::user()->id;
         $exam = $this->exam->create($request->all());
         return new ExamResources($exam);
     }

@@ -35,8 +35,9 @@ class OrderController extends Controller{
      * @return Json api rest
      */
     public function store(OrderRequests $request){
-        $request['user_id']=Auth::id();
+        $request['user_id']= Auth::user()->id;
         $order = $this->order->create($request->all());
+        $order['items'] = $request->items;
         event(new OrderUpdated($order));
         return new OrderResources($order);
     }
@@ -59,6 +60,7 @@ class OrderController extends Controller{
     public function update(Request $request, Order $order){
         $request['user_id']=$order->user_id;
         $order->update( $request->all() );
+        $order['items'] = $request->items;
         event(new OrderUpdated($order));
         return New OrderResources($order);
     }

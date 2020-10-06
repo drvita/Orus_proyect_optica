@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\CategoryShort as CategoryResource;
+use App\Http\Resources\CategoryLast as CategoryResource;
 
 class StoreItem extends JsonResource{
 

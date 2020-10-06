@@ -20,10 +20,11 @@ class StoreItemController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
-
+        
         $items = $this->store
                 ->orderBy($orderby, $order)
                 ->SearchItem($request->search)
+                ->Zero($request->zero)
                 ->paginate(10);
         
         return StoreResources::collection($items);
@@ -35,7 +36,7 @@ class StoreItemController extends Controller{
      * @return Json api rest
      */
     public function store(StoreRequests $request){
-        $request['user_id']=Auth::id();
+        $request['user_id']= Auth::user()->id;
         $store = $this->store->create($request->all());
         return new StoreResources($store);
     }

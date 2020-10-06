@@ -22,10 +22,11 @@ class CreateSalesItemsTable extends Migration
     {
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
-            $table->float('cant');
+            $table->integer('cant');
             $table->float('price');
             $table->float('subtotal');
             $table->integer('inStorage')->default(0);
+            $table->integer('out')->nullable()->default(0);
             $table->string('session', 100);
             $table->foreignId('store_items_id')->constrained();
             $table->foreignId('user_id')->constrained();

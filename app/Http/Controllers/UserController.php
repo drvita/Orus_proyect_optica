@@ -20,21 +20,11 @@ class UserController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
 
-        if($request->search){
-            $users = $this->user
+        $users = $this->user
                 ->orderBy($orderby, $order)
-                ->where(function($q) use($request){
-                    $q->where('name',"LIKE","%$request->search%")
-                        ->orWhere('email',"LIKE","$request->search%")
-                        ->orWhere('username',"LIKE","%$request->search%");
-                })
+                ->Search($request->search)
+                ->Rol($request->rol)
                 ->paginate(10);
-        } else {
-            $users = $this->user
-                ->orderBy($orderby, $order)
-                ->paginate(10);
-        }
-
         return UserResource::collection($users);
     }
     /**

@@ -18,13 +18,19 @@ class SaleItemController extends Controller{
      * @return Json api rest
      */
     public function index(Request $request){
-        $orderby = $request->orderby? $request->orderby : "created_at";
+        $orderby = $request->orderby? $request->orderby : "sales_items.created_at";
         $order = $request->order=="desc"? "desc" : "asc";
 
         $item = $this->item
                 ->orderBy($orderby, $order)
+                ->Stock($request->stock)
                 ->paginate(10);
-        return ItemResources::collection($item);
+        
+        if($request->stock){
+            return $item;
+        } else {
+            return ItemResources::collection($item);
+        }
     }
 
     /**
@@ -33,7 +39,7 @@ class SaleItemController extends Controller{
      * @return json api rest
      */
     public function store(ItemRequests $request){
-        $request['user_id'] = Auth::id();
+        $request['user_id'] = Auth::user()->id;
         $item = $this->item->create( $request->all() );
         return new ItemResources($item);
     }

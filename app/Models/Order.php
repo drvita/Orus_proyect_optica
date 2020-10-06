@@ -28,29 +28,10 @@ class Order extends Model{
     public function user(){
         return $this->belongsTo('App\User');
     }
+    public function nota(){
+        return $this->belongsTo('App\Models\Sale','id', 'order_id');
+    }
     public function items(){
         return $this->hasMany('App\Models\SaleItem','session', 'session');
     }
-    /*
-    protected static function booted(){
-        static::created(function ($order) {
-            $items = json_decode($order->items, true);
-            if(count($items)){
-                $total = 0;
-                foreach($items as $item){
-                    $total += $item['total'];
-                }
-    
-                $sale['subtotal'] = $total;
-                $sale['total'] = $total;
-                $sale['contact_id'] = $order->contact_id;
-                $sale['order_id'] = $order->id;
-                $sale['user_id'] = Auth::id();
-                $sale['created_at'] = $order->created_at;
-                $sale['updated_at'] = $order->updated_at;
-                Sale::create($sale);
-            }
-        });
-    }
-    */
 }

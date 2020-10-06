@@ -3,7 +3,7 @@
 namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class SaleItem extends JsonResource{
+class SaleItemShort extends JsonResource{
 
     public function toArray($request){
         $return['id'] = $this->id;
@@ -13,10 +13,6 @@ class SaleItem extends JsonResource{
         $return['precio'] = $this->price;
         $return['subtotal'] = $this->subtotal;
         $return['inStorage'] = $this->inStorage ? true : false;
-        $return['session'] = $this->session;
-        $return['created'] = $this->user->name ? $this->user->name : "";
-        $return['created_at'] = $this->created_at->diffForHumans();
-        $return['updated_at'] = $this->updated_at->diffForHumans();
         return $return;
     }
 }

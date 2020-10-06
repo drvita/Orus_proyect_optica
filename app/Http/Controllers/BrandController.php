@@ -29,7 +29,7 @@ class BrandController extends Controller{
      * @return json api rest
      */
     public function store(BrandRequests $request){
-        $request['user_id'] = Auth::id();
+        $request['user_id'] = Auth::user()->id;
         $brand = $this->brand->create( $request->all() );
         return new BrandResources( $brand );
     }

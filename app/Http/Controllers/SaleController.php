@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Sale as SaleResources;
 use App\Http\Requests\Sale as SaleRequests;
+use App\Events\SaleSave;
 
 class SaleController extends Controller{
     protected $sale;
@@ -23,6 +24,9 @@ class SaleController extends Controller{
 
         $sale = $this->sale
                 ->orderBy($orderby, $order)
+                ->Cliente($request->search)
+                ->Type($request->type)
+                ->Date($request->date)
                 ->paginate(10);
         return SaleResources::collection($sale);
     }
@@ -33,8 +37,10 @@ class SaleController extends Controller{
      * @return json api rest
      */
     public function store(SaleRequests $request){
-        $request['user_id'] = Auth::id();
+        $request['user_id'] = Auth::user()->id;
         $sale = $this->sale->create( $request->all() );
+        $sale['items'] = $request->items;
+        event(new SaleSave($sale));
         return new SaleResources($sale);
     }
 
@@ -54,8 +60,10 @@ class SaleController extends Controller{
      * @return Json api rest
      */
     public function update(SaleRequests $request, Sale $sale){
-        $request['user_id']=$sale->user_id;
+        $request['user_id']= $sale->user_id;
         $sale->update( $request->all() );
+        $sale['items'] = $request->items;
+        event(new SaleSave($sale));
         return New SaleResources($sale);
     }
 

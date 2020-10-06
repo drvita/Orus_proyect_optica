@@ -4,13 +4,13 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateSalesTable extends Migration
+class CreatePaymentsTable extends Migration
 {
     /**
      * Schema table name to migrate
      * @var string
      */
-    public $tableName = 'sales';
+    public $tableName = 'payments';
 
     /**
      * Run the migrations.
@@ -22,13 +22,12 @@ class CreateSalesTable extends Migration
     {
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
-            $table->string('session', 100)->unique();
-            $table->float('subtotal')->default(0);
-            $table->float('descuento')->nullable()->default(0);
-            $table->float('pagado')->nullable()->default(0);
+            $table->integer('metodopago')->default(0);
+            $table->string('banco', 100)->nullable();
+            $table->string('auth', 200)->nullable();
             $table->float('total')->default(0);
+            $table->foreignId('sale_id')->constrained();
             $table->foreignId('contact_id')->constrained();
-            $table->foreignId('order_id')->nullable()->constrained();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });

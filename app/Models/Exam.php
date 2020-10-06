@@ -42,12 +42,12 @@ class Exam extends Model{
     }
     public function scopeDate($query, $search){
         if(trim($search) != ""){
-            $query->whereDate("created_at",$search);
+            $query->WhereDate("created_at",$search);
         }
     }
     public function scopeStatus($query, $search){
         if(trim($search) != ""){
-            $query->where("status",$search);
+            $query->orWhere("status",$search);
         }
     }
 

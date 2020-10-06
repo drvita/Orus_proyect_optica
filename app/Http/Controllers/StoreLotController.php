@@ -36,7 +36,7 @@ class StoreLotController extends Controller{
      * @return Json api rest
      */
     public function store(StoreRequests $request){
-        $request['user_id']=Auth::id();
+        $request['user_id']= Auth::user()->id;
         $item = $this->item->create($request->all());
         return new StoreResources($item);
     }

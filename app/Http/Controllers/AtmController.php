@@ -29,7 +29,7 @@ class AtmController extends Controller{
      * @return json api rest
      */
     public function store(AtmRequests $request){
-        $request['user_id'] = Auth::id();
+        $request['user_id'] = Auth::user()->id;
         $atm = $this->atm->create( $request->all() );
         return new AtmResources( $atm );
     }

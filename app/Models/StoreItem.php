@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use phpDocumentor\Reflection\Types\Boolean;
 
 class StoreItem extends Model{
     protected $table = "store_items";
@@ -29,6 +30,11 @@ class StoreItem extends Model{
                 $q->where('name',"LIKE","$search%")
                     ->orWhere('code',"LIKE","$search%");
             });
+        }
+    }
+    public function scopeZero($query, $search){
+        if($search == "true"){
+            $query->where("cant",0);
         }
     }
 }

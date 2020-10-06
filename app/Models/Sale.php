@@ -2,13 +2,11 @@
 
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\StoreItem;
 
 class Sale extends Model{
     protected $table = "sales";
     protected $fillable = [
-        "metodopago","subtotal","descuento","anticipo","total","banco",
-        "contact_id","order_id","user_id"
+        "subtotal","descuento","total","pagado","contact_id","order_id","user_id","session"
     ];
     protected $hidden = [];
     protected $dates = [
@@ -24,15 +22,31 @@ class Sale extends Model{
     public function pedido(){
         return $this->belongsTo('App\Models\Order','order_id');
     }
-
-    protected static function booted(){
-        static::created(function ($sale) {
-            $items = json_decode($sale->pedido->items, true);
-            foreach($items as $item){
-                $updateItem = StoreItem::find($item['id']);
-                $updateItem->cant -= $item['cant'];
-                $updateItem->save();
-            }
-        });
+    public function items(){
+        return $this->hasMany('App\Models\SaleItem','session', 'session');
+    }
+    public function abonos(){
+        return $this->hasMany('App\Models\Payment','sale_id', 'id')->selectRaw('SUM(total) as suma');
+    }
+    public function scopeCliente($query, $name){
+        if(trim($name) != ""){
+            $query->whereHas('cliente', function($query) use ($name){
+                $query->where('name',"LIKE","%$name%");
+            });
+        }
+    }
+    public function scopeType($query, $search){
+        if(trim($search) != ""){
+            settype($search, "boolean");
+            if($search)
+                $query->whereColumn("pagado","total");
+            else
+                $query->whereColumn("pagado","<","total");
+        }
+    }
+    public function scopeDate($query, $search){
+        if(trim($search) != ""){
+            $query->WhereDate("created_at",$search);
+        }
     }
 }
