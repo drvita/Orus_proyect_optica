@@ -16,6 +16,11 @@ class Order extends Model{
         'updated_at',
         'created_at'
     ];
+    public function scopeEstado($query, $search){
+        if(trim($search) != ""){
+            $query->where("status",$search);
+        }
+    }
     public function examen(){
         return $this->belongsTo('App\Models\Exam','exam_id');
     }

@@ -26,6 +26,16 @@ class Contact extends Model{
             });
         }
     }
+    public function scopeName($query, $search){
+        if(trim($search) != ""){
+            $query->where("name","LIKE","$search%");
+        }
+    }
+    public function scopeEmail($query, $search){
+        if(trim($search) != ""){
+            $query->where("email","LIKE","$search%");
+        }
+    }
     public function scopeType($query, $search){
         if(trim($search) != ""){
             $query->where("type",$search);

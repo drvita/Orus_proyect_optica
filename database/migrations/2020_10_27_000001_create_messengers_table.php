@@ -4,17 +4,17 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateSalesTable extends Migration
+class CreateMessengersTable extends Migration
 {
     /**
      * Schema table name to migrate
      * @var string
      */
-    public $tableName = 'sales';
+    public $tableName = 'messengers';
 
     /**
      * Run the migrations.
-     * @table ventas
+     * @table sessions
      *
      * @return void
      */
@@ -22,14 +22,10 @@ class CreateSalesTable extends Migration
     {
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
-            $table->string('session', 100)->unique();
-            $table->string('stringCfdi')->nullable();
-            $table->float('subtotal')->default(0);
-            $table->float('descuento')->nullable()->default(0);
-            $table->float('pagado')->nullable()->default(0);
-            $table->float('total')->default(0);
-            $table->foreignId('contact_id')->constrained();
-            $table->foreignId('order_id')->nullable()->constrained();
+            $table->string('table')->default('orders')->nullable();
+            $table->integer('idRow')->default(0)->nullable();
+            $table->integer('user')->default(0)->nullable();
+            $table->text('message');
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });

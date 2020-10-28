@@ -23,6 +23,8 @@ class UserController extends Controller{
         $users = $this->user
                 ->orderBy($orderby, $order)
                 ->Search($request->search)
+                ->UserName($request->username)
+                ->UserEmail($request->email)
                 ->Rol($request->rol)
                 ->paginate(10);
         return UserResource::collection($users);

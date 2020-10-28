@@ -21,8 +21,8 @@ class Sale extends JsonResource{
         $return['pedido'] = $this->order_id;
         $return['pagado'] = $this->abonos[0]->suma ? $this->abonos[0]->suma : 0;
         $return['created'] = $this->user->name;
-        $return['created_at'] = $this->created_at->diffForHumans();
-        $return['updated_at'] = $this->updated_at->diffForHumans();
+        $return['created_at'] = $this->created_at->format('Y-m-d H:i');
+        $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         return $return;
     }
 }

@@ -19,12 +19,15 @@ class User extends Model {
     public function getAuthIdentifier(){
         return 1;
     }
+    public function session(){
+        return $this->belongsTo('App\Models\Session','id', 'session_id');
+    }
     public function scopeSearch($query, $search){
         if(trim($search) != ""){
             $query->where(function($q) use($search){
                 $q->where('name',"LIKE","%$search%")
                     ->orWhere('email',"LIKE","$search%")
-                    ->orWhere('username',"LIKE","%$search%");
+                    ->orWhere('username',"LIKE","$search%");
             });
         }
     }
@@ -32,9 +35,18 @@ class User extends Model {
         if(trim($search) != ""){
             $search = $search * 1;
             if($search >= 0 && $search <= 2) {
-                //dd($search);
                 $query->where("rol",$search);
             }
+        }
+    }
+    public function scopeUserName($query, $search){
+        if(trim($search) != ""){
+            $query->where("username","LIKE",$search);
+        }
+    }
+    public function scopeUserEmail($query, $search){
+        if(trim($search) != ""){
+            $query->where("email","LIKE",$search);
         }
     }
 

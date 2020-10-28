@@ -24,8 +24,8 @@ class Order extends JsonResource{
         $return['estado'] = $this->status;
         $return['nota'] = $this->nota;
         $return['created'] = $this->user->name;
-        $return['created_at'] = $this->created_at->diffForHumans();
-        $return['updated_at'] = $this->updated_at->diffForHumans();
+        $return['created_at'] = $this->created_at->format('Y-m-d H:i');
+        $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         return $return;
     }
 }

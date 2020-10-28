@@ -19,6 +19,7 @@ Route::middleware('auth:api')->apiResource('salesItems','SaleItemController');
 Route::middleware('auth:api')->apiResource('payments','PaymentController');
 Route::middleware('auth:api')->apiResource('atms','AtmController');
 Route::middleware('auth:api')->apiResource('brands','BrandController');
+Route::middleware('auth:api')->apiResource('messengers','MessengerController');
 Route::middleware('auth:api')->apiResource('users','UserController');
 Route::post('users/login','Auth@login')->name('users.login');
 Route::middleware('auth:api')->post('users/logout','Auth@logout')->name('users.logout');

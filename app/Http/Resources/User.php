@@ -16,6 +16,7 @@ class User extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'rol' => $this->rol,
+            'session' => $this->session,
             'created_at' => $this->created_at->format('Y-m-d H:i'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i'),
         ];

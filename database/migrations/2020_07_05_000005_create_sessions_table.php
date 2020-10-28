@@ -22,9 +22,9 @@ class CreateSessionsTable extends Migration
     {
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
-            $table->string('session_id', 40)->default('0');
+            $table->integer('session_id')->default('0');
             $table->string('ip_address', 45)->default('0');
-            $table->string('user_agent', 120);
+            $table->string('user_agent', 255);
             $table->dateTime('last_activity');
             $table->text('user_data');
         });

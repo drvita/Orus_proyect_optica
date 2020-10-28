@@ -25,6 +25,8 @@ class ContactController extends Controller{
         $contacts = $this->contact
                 ->orderBy($orderby, $order)
                 ->SearchUser($request->search)
+                ->Name($request->name)
+                ->Email($request->email)
                 ->Type($request->type)
                 ->Business($request->business)
                 ->paginate(10);
