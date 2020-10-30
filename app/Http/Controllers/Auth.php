@@ -22,8 +22,6 @@ class Auth extends Controller{
             ->UserEmail($credenciales['email'])
             ->first();
             
-        //User::where('email',$credenciales['email'])->first(); //$credenciales['email']
-        
         if($user && Hash::check($credenciales['password'],$user->password)){
             $user->api_token = hash('sha256', Str::random(60));
             $user->save();

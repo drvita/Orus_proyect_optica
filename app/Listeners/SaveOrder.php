@@ -6,6 +6,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\Messenger;
 use Illuminate\Support\Facades\Auth;
 
 class SaveOrder
@@ -55,6 +56,12 @@ class SaveOrder
                 $A_sale['created_at'] = $order->created_at;
                 $A_sale['updated_at'] = $order->updated_at;
                 Sale::create($A_sale);
+                Messenger::create([
+                    "table" => "orders",
+                    "idRow" => $order->id,
+                    "message" => "Cree una orden de venta",
+                    "user_id" => 1
+                ]);
             }
         }
         //Actualiza los items de la orden y venta

@@ -13,4 +13,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-//Route::get('/', 'UserController@login');
+Route::get('/', 'WebController@index');

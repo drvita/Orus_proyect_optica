@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Resources\Messenger as MessengerResource;
+use App\Http\Requests\Messenger as MessengerRequests;
 Use App\Models\Messenger;
+use Illuminate\Support\Facades\Auth;
 
 class MessengerController extends Controller{
     public function __construct(Messenger $messenger){
@@ -18,23 +20,22 @@ class MessengerController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
 
-        $users = $this->messenger
+        $messenger = $this->messenger
                 ->orderBy($orderby, $order)
                 ->Table($request->table)
                 ->IdRow($request->idRow)
                 ->paginate(10);
-        return MessengerResource::collection($users);
+        return MessengerResource::collection($messenger);
     }
     /**
      * Registra un nuevo usuario en la base de datos.
      * @param  $request que se traen de post body json
      * @return Json api rest
      */
-    public function store(Request $request){
-        $user = Messenger::create([
-            'message' => $request->input('message')
-        ]);
-        return New MessengerResource($user);
+    public function store(MessengerRequests $request){
+        $request['user_id']= Auth::user()->id;
+        $messenger = $this->messenger->create($request->all());
+        return New MessengerResource($messenger);
     }
     /**
      * Muestra unj usuario espesifico
@@ -50,7 +51,7 @@ class MessengerController extends Controller{
      * @param  int  $id
      * @return Json api rest
      */
-    public function update(Request $request, Messenger $messanger){
+    public function update(MessengerRequests $request, Messenger $messanger){
         $request['user_id']=$messanger->user_id;
         $messanger->update( $request->all() );
         return New MessengerResource($messanger);
