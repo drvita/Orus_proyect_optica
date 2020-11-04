@@ -10,20 +10,22 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class OrderUpdated
+class PaymentSave
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    public $order;
-    public $udStatus;
+    public $payment;
+    public $idMessege;
+    public $table;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($order, $udStatus)
+    public function __construct($payment, $idMessege, $table)
     {
-        $this->order = $order;
-        $this->udStatus = $udStatus;
+        $this->payment = $payment;
+        $this->idMessege = $idMessege;
+        $this->table = $table;
     }
 }

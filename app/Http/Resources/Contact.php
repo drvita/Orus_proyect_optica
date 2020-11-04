@@ -13,9 +13,9 @@ class Contact extends JsonResource {
         $return['email'] = $this->email;
         $return['tipo'] = $this->type;
         $return['empresa'] = $this->business;
-        $return['telefonos'] = preg_split ("/[,]+/", $this->telnumbers);
+        $return['telefonos'] =  is_string($this->telnumbers) ? json_decode($this->telnumbers) : $this->telnumbers;
         $return['f_nacimiento'] = ($this->birthday)?$this->birthday->format('Y-m-d'):null;
-        $return['domicilio'] = preg_split ("/[,]+/", $this->domicilio);
+        $return['domicilio'] = is_string($this->domicilio) ? json_decode($this->domicilio) : $this->domicilio;
         $return['created_user'] = $this->user->name;
         $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');

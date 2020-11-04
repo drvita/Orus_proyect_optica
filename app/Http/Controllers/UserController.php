@@ -26,6 +26,7 @@ class UserController extends Controller{
                 ->UserName($request->username)
                 ->UserEmail($request->email)
                 ->Rol($request->rol)
+                ->Bot()
                 ->paginate(10);
         return UserResource::collection($users);
     }

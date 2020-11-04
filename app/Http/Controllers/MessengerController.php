@@ -18,13 +18,13 @@ class MessengerController extends Controller{
      */
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
-        $order = $request->order=="desc"? "desc" : "asc";
+        $order = $request->order==="asc"? "asc" : "desc";
 
         $messenger = $this->messenger
                 ->orderBy($orderby, $order)
                 ->Table($request->table)
                 ->IdRow($request->idRow)
-                ->paginate(10);
+                ->paginate(25);
         return MessengerResource::collection($messenger);
     }
     /**

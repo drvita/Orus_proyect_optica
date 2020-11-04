@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Payment as PaymentResources;
 use App\Http\Requests\Payment as PaymentRequests;
-//use App\Events\OrderUpdated;
+use App\Events\PaymentSave;
 
 class PaymentController extends Controller{
     protected $payment;
@@ -20,14 +20,26 @@ class PaymentController extends Controller{
      */
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
-        $order = $request->order=="desc"? "desc" : "asc";
+        $order = $request->order==="desc"? "desc" : "asc";
 
-        $order = $this->payment
-                ->sale($request->sale)
+        $payment = $this->payment
+                ->Sale($request->sale)
                 ->orderBy($orderby, $order)
+                ->User($request->user)
                 ->paginate(10);
 
-        return PaymentResources::collection($order);
+        return PaymentResources::collection($payment);
+    }
+
+    /*
+    * Muestra la venta del dia
+    * @Return string
+    */
+    public function saleday(Request $request){
+        $payment = $this->payment
+            ->SaleDay($request->date, Auth::user(), $request->user)
+            ->get();
+        return $payment;
     }
 
     /**
@@ -37,8 +49,16 @@ class PaymentController extends Controller{
      */
     public function store(PaymentRequests $request){
         $request['user_id']= Auth::user()->id;
+        if($request->order_id){
+            $messegeId = $request->order_id;
+            $table = "orders";
+        } else {
+            $messegeId = $request->sale_id;
+            $table = "sales";
+        }
+        
         $payment = $this->payment->create($request->all());
-        //event(new OrderUpdated($order));
+        if($payment->id) event(new PaymentSave($payment, $messegeId, $table));
         return new PaymentResources($payment);
     }
 

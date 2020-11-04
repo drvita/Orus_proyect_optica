@@ -30,6 +30,7 @@ class SaveOrder
     public function handle($event)
     {
         $order = $event->order;
+        $udStatus = $event->udStatus;
         $items = json_decode($order->items, true);
         //Actualiza la venta si la orden es creada o modificada
         if(is_array($items) && count($items)){
@@ -46,6 +47,14 @@ class SaveOrder
                 $sale->total = $total;
                 $sale->updated_at = $order->updated_at;
                 $sale->save();
+                if($udStatus){
+                    Messenger::create([
+                        "table" => "orders",
+                        "idRow" => $order->id,
+                        "message" => Auth::user()->name ." actualizo la orden.",
+                        "user_id" => 1
+                    ]);
+                }
             } else {
                 $A_sale['subtotal'] = $total;
                 $A_sale['total'] = $total;

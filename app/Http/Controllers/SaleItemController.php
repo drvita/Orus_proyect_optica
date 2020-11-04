@@ -24,6 +24,7 @@ class SaleItemController extends Controller{
         $item = $this->item
                 ->orderBy($orderby, $order)
                 ->Stock($request->stock)
+                ->SaleDay($request->date)
                 ->paginate(10);
         
         if($request->stock){

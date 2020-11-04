@@ -31,6 +31,13 @@ class SaleItem extends Model{
                 ->groupBy('store_items_id', 'name');
         }
     }
+    public function scopeSaleDay($query, $date){
+        if($date != ""){
+            $query->select('session')
+                ->WhereDate("created_at",$date)
+                ->groupBy('session');
+        }
+    }
     protected static function booted(){
         static::created(function ($item) {
             $updateItem = StoreItem::find($item->store_items_id);

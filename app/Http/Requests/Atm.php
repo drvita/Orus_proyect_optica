@@ -24,7 +24,8 @@ class Atm extends FormRequest
     public function rules()
     {
         return [
-            "venta"=>"required"
+            "type"=>"required",
+            "efectivo"=>"required"
         ];
     }
 }

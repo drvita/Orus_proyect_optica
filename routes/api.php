@@ -21,8 +21,10 @@ Route::middleware('auth:api')->apiResource('atms','AtmController');
 Route::middleware('auth:api')->apiResource('brands','BrandController');
 Route::middleware('auth:api')->apiResource('messengers','MessengerController');
 Route::middleware('auth:api')->apiResource('users','UserController');
+// Rutas especiales
 Route::post('users/login','Auth@login')->name('users.login');
 Route::middleware('auth:api')->post('users/logout','Auth@logout')->name('users.logout');
+Route::middleware('auth:api')->get('saleday','PaymentController@saleday')->name('payments.saleday');
 
 //Route::get('/', 'UserController@index');
 //Route::middleware('auth:api')->apiResource('users','UserController');

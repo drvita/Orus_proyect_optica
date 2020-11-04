@@ -36,6 +36,8 @@ class User extends Model {
             $search = $search * 1;
             if($search >= 0 && $search <= 2) {
                 $query->where("rol",$search);
+            } else if($search == 10){
+                $query->where("rol","<=",1);
             }
         }
     }
@@ -48,6 +50,9 @@ class User extends Model {
         if(trim($search) != ""){
             $query->where("email","LIKE",$search);
         }
+    }
+    public function scopeBot($query){
+        $query->where("id","!=",1);
     }
 
 }

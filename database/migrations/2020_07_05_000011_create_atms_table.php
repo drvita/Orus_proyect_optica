@@ -22,11 +22,10 @@ class CreateAtmsTable extends Migration
     {
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
-            $table->float('efectivo')->nullable();
-            $table->float('tarjetas')->nullable();
-            $table->float('cheques')->nullable();
-            $table->float('venta');
-            //$table->foreignId('session_id', 120)->constrained();
+            $table->string('session')->nullable();
+            $table->string('type');
+            $table->float('efectivo');
+            $table->text('motivo')->nullable();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });

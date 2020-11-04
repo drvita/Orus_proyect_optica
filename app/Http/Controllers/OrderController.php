@@ -39,7 +39,7 @@ class OrderController extends Controller{
         $request['user_id']= Auth::user()->id;
         $order = $this->order->create($request->all());
         $order['items'] = $request->items;
-        event(new OrderUpdated($order));
+        event(new OrderUpdated($order, false));
         return new OrderResources($order);
     }
 
@@ -60,9 +60,10 @@ class OrderController extends Controller{
      */
     public function update(Request $request, Order $order){
         $request['user_id']=$order->user_id;
+        $udStatus = $order->status != $request->status ? true : false;
         $order->update( $request->all() );
         $order['items'] = $request->items;
-        event(new OrderUpdated($order));
+        event(new OrderUpdated($order, $udStatus));
         return New OrderResources($order);
     }
 

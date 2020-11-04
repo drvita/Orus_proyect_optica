@@ -22,6 +22,32 @@ class Payment extends Model{
             $query->where("sale_id",$search);
         }
     }
+    public function scopeUser($query, $search){
+        if(trim($search) != ""){
+            $query->where("user_id",$search);
+        }
+    }
+    public function scopeSaleDay($query, $date, $rol, $user){
+        if($date != "" && trim($rol) != ""){
+            $query->select('metodopago')
+                ->selectRaw('SUM(total) as total')
+                ->WhereDate("created_at",$date)
+                ->groupBy('metodopago');
+           
+            if(trim($user) != ""){
+                $user = $user * 1;
+                if(!$rol->rol && $user > 1){
+                    $query->where('user_id',$user);
+                } else if($rol->rol) {
+                    $query->where('user_id',$rol->id);
+                }
+            } else {
+                if($rol->rol){
+                    $query->where('user_id',$rol->id);
+                }
+            }
+        }
+    }
 
     protected static function booted(){
         static::created(function ($pay) {

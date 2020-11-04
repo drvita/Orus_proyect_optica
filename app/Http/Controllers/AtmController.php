@@ -17,10 +17,17 @@ class AtmController extends Controller{
      * Lista las entradas de caja
      * @return json api rest
      */
-    public function index(){
-        return AtmResources::collection(
-            $this->atm::all()
-        );
+    public function index(Request $request){
+        $orderby = $request->orderby? $request->orderby : "created_at";
+        $order = $request->order==="desc"? "desc" : "asc";
+
+        $atm = $this->atm
+                ->orderBy($orderby, $order)
+                ->Date($request->date)
+                ->User($request->user, Auth::user())
+                ->paginate(10);
+
+        return AtmResources::collection($atm);
     }
 
     /**

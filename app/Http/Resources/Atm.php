@@ -9,13 +9,12 @@ class Atm extends JsonResource{
     public function toArray($request){
         $return['id'] = $this->id;
         $return['efectivo'] = $this->efectivo;
-        $return['tarjetas'] = $this->tarjetas;
-        $return['cheques'] = $this->cheques;
-        $return['venta'] = $this->venta;
-        $return['session_id'] = $this->session_id;
+        $return['tipo'] = $this->type;
+        $return['session'] = $this->session;
+        $return['motivo'] = $this->motivo;
         $return['created_user'] = $this->user->name;
-        $return['created_at'] = $this->created_at->diffForHumans();
-        $return['updated_at'] = $this->updated_at->diffForHumans();
+        $return['created_at'] = $this->created_at->format('Y-m-d H:i');
+        $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
             
         return $return;
     }
