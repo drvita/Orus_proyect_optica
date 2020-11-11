@@ -14,3 +14,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', 'WebController@index');
+Route::get('/contactos', 'WebController@index');
+Route::get('/consultorio', 'WebController@index');
+Route::get('/pedidos', 'WebController@index');
+Route::get('/notas', 'WebController@index');
+Route::get('/almacen', 'WebController@index');
+Route::get('/usuarios', 'WebController@index');
+Route::get('/configuraciones', 'WebController@index');

@@ -32,6 +32,7 @@ class SaveOrder
         $order = $event->order;
         $udStatus = $event->udStatus;
         $items = json_decode($order->items, true);
+
         //Actualiza la venta si la orden es creada o modificada
         if(is_array($items) && count($items)){
             $total = 0;
@@ -74,17 +75,23 @@ class SaveOrder
             }
         }
         //Actualiza los items de la orden y venta
+
         if($order->status === 0){
             if($order->session){
-                SaleItem::where('session', $order->session)->delete();
+                $articulos = SaleItem::where('session', $order->session)->get();
+                foreach($articulos as $articulo){
+                    SaleItem::find($articulo->id)->delete();
+                }
+
             }
-            if(count($items)){
+
+            if($items && count($items)){
                 foreach($items as $item){
                     $i_save['cant'] = $item['cant'];
                     $i_save['price'] = $item['price'];
                     $i_save['subtotal'] = $item['subtotal'];
                     $i_save['inStorage'] = $item['inStorage'];
-                    $i_save['out'] = $item['out'];
+                    $i_save['out'] = isset($item['out']) ? $item['out'] : 0;
                     $i_save['session'] = $order->session;
                     $i_save['store_items_id'] = $item['store_items_id'];
                     $i_save['user_id'] = Auth::user()->id;
@@ -92,6 +99,7 @@ class SaveOrder
                     $i_save['updated_at'] = $order->updated_at;
                     SaleItem::create($i_save);
                 }
+                
             }
         }
     }

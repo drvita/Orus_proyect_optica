@@ -10,7 +10,7 @@ class ContactShort extends JsonResource {
         $return['nombre'] = $this->name;
         $return['rfc'] = $this->rfc;
         $return['email'] = $this->email;
-        $return['telefonos'] = $this->telnumbers;
+        $return['telefonos'] = is_string($this->telnumbers) ? json_decode($this->telnumbers) : $this->telnumbers;;
         $return['f_nacimiento'] = ($this->birthday)?$this->birthday->format('Y-m-d'):null;
         return $return;
     }

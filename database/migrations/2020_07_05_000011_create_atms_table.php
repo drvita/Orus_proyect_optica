@@ -23,7 +23,7 @@ class CreateAtmsTable extends Migration
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
             $table->string('session')->nullable();
-            $table->string('type');
+            $table->integer('type');
             $table->float('efectivo');
             $table->text('motivo')->nullable();
             $table->foreignId('user_id')->constrained();

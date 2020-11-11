@@ -2,13 +2,13 @@
 
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Sale;
+use App\Models\SaleItem;
 use Illuminate\Support\Facades\Auth;
 
 class Order extends Model{
     protected $table = "orders";
     protected $fillable = [
-        "contact_id","exam_id","mensajes","ncaja","npedidolab","lab_id","user_id",
+        "contact_id","exam_id","ncaja","npedidolab","lab_id","user_id",
         "observaciones","session","status"
     ];
     protected $hidden = [];
@@ -38,5 +38,15 @@ class Order extends Model{
     }
     public function items(){
         return $this->hasMany('App\Models\SaleItem','session', 'session');
+    }
+    protected static function booted(){
+        static::created(function ($item) {
+        });
+        static::deleted(function ($order) {
+            $items = SaleItem::where('session', $order->session)->get();
+            foreach($items as $item){
+                SaleItem::find($item->id)->delete();
+            }
+        });
     }
 }

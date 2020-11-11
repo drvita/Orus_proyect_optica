@@ -4,8 +4,6 @@ namespace App\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-use App\Models\Sale;
-use App\Models\SaleItem;
 use App\Models\Messenger;
 use Illuminate\Support\Facades\Auth;
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\StoreItem;
+use Illuminate\Support\Facades\Log;
 
 class SaleItem extends Model{
     protected $table = "sales_items";
@@ -41,16 +42,19 @@ class SaleItem extends Model{
     protected static function booted(){
         static::created(function ($item) {
             $updateItem = StoreItem::find($item->store_items_id);
-            if($updateItem->cant){
+            Log::debug("Item creado, descontando producto de almacen");
+            if($item->cant){
                 $updateItem->cant -= $item->cant;
-                if($updateItem->cant <0) $updateItem->cant = 0;
                 $updateItem->save();
             }
         });
         static::deleted(function ($item) {
             $updateItem = StoreItem::find($item->store_items_id);
-            $updateItem->cant += $item->cant;
-            $updateItem->save();
+            Log::debug("Item eliminado, agregando producto a almacen");
+            if($item->cant){
+                $updateItem->cant += $item->cant;
+                $updateItem->save();
+            }
         });
     }
 }

@@ -28,6 +28,9 @@ class Exam extends Model{
     public function user(){
         return $this->belongsTo('App\User');
     }
+    public function orders(){
+        return $this->belongsTo('App\Models\Order','id','exam_id');
+    }
     public function scopePaciente($query, $name){
         if(trim($name) != ""){
             $query->whereHas('paciente', function($query) use ($name){

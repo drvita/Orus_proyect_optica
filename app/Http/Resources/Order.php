@@ -16,7 +16,6 @@ class Order extends JsonResource{
         $return['productos'] = is_object($this->items) 
             ? SaleItemShort::collection($this->items) 
             : [];
-        $return['mensajes'] = json_decode($this->mensajes);
         $return['caja'] = $this->ncaja;
         $return['folio_lab'] = $this->npedidolab;
         $return['laboratorio'] = new ContactShort($this->laboratorio);

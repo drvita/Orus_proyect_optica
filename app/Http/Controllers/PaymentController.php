@@ -49,16 +49,8 @@ class PaymentController extends Controller{
      */
     public function store(PaymentRequests $request){
         $request['user_id']= Auth::user()->id;
-        if($request->order_id){
-            $messegeId = $request->order_id;
-            $table = "orders";
-        } else {
-            $messegeId = $request->sale_id;
-            $table = "sales";
-        }
-        
         $payment = $this->payment->create($request->all());
-        if($payment->id) event(new PaymentSave($payment, $messegeId, $table));
+        //event(new PaymentSave($payment, $messegeId, $table));
         return new PaymentResources($payment);
     }
 

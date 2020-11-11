@@ -3,6 +3,8 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Sale;
+use App\Models\Messenger;
+use Illuminate\Support\Facades\Auth;
 
 class Payment extends Model{
     protected $table = "payments";
@@ -52,8 +54,43 @@ class Payment extends Model{
     protected static function booted(){
         static::created(function ($pay) {
             $updateSale = Sale::find($pay->sale_id);
+
+            if($updateSale->order_id){
+                $messegeId = $updateSale->order_id;
+                $table = "orders";
+            } else {
+                $messegeId = $pay->sale_id;
+                $table = "sales";
+            }
+
             $updateSale->pagado += $pay->total;
             $updateSale->save();
+            Messenger::create([
+                "table" => $table,
+                "idRow" => $messegeId,
+                "message" => Auth::user()->name ." abono a la cuenta ($ ". $pay->total .")",
+                "user_id" => 1
+            ]);
+        });
+        static::deleted(function ($pay) {
+            $updateSale = Sale::find($pay->sale_id);
+
+            if($updateSale->order_id){
+                $messegeId = $updateSale->order_id;
+                $table = "orders";
+            } else {
+                $messegeId = $pay->sale_id;
+                $table = "sales";
+            }
+
+            $updateSale->pagado -= $pay->total;
+            $updateSale->save();
+            Messenger::create([
+                "table" => $table,
+                "idRow" => $messegeId,
+                "message" => Auth::user()->name ." elimino un abono ($ ". $pay->total .")",
+                "user_id" => 1
+            ]);
         });
     }
 }

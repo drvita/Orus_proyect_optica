@@ -16,6 +16,7 @@ class StoreItem extends JsonResource{
         $return['cantidades'] = $this->cant;
         $return['precio'] = $this->price;
         $return['categoria'] = new CategoryResource($this->categoria);
+        $return['lotes'] = $this->lote ? count($this->lote) : 0;
         $return['created'] = $this->user->name;
         $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');

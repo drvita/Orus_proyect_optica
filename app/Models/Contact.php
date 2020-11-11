@@ -17,6 +17,15 @@ class Contact extends Model{
     public function user(){
         return $this->belongsTo('App\User');
     }
+    public function buys(){
+        return $this->hasMany('App\Models\Sale','contact_id', 'id');
+    }
+    public function orders(){
+        return $this->hasMany('App\Models\Order','contact_id', 'id');
+    }
+    public function supplier(){
+        return $this->hasMany('App\Models\Order','lab_id', 'id');
+    }
     public function scopeSearchUser($query, $search){
         if(trim($search) != ""){
             $query->where(function($q) use($search){

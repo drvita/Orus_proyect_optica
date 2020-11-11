@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Order as OrderResources;
 use App\Http\Requests\Order as OrderRequests;
 use App\Events\OrderUpdated;
+//use Illuminate\Mail\Message;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller{
     protected $order;
@@ -39,6 +41,7 @@ class OrderController extends Controller{
         $request['user_id']= Auth::user()->id;
         $order = $this->order->create($request->all());
         $order['items'] = $request->items;
+
         event(new OrderUpdated($order, false));
         return new OrderResources($order);
     }

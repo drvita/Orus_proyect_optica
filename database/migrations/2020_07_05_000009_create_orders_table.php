@@ -27,7 +27,7 @@ class CreateOrdersTable extends Migration
             $table->string('npedidolab', 12)->nullable();
             $table->integer('ncaja')->nullable();
             $table->integer('status')->default('0');
-            $table->text('mensajes')->nullable();
+            //$table->text('mensajes')->nullable();
             $table->foreignId('lab_id')->nullable()->constrained('contacts');
             $table->foreignId('exam_id')->nullable()->constrained();
             $table->foreignId('contact_id')->constrained();
