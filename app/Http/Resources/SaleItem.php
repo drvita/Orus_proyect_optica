@@ -14,6 +14,7 @@ class SaleItem extends JsonResource{
         $return['subtotal'] = $this->subtotal;
         $return['inStorage'] = $this->inStorage ? true : false;
         $return['session'] = $this->session;
+        $return['descripcion'] = $this->descripcion;
         $return['created'] = $this->user->name ? $this->user->name : "";
         $return['created_at'] = $this->created_at->diffForHumans();
         $return['updated_at'] = $this->updated_at->diffForHumans();

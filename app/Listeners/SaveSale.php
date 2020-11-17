@@ -30,9 +30,10 @@ class SaveSale
                     $i_save['price'] = $item['price'];
                     $i_save['subtotal'] = $item['subtotal'];
                     $i_save['inStorage'] = $item['inStorage'];
-                    $i_save['out'] = $item['out'];
+                    $i_save['out'] = isset($item['out']) ? $item['out'] : 0;
                     $i_save['session'] = $sale->session;
                     $i_save['store_items_id'] = $item['store_items_id'];
+                    $i_save['descripcion'] = $item['descripcion'];
                     $i_save['user_id'] = Auth::user()->id;
                     $i_save['created_at'] = $sale->created_at;
                     $i_save['updated_at'] = $sale->updated_at;

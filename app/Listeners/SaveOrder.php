@@ -75,7 +75,6 @@ class SaveOrder
             }
         }
         //Actualiza los items de la orden y venta
-
         if($order->status === 0){
             if($order->session){
                 $articulos = SaleItem::where('session', $order->session)->get();
@@ -94,6 +93,7 @@ class SaveOrder
                     $i_save['out'] = isset($item['out']) ? $item['out'] : 0;
                     $i_save['session'] = $order->session;
                     $i_save['store_items_id'] = $item['store_items_id'];
+                    $i_save['descripcion'] = $item['descripcion'];
                     $i_save['user_id'] = Auth::user()->id;
                     $i_save['created_at'] = $order->created_at;
                     $i_save['updated_at'] = $order->updated_at;

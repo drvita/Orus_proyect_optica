@@ -13,6 +13,7 @@ class SaleItemShort extends JsonResource{
         $return['precio'] = $this->price;
         $return['subtotal'] = $this->subtotal;
         $return['inStorage'] = $this->inStorage ? true : false;
+        $return['descripcion'] = $this->descripcion;
         return $return;
     }
 }

@@ -26,6 +26,9 @@ class Contact extends Model{
     public function supplier(){
         return $this->hasMany('App\Models\Order','lab_id', 'id');
     }
+    public function exams(){
+        return $this->hasMany('App\Models\Exam','contact_id', 'id');
+    }
     public function scopeSearchUser($query, $search){
         if(trim($search) != ""){
             $query->where(function($q) use($search){

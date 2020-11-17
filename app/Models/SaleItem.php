@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 class SaleItem extends Model{
     protected $table = "sales_items";
     protected $fillable = [
-        "cant","price","subtotal","inStorage","session","store_items_id","user_id","out"
+        "cant","price","subtotal","inStorage","session","store_items_id","user_id","out","descripcion",
     ];
     protected $hidden = [];
     protected $dates = [
