@@ -20,7 +20,13 @@ class ExamShort extends JsonResource{
         $return['dpod'] = $this->dpod;
         $return['alturaoi'] = $this->alturaoi;
         $return['alturaod'] = $this->alturaod;
-        $return['recomendacion'] = $this->category_id;
+
+        $return['lcmarca'] = $this->lcmarca;
+        $return['lcgod'] = $this->lcgod;
+        $return['lcgoi'] = $this->lcgoi;
+
+        $return['category_id'] = $this->category_id;
+        $return['category_ii'] = $this->category_ii;
         $return['estado'] = ($this->status)?"Terminado":"En proceso";
         $return['category_id'] = $this->category_id;
         $return['created'] = $this->user->name;

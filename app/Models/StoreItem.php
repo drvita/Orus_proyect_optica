@@ -27,7 +27,7 @@ class StoreItem extends Model{
     public function scopeSearchItem($query, $search){
         if(trim($search) != ""){
             $query->where(function($q) use($search){
-                $q->where('name',"LIKE","$search%")
+                $q->where('name',"LIKE","%$search%")
                     ->orWhere('code',"LIKE","$search%");
             });
         }
