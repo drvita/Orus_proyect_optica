@@ -41,44 +41,5 @@ class UserSeeder extends Seeder{
             "created_at" => new Carbon('2020/01/01 00:00:00'),
             "updated_at" => new Carbon('2020/01/01 00:00:00')
         ]);
-        DB::table('contacts')->insert([
-            'name' => "Uriel Glez M",
-            'rfc' => "GOMU160509TT4",
-            'email' => "uriel@domain.com",
-            'type' => 0,
-            'business' => 0,
-            'telnumbers' => '{"t_casa":null,"t_oficina":null,"t_movil":"3122224556"}',
-            'birthday' => new Carbon("2009/05/16"),
-            'domicilio' => '{"calle":"Volcan chicon 144","colonia":"Vista Volcanes","municipio":"Villa de Alvarez","estado":"Colima","cp":"28984"}',
-            'user_id' => 1,
-            "created_at" => new Carbon('2020/01/01 00:00:01'),
-            "updated_at" => new Carbon('2020/01/01 00:00:01')
-        ]);
-        DB::table('contacts')->insert([
-            'name' => "Comicion Federal de Electricidad",
-            'rfc' => "CFE600101B56",
-            'email' => "cfe@domain.com",
-            'type' => 0,
-            'business' => 1,
-            'telnumbers' => '{"t_casa":null,"t_oficina":null,"t_movil":"3121231232"}',
-            'birthday' => new Carbon("1960/01/01"),
-            'domicilio' => '{"calle":null,"colonia":null,"municipio":null,"estado":null,"cp":null}',
-            'user_id' => 1,
-            "created_at" => new Carbon('2020/01/01 00:00:01'),
-            "updated_at" => new Carbon('2020/01/01 00:00:01')
-        ]);
-        DB::table('contacts')->insert([
-            'name' => "Lentes optica center",
-            'rfc' => "OCC600101B56",
-            'email' => "optica_center@domain.com",
-            'type' => 1,
-            'business' => 1,
-            'telnumbers' => '{"t_casa":null,"t_oficina":null,"t_movil":"3331233232"}',
-            'birthday' => new Carbon("1960/01/01"),
-            'domicilio' => '{"calle":null,"colonia":null,"municipio":null,"estado":null,"cp":null}',
-            'user_id' => 1,
-            "created_at" => new Carbon('2020/01/01 00:00:01'),
-            "updated_at" => new Carbon('2020/01/01 00:00:01')
-        ]);
     }
 }
