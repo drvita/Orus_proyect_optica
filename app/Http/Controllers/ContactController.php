@@ -29,7 +29,7 @@ class ContactController extends Controller{
                 ->Email($request->email)
                 ->Type($request->type)
                 ->Business($request->business)
-                ->paginate(10);
+                ->paginate(25);
 
         return ContactResource::collection($contacts);
     }

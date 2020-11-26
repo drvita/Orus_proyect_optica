@@ -77,6 +77,7 @@ class Exam extends JsonResource{
         $return['d_fclod_time'] = $this->d_fclod_time ? $this->d_fclod_time : "00:00";
         $return['d_fcloi_time'] = $this->d_fcloi_time ? $this->d_fcloi_time : "00:00";
         $return['category_id'] = $this->category_id;
+        $return['category_ii'] = $this->category_ii;
         $return['order_id'] = $this->orders ? $this->orders->id : null;
         $return['estado'] = $this->status;
         $return['created'] = $this->user->name;

@@ -89,10 +89,12 @@ class CreateExamsTable extends Migration
             $table->tinyInteger('d_fcloi')->nullable();
             $table->string('d_fclod_time')->nullable();
             $table->string('d_fcloi_time')->nullable();
+            $table->integer('status')->nullable()->default('0');
             $table->foreignId('user_id')->constrained();
             $table->foreignId('contact_id')->constrained();
             $table->foreignId('category_id')->nullable()->constrained();
-            $table->integer('status')->nullable()->default('0');
+            $table->unsignedBigInteger('category_ii')->nullable();
+            $table->foreign('category_ii')->references('id')->on('categories');
             $table->timestamps();
         });
     }

@@ -28,6 +28,7 @@ class CreateSalesItemsTable extends Migration
             $table->integer('inStorage')->default(0);
             $table->integer('out')->nullable()->default(0);
             $table->string('session', 100);
+            $table->string('descripcion', 200)->nullable();
             $table->foreignId('store_items_id')->constrained();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
