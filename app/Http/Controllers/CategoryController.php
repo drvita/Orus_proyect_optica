@@ -22,7 +22,7 @@ class CategoryController extends Controller
         $category = $this->category
                 ->orderBy($orderby, $order)
                 ->CategoryId($request->categoryid)
-                ->paginate(10);
+                ->paginate(25);
         return CategoryResource::collection($category);
     }
 

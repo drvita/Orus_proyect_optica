@@ -22,9 +22,9 @@ class StoreLotController extends Controller{
         if($request->store_items_id){
             $items = $this->item
                     ->where('store_items_id',$request->store_items_id)
-                    ->paginate(10);
+                    ->paginate(25);
         } else {
-            $items = $this->item::paginate(10);
+            $items = $this->item::paginate(25);
         }
         
         return StoreResources::collection($items);

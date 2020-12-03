@@ -27,7 +27,7 @@ class OrderController extends Controller{
         $order = $this->order
             ->Estado($request->status)
             ->orderBy($orderby, $order)
-            ->paginate(10);
+            ->paginate(25);
 
         return OrderResources::collection($order);
     }

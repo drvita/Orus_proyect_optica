@@ -25,7 +25,7 @@ class AtmController extends Controller{
                 ->orderBy($orderby, $order)
                 ->Date($request->date)
                 ->User($request->user, Auth::user())
-                ->paginate(10);
+                ->paginate(25);
 
         return AtmResources::collection($atm);
     }

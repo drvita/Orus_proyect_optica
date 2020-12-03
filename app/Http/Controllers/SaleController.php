@@ -27,7 +27,7 @@ class SaleController extends Controller{
                 ->Cliente($request->search)
                 ->Type($request->type)
                 ->Date($request->date)
-                ->paginate(10);
+                ->paginate(25);
         return SaleResources::collection($sale);
     }
 

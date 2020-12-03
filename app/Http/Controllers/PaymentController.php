@@ -26,7 +26,7 @@ class PaymentController extends Controller{
                 ->Sale($request->sale)
                 ->orderBy($orderby, $order)
                 ->User($request->user)
-                ->paginate(10);
+                ->paginate(25);
 
         return PaymentResources::collection($payment);
     }

@@ -27,7 +27,7 @@ class ExamController extends Controller{
                 ->ExamsByPaciente($request->paciente)
                 ->Date($request->date)
                 ->Status($request->status)
-                ->paginate(10);
+                ->paginate(25);
 
         return ExamResources::collection($exams);
     }
