@@ -20,13 +20,13 @@ class StoreItemController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="asc"? "asc" : "desc";
-        $pages = $request->npages ? $request->npages : 25;
+        $page = $request->itemsPage ? $request->itemsPage : 25;
         
         $items = $this->store
                 ->orderBy($orderby, $order)
                 ->SearchItem($request->search)
                 ->Zero($request->zero)
-                ->paginate($pages);
+                ->paginate($page);
         
         return StoreResources::collection($items);
     }

@@ -21,6 +21,7 @@ class ContactController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
+        $page = $request->itemsPage ? $request->itemsPage : 25;
 
         $contacts = $this->contact
                 ->orderBy($orderby, $order)
@@ -29,7 +30,7 @@ class ContactController extends Controller{
                 ->Email($request->email)
                 ->Type($request->type)
                 ->Business($request->business)
-                ->paginate(25);
+                ->paginate($page);
 
         return ContactResource::collection($contacts);
     }

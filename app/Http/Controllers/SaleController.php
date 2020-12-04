@@ -25,6 +25,7 @@ class SaleController extends Controller{
         $sale = $this->sale
                 ->orderBy($orderby, $order)
                 ->Cliente($request->search)
+                ->SearchId($request->search)
                 ->Type($request->type)
                 ->Date($request->date)
                 ->paginate(25);

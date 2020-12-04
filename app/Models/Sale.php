@@ -28,11 +28,21 @@ class Sale extends Model{
     public function abonos(){
         return $this->hasMany('App\Models\Payment','sale_id', 'id')->selectRaw('SUM(total) as suma');
     }
+
     public function scopeCliente($query, $name){
-        if(trim($name) != ""){
+        $name = preg_replace('/\d+/', "", $name);
+        if(trim($name) != "" && is_string($name)){
             $query->whereHas('cliente', function($query) use ($name){
                 $query->where('name',"LIKE","%$name%");
             });
+        }
+    }
+    public function scopeSearchId($query, $search){
+        if(trim($search) != "" ){
+            $search = (int) $search;
+            if(is_numeric($search) && $search > 0){
+                $query->Where("id",$search);
+            }
         }
     }
     public function scopeType($query, $search){

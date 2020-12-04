@@ -23,10 +23,12 @@ class OrderController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
-
+        
         $order = $this->order
             ->Estado($request->status)
             ->orderBy($orderby, $order)
+            ->Paciente($request->search)
+            ->SearchId($request->search)
             ->paginate(25);
 
         return OrderResources::collection($order);
