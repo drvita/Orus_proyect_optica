@@ -6,6 +6,6 @@ use Illuminate\Http\Request;
 
 class WebController extends Controller{
     public function index(Request $request){
-        return view('web');
+        return view('web', ['version' => '037197d2']);
     }
 }

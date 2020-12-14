@@ -46,7 +46,8 @@ class Auth extends Controller{
             $respons['message'] = "Bienvenido al sistema";
             $respons['token'] = $user->api_token;
         } else {
-            $respons['errors'] = "El usuario no se encuentra registrado";
+            $respons['errors'] = $user->id ? "La contraseña es incorrecta" : "Las credenciales del usuario no son correctas";
+            $respons['errnum'] = $user->id ? $user->id : 0;
         }
 
         return $respons;
