@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Resources;
-use App\Http\Resources\CategoryShort;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class Category extends JsonResource{

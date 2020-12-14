@@ -8,6 +8,8 @@ use App\Models\Category;
 
 class CategoryController extends Controller
 {
+    protected $category;
+    
     public function __construct(Category $category){
         $this->category = $category;
     }
@@ -18,11 +20,12 @@ class CategoryController extends Controller
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "category_id";
         $order = $request->order=="desc"? "desc" : "asc";
+        $page = $request->itemsPage ? $request->itemsPage : 25;
 
         $category = $this->category
                 ->orderBy($orderby, $order)
                 ->CategoryId($request->categoryid)
-                ->paginate(25);
+                ->paginate($page);
         return CategoryResource::collection($category);
     }
 

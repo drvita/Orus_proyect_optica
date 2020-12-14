@@ -17,10 +17,17 @@ class BrandController extends Controller{
      * Muestra una lista de marcas
      * @return Json api rest
      */
-    public function index(){
-        return BrandResources::collection(
-            $this->brand::all()
-        );
+    public function index(Request $request){
+        $orderby = $request->orderby? $request->orderby : "name";
+        $order = $request->order=="desc"? "desc" : "asc";
+        $page = $request->itemsPage ? $request->itemsPage : 25;
+
+        $brand = $this->brand
+                ->orderBy($orderby, $order)
+                ->Supplier($request->supplier)
+                ->paginate($page);
+
+        return BrandResources::collection($brand);
     }
 
     /**

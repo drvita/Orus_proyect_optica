@@ -24,8 +24,8 @@ class StoreItem extends FormRequest
     public function rules()
     {
         return [
-            "code" => "required",
-            "name" => "required",
+            "code" => "required|unique:store_items",
+            "name" => "required|unique:store_items",
             "unit" => "required",
             "category_id" => "required"
         ];

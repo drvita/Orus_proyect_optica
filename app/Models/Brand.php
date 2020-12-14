@@ -20,4 +20,9 @@ class Brand extends Model{
     public function proveedor(){
         return $this->belongsTo('App\Models\Contact','contact_id');
     }
+    public function scopeSupplier($query, $search){
+        if(trim($search) != ""){
+            $query->where("contact_id",$search);
+        }
+    }
 }

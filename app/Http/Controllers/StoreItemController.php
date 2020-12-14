@@ -21,10 +21,11 @@ class StoreItemController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="asc"? "asc" : "desc";
         $page = $request->itemsPage ? $request->itemsPage : 25;
-        
+        //dd("code",$request->search, explode(" ", $request->search));
         $items = $this->store
                 ->orderBy($orderby, $order)
-                ->SearchItem($request->search)
+                ->SearchItem((string) $request->search)
+                ->SearchCode((string) $request->code)
                 ->Zero($request->zero)
                 ->paginate($page);
         
@@ -57,7 +58,7 @@ class StoreItemController extends Controller{
      * @param  $store identificador del producto a actualizar
      * @return Json api rest
      */
-    public function update(StoreRequests $request, StoreItem $store){
+    public function update(Request $request, StoreItem $store){
         $request['user_id']=$store->user_id;
         $store->update( $request->all() );
         return New StoreResources($store);

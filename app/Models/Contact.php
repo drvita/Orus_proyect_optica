@@ -29,6 +29,9 @@ class Contact extends Model{
     public function exams(){
         return $this->hasMany('App\Models\Exam','contact_id', 'id');
     }
+    public function brands(){
+        return $this->hasMany('App\Models\Brand','contact_id', 'id');
+    }
     public function scopeSearchUser($query, $search){
         if(trim($search) != ""){
             $query->where(function($q) use($search){

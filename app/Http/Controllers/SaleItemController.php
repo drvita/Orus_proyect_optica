@@ -20,12 +20,13 @@ class SaleItemController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "sales_items.created_at";
         $order = $request->order=="desc"? "desc" : "asc";
+        $page = $request->itemsPage ? $request->itemsPage : 25;
 
         $item = $this->item
                 ->orderBy($orderby, $order)
                 ->Stock($request->stock)
                 ->SaleDay($request->date)
-                ->paginate(25);
+                ->paginate($page);
         
         if($request->stock){
             return $item;
