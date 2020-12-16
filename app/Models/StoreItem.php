@@ -28,7 +28,7 @@ class StoreItem extends Model{
         return $this->hasMany('App\Models\StoreLot','store_items_id');
     }
     public function brand(){
-        return $this->belongsTo('App\Models\Brand','contact_id');
+        return $this->belongsTo('App\Models\Brand','brand_id');
     }
     public function scopeSearchItem($query, $search){
         if(trim($search) != ""){
