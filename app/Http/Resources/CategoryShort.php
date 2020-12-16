@@ -9,7 +9,7 @@ class CategoryShort extends JsonResource{
         $return['id'] = $this->id;
         $return['categoria'] = $this->name;
         $return['depende_de'] = new CategoryLast($this->parent);
-        $return['hijos'] = CategoryShort::collection($this->categories);
+        $return['hijos'] = CategoryHijos::collection($this->categories);
             
         return $return;
     }

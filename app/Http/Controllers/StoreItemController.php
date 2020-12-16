@@ -5,6 +5,7 @@ use App\Models\StoreItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\StoreItem as StoreResources;
+use App\Http\Resources\StoreItemShow as StoreResourceShow;
 use App\Http\Requests\StoreItem as StoreRequests;
 
 class StoreItemController extends Controller{
@@ -21,7 +22,7 @@ class StoreItemController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="asc"? "asc" : "desc";
         $page = $request->itemsPage ? $request->itemsPage : 25;
-        //dd("code",$request->search, explode(" ", $request->search));
+        //dd("request",$request);
         $items = $this->store
                 ->orderBy($orderby, $order)
                 ->SearchItem((string) $request->search)
@@ -49,7 +50,7 @@ class StoreItemController extends Controller{
      * @return Json api rest
      */
     public function show(StoreItem $store){
-        return new StoreResources($store);
+        return new StoreResourceShow($store);
     }
 
     /**
