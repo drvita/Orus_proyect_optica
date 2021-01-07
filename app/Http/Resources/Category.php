@@ -8,6 +8,7 @@ class Category extends JsonResource{
     public function toArray($request){
         $return['id'] = $this->id;
         $return['categoria'] = $this->name;
+        $return['meta'] = getShortNameCat($this->name);
         $return['depende_de'] = new CategoryPadre($this->parent);
         $return['hijos'] = CategoryHijos::collection($this->categories);
         $return['created_user'] = $this->user->name;

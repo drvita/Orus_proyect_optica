@@ -16,6 +16,7 @@ class CategoryPadre extends JsonResource
     {
         $return['id'] = $this->id;
         $return['categoria'] = $this->name;
+        $return['meta'] = getShortNameCat($this->name);
         $return['depende_de'] = new CategoryPadre($this->parent);
             
         return $return;

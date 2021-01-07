@@ -16,6 +16,7 @@ class CategoryHijos extends JsonResource
     {
         $return['id'] = $this->id;
         $return['categoria'] = $this->name;
+        $return['meta'] = getShortNameCat($this->name);
         $return['hijos'] = CategoryHijos::collection($this->categories);
             
         return $return;
