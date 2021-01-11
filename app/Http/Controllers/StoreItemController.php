@@ -21,13 +21,14 @@ class StoreItemController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="asc"? "asc" : "desc";
-        $page = $request->itemsPage ? $request->itemsPage : 25;
+        $page = $request->itemsPage ? $request->itemsPage : 50;
         //dd("request",$request);
         $items = $this->store
                 ->orderBy($orderby, $order)
                 ->SearchItem((string) $request->search)
                 ->SearchCode((string) $request->code)
                 ->Zero($request->zero)
+                ->Category(intval($request->cat))
                 ->paginate($page);
         
         return StoreResources::collection($items);

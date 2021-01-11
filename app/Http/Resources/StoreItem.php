@@ -10,7 +10,7 @@ class StoreItem extends JsonResource{
         $return['producto'] = $this->name;
         $return['codigo'] = $this->code ? $this->code : "";
         $return['c_barra'] = $this->codebar ? $this->codebar : "";
-        $return['graduacion'] = $this->grad ? $this->grad : "";
+        $return['graduacion'] = $this->grad ? $this->grad : "+000000";
         $return['marca'] = new BrandShort($this->brand);
         $return['unidad'] = $this->unit;
         $return['cantidades'] = $this->cant;

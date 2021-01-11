@@ -20,7 +20,7 @@ class CategoryController extends Controller
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "category_id";
         $order = $request->order=="desc"? "desc" : "asc";
-        $page = $request->itemsPage ? $request->itemsPage : 25;
+        $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $category = $this->category
                 ->orderBy($orderby, $order)

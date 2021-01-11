@@ -20,7 +20,7 @@ class BrandController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "name";
         $order = $request->order=="desc"? "desc" : "asc";
-        $page = $request->itemsPage ? $request->itemsPage : 25;
+        $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $brand = $this->brand
                 ->orderBy($orderby, $order)

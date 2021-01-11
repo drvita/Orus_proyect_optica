@@ -12,9 +12,9 @@ function getShortNameCat($string){
         case "bifocales":
             return [
                 "code" => "BF",
-                "rangoInf" => -3,
-                "rangoSup" => 3,
-                "cil" => -2
+                "rangoInf" => -6,
+                "rangoSup" => 6,
+                "cil" => -4
             ];
         case "progresivo basico":
         case "progresivo-basico":
@@ -94,9 +94,9 @@ function getShortNameCat($string){
         case "bifocal-invisible":
             return [
                 "code" => "BI",
-                "rangoInf" => -15,
-                "rangoSup" => 8,
-                "cil" => -6
+                "rangoInf" => -3,
+                "rangoSup" => 3,
+                "cil" => -2
             ];
         case "monofocal drivesafe":
         case "monofocal-drivesafe":

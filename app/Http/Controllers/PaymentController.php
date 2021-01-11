@@ -21,12 +21,13 @@ class PaymentController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order==="desc"? "desc" : "asc";
+        $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $payment = $this->payment
                 ->Sale($request->sale)
                 ->orderBy($orderby, $order)
                 ->User($request->user)
-                ->paginate(25);
+                ->paginate($page);
 
         return PaymentResources::collection($payment);
     }

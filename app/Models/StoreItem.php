@@ -43,6 +43,11 @@ class StoreItem extends Model{
             $query->where("cant",0);
         }
     }
+    public function scopeCategory($query, $val){
+        if($val > 0){
+            $query->where("category_id",$val);
+        }
+    }
     public function scopeSearchCode($query, $search){
         if(trim($search) != ""){
             $query->where("code","LIKE",$search);

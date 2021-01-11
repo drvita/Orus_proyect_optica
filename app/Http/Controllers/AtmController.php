@@ -20,12 +20,13 @@ class AtmController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order==="desc"? "desc" : "asc";
+        $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $atm = $this->atm
                 ->orderBy($orderby, $order)
                 ->Date($request->date)
                 ->User($request->user, Auth::user())
-                ->paginate(25);
+                ->paginate($page);
 
         return AtmResources::collection($atm);
     }

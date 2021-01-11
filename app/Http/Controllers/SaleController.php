@@ -21,6 +21,7 @@ class SaleController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
+        $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $sale = $this->sale
                 ->orderBy($orderby, $order)
@@ -28,7 +29,7 @@ class SaleController extends Controller{
                 ->SearchId($request->search)
                 ->Type($request->type)
                 ->Date($request->date)
-                ->paginate(25);
+                ->paginate($page);
         return SaleResources::collection($sale);
     }
 

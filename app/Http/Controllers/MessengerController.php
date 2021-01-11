@@ -19,12 +19,13 @@ class MessengerController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order==="asc"? "asc" : "desc";
+        $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $messenger = $this->messenger
                 ->orderBy($orderby, $order)
                 ->Table($request->table)
                 ->IdRow($request->idRow)
-                ->paginate(25);
+                ->paginate(50);
         return MessengerResource::collection($messenger);
     }
     /**

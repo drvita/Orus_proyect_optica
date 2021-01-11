@@ -19,12 +19,13 @@ class StoreLotController extends Controller{
      * @return Json api
      */
     public function index(Request $request){
+        $page = $request->itemsPage ? $request->itemsPage : 50;
         if($request->store_items_id){
             $items = $this->item
                     ->where('store_items_id',$request->store_items_id)
-                    ->paginate(25);
+                    ->paginate($page);
         } else {
-            $items = $this->item::paginate(25);
+            $items = $this->item::paginate($page);
         }
         
         return StoreResources::collection($items);

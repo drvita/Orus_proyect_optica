@@ -21,7 +21,7 @@ class ContactController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
-        $page = $request->itemsPage ? $request->itemsPage : 25;
+        $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $contacts = $this->contact
                 ->orderBy($orderby, $order)

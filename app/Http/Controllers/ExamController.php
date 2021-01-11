@@ -20,6 +20,7 @@ class ExamController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
+        $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $exams = $this->exam
                 ->orderBy($orderby, $order)
@@ -27,7 +28,7 @@ class ExamController extends Controller{
                 ->ExamsByPaciente($request->paciente)
                 ->Date($request->date)
                 ->Status($request->status)
-                ->paginate(25);
+                ->paginate($page);
 
         return ExamResources::collection($exams);
     }
