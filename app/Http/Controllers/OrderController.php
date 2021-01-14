@@ -8,7 +8,7 @@ use App\Http\Resources\Order as OrderResources;
 use App\Http\Requests\Order as OrderRequests;
 use App\Events\OrderUpdated;
 //use Illuminate\Mail\Message;
-use Illuminate\Support\Facades\Log;
+//use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller{
     protected $order;

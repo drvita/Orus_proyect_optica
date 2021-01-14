@@ -9,7 +9,7 @@ Use App\User;
 Use App\Models\Session;
 
 
-class Auth extends Controller{
+class AuthController extends Controller{
     public function __construct(User $user){
         $this->user = $user;
     }
@@ -45,17 +45,19 @@ class Auth extends Controller{
             $respons['data'] = $user;
             $respons['message'] = "Bienvenido al sistema";
             $respons['token'] = $user->api_token;
+            return response()->json($respons, 200);
         } else {
-            $respons['errors'] = $user->id ? "La contraseña es incorrecta" : "Las credenciales del usuario no son correctas";
-            $respons['errnum'] = $user->id ? $user->id : 0;
+            $respons['errors'] = $user && $user->id ? "La contrasena es incorrecta" : "Las credenciales del usuario no son correctas";
+            $respons['errnum'] = $user && $user->id ? $user->id : 0;
+            return response()->json($respons, 401);
         }
 
-        return $respons;
+        
     }
     public function logout(){
-        $user = auth()->user();
+        $user = $this->user;
         $user->api_token = null;
         $user->save();
-        return ['message' => 'Ha salido del sistema correctamente'];
+        return response()->json(['message' => 'Ha salido del sistema correctamente'], 200);
     }
 }

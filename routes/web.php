@@ -37,3 +37,4 @@ Route::get('/almacen/inventario', 'WebController@index');
 Route::get('/usuarios', 'WebController@index');
 Route::get('/usuarios/registro/{id?}', 'WebController@index');
 Route::get('/configuraciones', 'WebController@index');
+Route::get('/notificaciones', 'WebController@index');

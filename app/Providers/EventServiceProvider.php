@@ -24,7 +24,11 @@ class EventServiceProvider extends ServiceProvider
         ],
         \App\Events\PaymentSave::class => [
             \App\Listeners\SavePayment::class,
+        ],
+        \App\Events\ExamEvent::class => [
+            \App\Listeners\ExamListener::class,
         ]
+
     ];
 
     /**

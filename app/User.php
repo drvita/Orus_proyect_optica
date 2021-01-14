@@ -1,11 +1,15 @@
 <?php
 
 namespace App;
+
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-use function PHPSTORM_META\type;
 
-class User extends Model {
+class User extends Authenticatable {
+    use Notifiable;
+
     protected $table = "users";
     protected $fillable = [
         "name","username","email","password","rol","api_token"

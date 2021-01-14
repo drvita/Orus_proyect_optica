@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use App\Http\Resources\User as UserResource;
 Use App\User;
 
@@ -42,9 +41,9 @@ class UserController extends Controller{
             'username' => $request->input('username'),
             'email' => $request->input('email'),
             'rol' => $request->input('rol'),
-            'password' => Hash::make($request->input('password')),
-            'api_token' => hash('sha256', Str::random(60))
+            'password' => Hash::make($request->input('password'))
         ]);
+        //$user->createToken('AppName')->accessToken;
         return New UserResource($user);
     }
     /**

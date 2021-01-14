@@ -1,11 +1,15 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Events\ExamEvent;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Exam;
+use App\User;
 use Illuminate\Http\Request;
 use App\Http\Resources\Exam as ExamResources;
 use App\Http\Requests\Exam as ExamRequests;
+use App\Notifications\ExamNotification;
 
 class ExamController extends Controller{
     protected $exam;
@@ -40,7 +44,12 @@ class ExamController extends Controller{
      */
     public function store(ExamRequests $request){
         $request['user_id']= Auth::user()->id;
+        $rol = Auth::user()->rol;
+        //Cuando se crea no se puede cerrrar el examen
+        $request['status']= 0;
         $exam = $this->exam->create($request->all());
+        //Si es vendedora hay que notificar al medico
+        if($rol === 1) event(new ExamEvent($exam, $rol));
         return new ExamResources($exam);
     }
 
@@ -60,8 +69,14 @@ class ExamController extends Controller{
      * @return Json api rest
      */
     public function update(ExamRequests $request, Exam $exam){
-        $request['user_id']=$exam->user_id;
+        $request['user_id']=Auth::user()->id;
+        $status = $exam->status;
+        $rol = Auth::user()->rol;
+        //Vendedores no pueden modificar el estado
+        if($rol === 1) $request['status']= $status;
         $exam->update( $request->all() );
+        //Si es medico y estaba en no terminado y cambio a terminado
+        if($rol === 2 && !$status && $exam->status) event(new ExamEvent($exam, $rol));
         return New ExamResources($exam);
     }
 

@@ -2,11 +2,27 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-
+use App\Http\Resources\UserNoty;
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+    return new UserNoty($request->user());
+});
+Route::middleware('auth:api')->post('/user/readAllNotifications', function (Request $request) {
+    $res = ["success" => false,"id" => $request->id];
+    $code = 402;
+    foreach ($request->user()->unreadNotifications as $notification) {
+        if($request->id === -1){
+            $notification->markAsRead();
+            $res =["success" => true,"id" => $request->id];
+            $code = 200;
+        } else if($request->id === $notification->id){
+            $notification->markAsRead();
+            $res =["success" => true,"id" => $request->id];
+            $code = 200;
+            break;
+        }
+    }
+    return response()->json($res, $code);
 });
 Route::middleware('auth:api')->apiResource('contacts','ContactController');
 Route::middleware('auth:api')->apiResource('categories','CategoryController');
@@ -22,8 +38,8 @@ Route::middleware('auth:api')->apiResource('brands','BrandController');
 Route::middleware('auth:api')->apiResource('messengers','MessengerController');
 Route::middleware('auth:api')->apiResource('users','UserController');
 // Rutas especiales
-Route::post('users/login','Auth@login')->name('users.login');
-Route::middleware('auth:api')->post('users/logout','Auth@logout')->name('users.logout');
+Route::post('users/login','AuthController@login')->name('users.login');
+Route::middleware('auth:api')->post('users/logout','AuthController@logout')->name('users.logout');
 Route::middleware('auth:api')->get('saleday','PaymentController@saleday')->name('payments.saleday');
 
 
