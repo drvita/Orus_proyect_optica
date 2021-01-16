@@ -17,7 +17,8 @@ class UserNoty extends JsonResource
             'email' => $this->email,
             'rol' => $this->rol,
             'session' => $this->session,
-            'notifications' => $this->unreadNotifications,
+            'unreadNotifications' => $this->unreadNotifications,
+            'notifications' => $this->notifications,
         ];
     }
 }
