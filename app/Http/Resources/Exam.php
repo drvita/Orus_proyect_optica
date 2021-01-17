@@ -47,6 +47,8 @@ class Exam extends JsonResource{
         $return['ejeod'] = $this->ejeod ? $this->ejeod : 0;
         $return['adicioni'] = $this->adicioni ? $this->adicioni : 0;
         $return['adiciond'] = $this->adiciond ? $this->adiciond : 0;
+        $return['adicion_media_od'] = $this->adicion_media_od ? $this->adicion_media_od : 0;
+        $return['adicion_media_oi'] = $this->adicion_media_oi ? $this->adicion_media_oi : 0;
         $return['dpoi'] = $this->dpoi ? $this->dpoi : 0;
         $return['dpod'] = $this->dpod ? $this->dpod : 0;
         $return['avfoi'] = $this->avfoi ? $this->avfoi : "";

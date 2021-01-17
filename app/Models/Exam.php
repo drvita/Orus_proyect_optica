@@ -15,7 +15,8 @@ class Exam extends Model{
         "dpoi","dpod","avfod","avfoi","avf2o","lcmarca","lcgoi","lcgod","txoptico","alturaod",
         "alturaoi","pioi","piod","observaciones","pc","tablet","movil","lap","lap_time","pc_time",
         "tablet_time","movil_time","d_time","d_media","d_test","d_fclod","d_fcloi","d_fclod_time",
-        "d_fcloi_time","status","contact_id","user_id","category_id","category_ii"
+        "d_fcloi_time","status","contact_id","user_id","category_id","category_ii","adicion_media_oi",
+        "adicion_media_od"
     ];
     protected $hidden = [];
     protected $dates = [
