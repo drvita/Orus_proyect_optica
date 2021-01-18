@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 Use App\User;
 Use App\Models\Session;
+use App\Http\Resources\UserNoty;
 
 
 class AuthController extends Controller{
@@ -59,5 +60,28 @@ class AuthController extends Controller{
         $user->api_token = null;
         $user->save();
         return response()->json(['message' => 'Ha salido del sistema correctamente'], 200);
+    }
+    public function userData(Request $request){
+        return new UserNoty($request->user());
+    }
+    public function userReadNotify(Request $request){
+        $res = ["success" => false,"id" => $request->id];
+        $code = 200;
+        foreach ($request->user()->unreadNotifications as $notification) {
+            if($request->id === -1){
+                $notification->markAsRead();
+                $res =["success" => true,"id" => $request->id];
+                $code = 200;
+            } else if($request->id === $notification->id){
+                $notification->markAsRead();
+                $res =["success" => true,"id" => $request->id];
+                $code = 200;
+                break;
+            }
+        }
+        return response()->json($res, $code);
+    }
+    public function userSubscriptionNotify(Request $request){
+        return response()->json(["success" => true], 200);
     }
 }
