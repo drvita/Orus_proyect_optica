@@ -14,7 +14,7 @@ class Contact extends JsonResource {
         $return['tipo'] = $this->type;
         $return['empresa'] = $this->business;
         $return['telefonos'] =  is_string($this->telnumbers) ? json_decode($this->telnumbers) : $this->telnumbers;
-        $return['f_nacimiento'] = ($this->birthday)?$this->birthday->format('Y-m-d'):null;
+        $return['f_nacimiento'] = $this->birthday && intval($this->birthday->format('Y')) > 1900 ? $this->birthday->format('Y-m-d') : null;
         $return['domicilio'] = is_string($this->domicilio) ? json_decode($this->domicilio) : $this->domicilio;
         $return['enUso'] = count($this->buys) + count($this->orders) + count($this->supplier) + count($this->exams) + count($this->brands);
         $return['marcas'] = BrandShort::collection($this->brands);

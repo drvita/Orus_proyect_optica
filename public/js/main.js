@@ -15,58 +15,62 @@ const public_key =
     "BAXaaj09DxhifYLLpBqmDrY815JxlmqpslozLflLxeml4cmFUxPwk1rTIVLvoqBLqReVeKyeloWH_GZ90ryA8IE",
   validPublicKey = urlBase64ToUint8Array(public_key),
   subscription = async () => {
-    if ("serviceWorker" in navigator && "PushManager" in window) {
-      const register = await navigator.serviceWorker
-        .register("/sw.js", {
-          scope: "/",
-        })
-        .then(function (swReg) {
-          console.log("[Main] SW Registrado");
-          return swReg;
-        })
-        .catch(function (error) {
-          console.error("[Main] SW error \n", error);
-        });
+    try {
+      if ("serviceWorker" in navigator && "PushManager" in window) {
+        const register = await navigator.serviceWorker
+          .register("/sw.js", {
+            scope: "/",
+          })
+          .then(function (swReg) {
+            console.log("[Main] SW Registrado");
+            return swReg;
+          })
+          .catch(function (error) {
+            console.error("[Main] SW error \n", error);
+          });
 
-      await register.pushManager
-        .subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: validPublicKey,
-        })
-        .then((res) => {
-          console.log("[Main] Push Notify registrado");
-          return res;
-        })
-        .catch((err) => {
-          console.error("[Main] Push Notify error \n", err);
-        });
+        await register.pushManager
+          .subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: validPublicKey,
+          })
+          .then((res) => {
+            console.log("[Main] Push Notify registrado");
+            return res;
+          })
+          .catch((err) => {
+            console.error("[Main] Push Notify error \n", err);
+          });
 
-      /*
-      console.log(JSON.stringify(subscrition));
-      await fetch("http://localhost:3000/api/user/subscriptionNotify", {
-        method: "GET",
-        body: JSON.stringify(subscrition),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((data) => {
-          console.log("Subscripción enviada a servidor");
+        /*
+        console.log(JSON.stringify(subscrition));
+        await fetch("http://localhost:3000/api/user/subscriptionNotify", {
+          method: "GET",
+          body: JSON.stringify(subscrition),
+          headers: {
+            "Content-Type": "application/json",
+          },
         })
-        .catch((e) => {
-          console.error("Error al enviar la subscripción al servidor", e);
-        });
-    */
-    } else {
-      console.log("[Main] Este navegador no soporta SW o Push");
+          .then((data) => {
+            console.log("Subscripción enviada a servidor");
+          })
+          .catch((e) => {
+            console.error("Error al enviar la subscripción al servidor", e);
+          });
+      */
+      } else {
+        console.log("[Main] Este navegador no soporta SW o Push");
+      }
+    } catch (err) {
+      console.error("[Main] Error en el montado de SW");
     }
   };
 
 if (Notification.permission === "denied") {
   console.log("[Main] Push Notify estan bloqueadas");
-  subscription();
 } else {
   console.log("[Main] Push Notify Ok");
+  subscription();
   /*
   navigator.serviceWorker.getRegistration().then(function (reg) {
     reg.showNotification("Hello world!");

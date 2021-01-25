@@ -1,8 +1,5 @@
 <?php
-
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Resources\UserNoty;
 
 Route::middleware('auth:api')->apiResource('contacts','ContactController');
 Route::middleware('auth:api')->apiResource('categories','CategoryController');
