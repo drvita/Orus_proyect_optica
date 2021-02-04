@@ -9,9 +9,37 @@ function getShortNameCat($string){
                 "rangoSup" => 6,
                 "cil" => -4
           ];
+        case "monofocal digital DriveSafe":
+            return [
+                "code" => "MDSF",
+                "rangoInf" => -10,
+                "rangoSup" => 6,
+                "cil" => -4
+            ];
+        case "monofocal digital superb":
+            return [
+                "code" => "MDSB",
+                "rangoInf" => -10,
+                "rangoSup" => 6,
+                "cil" => -4
+            ];
+        case "monofocal digital individual":
+            return [
+                "code" => "MDI",
+                "rangoInf" => -10,
+                "rangoSup" => 6,
+                "cil" => -4
+            ];
         case "bifocales":
             return [
                 "code" => "BF",
+                "rangoInf" => -6,
+                "rangoSup" => 6,
+                "cil" => -4
+            ];
+        case "bifocal invisible":
+            return [
+                "code" => "BI",
                 "rangoInf" => -6,
                 "rangoSup" => 6,
                 "cil" => -4
@@ -24,10 +52,34 @@ function getShortNameCat($string){
                 "rangoSup" => 6,
                 "cil" => -4
             ];
+        case "progresivo digital individual":
+        case "progresivo-digital-individual":
+            return [
+                "code" => "PDI",
+                "rangoInf" => -15,
+                "rangoSup" => 8,
+                "cil" => -6
+            ];
         case "progresivo digital":
         case "progresivo-digital":
             return [
                 "code" => "PD",
+                "rangoInf" => -15,
+                "rangoSup" => 8,
+                "cil" => -6
+            ];
+        case "progresivo digital plus":
+        case "progresivo-digital-plus":
+            return [
+                "code" => "PDP",
+                "rangoInf" => -15,
+                "rangoSup" => 8,
+                "cil" => -6
+            ];
+        case "progresivo digital drive safe":
+        case "progresivo-digital-drive-safe":
+            return [
+                "code" => "PDS",
                 "rangoInf" => -15,
                 "rangoSup" => 8,
                 "cil" => -6
