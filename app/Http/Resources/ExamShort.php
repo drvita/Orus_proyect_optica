@@ -25,6 +25,7 @@ class ExamShort extends JsonResource{
         $return['lcmarca'] = $this->lcmarca;
         $return['lcgod'] = $this->lcgod;
         $return['lcgoi'] = $this->lcgoi;
+        $return['observaciones'] = $this->observaciones ? $this->observaciones : "";
         $return['category_id'] = $this->category_id;
         $return['category_ii'] = $this->category_ii;
         $return['estado'] = ($this->status)?"Terminado":"En proceso";

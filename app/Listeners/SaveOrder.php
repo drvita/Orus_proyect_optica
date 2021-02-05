@@ -117,7 +117,7 @@ class SaveOrder
                     });
             } else if($order->status === 3){
                 Debugbar::info($order->paciente->name .":". $order->id);
-                if($order->paciente->email){
+                if($order->paciente->email && !preg_match('/.+@domain.com$/', $order->paciente->email)){
                     Mail::to($order->paciente->email)->send(new orderEmail($order->paciente->name, $order->id));
                     Messenger::create([
                         "table" => "orders",
