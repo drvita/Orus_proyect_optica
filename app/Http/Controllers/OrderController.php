@@ -25,14 +25,14 @@ class OrderController extends Controller{
         $order = $request->order=="desc"? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
         
-        $order = $this->order
+        $orderdb = $this->order
             ->Estado($request->status)
             ->orderBy($orderby, $order)
             ->Paciente($request->search)
             ->SearchId($request->search)
             ->paginate($page);
 
-        return OrderResources::collection($order);
+        return OrderResources::collection($orderdb);
     }
 
     /**

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Payment as PaymentResources;
 use App\Http\Requests\Payment as PaymentRequests;
-use App\Events\PaymentSave;
+use App\Http\Resources\PaymentBankDetails;
 
 class PaymentController extends Controller{
     protected $payment;
@@ -38,9 +38,19 @@ class PaymentController extends Controller{
     */
     public function saleday(Request $request){
         $payment = $this->payment
-            ->SaleDay($request->date, Auth::user(), $request->user)
+            ->MethodPay($request->date, Auth::user(), $request->user)
             ->get();
         return $payment;
+    }
+    /*
+    * Muestra el detallado de pagos bancarios
+    * @Return string
+    */
+    public function bankdetails(Request $request){
+        $payment = $this->payment
+            ->BankDetails($request->date, Auth::user(), $request->user)
+            ->get();
+        return $payment;//new PaymentBankDetails($payment);
     }
 
     /**

@@ -21,8 +21,7 @@ class CreateConfigTable extends Migration
     public function up()
     {
         Schema::create($this->tableName, function (Blueprint $table) {
-            $table->engine = 'InnoDB';
-            $table->increments('id');
+            $table->id();
             $table->string('name', 100);
             $table->text('value');
         });

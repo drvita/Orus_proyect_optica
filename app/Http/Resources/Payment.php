@@ -9,7 +9,8 @@ class Payment extends JsonResource{
     public function toArray($request){
         $return['id'] = $this->id;
         $return['metodo'] = $this->metodopago;
-        $return['banco'] = $this->banco;
+        $return['banco'] = $this->bank_id ? $this->bankName->value : "";
+        $return['banco_id'] = $this->bank_id;
         $return['Autorizacion'] = $this->auth;
         $return['total'] = $this->total;
         $return['created_user'] = $this->user->name;

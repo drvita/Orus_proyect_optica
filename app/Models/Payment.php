@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class Payment extends Model{
     protected $table = "payments";
     protected $fillable = [
-        "metodopago","banco","auth","total","sale_id","contact_id","user_id"
+        "metodopago","details","bank_id","auth","total","sale_id","contact_id","user_id"
     ];
     protected $hidden = [];
     protected $dates = [
@@ -18,6 +18,9 @@ class Payment extends Model{
     ];
     public function user(){
         return $this->belongsTo('App\User');
+    }
+    public function bankName(){
+        return $this->belongsTo('App\Models\config', 'bank_id');
     }
     public function scopeSale($query, $search){
         if(trim($search) != ""){
@@ -29,12 +32,34 @@ class Payment extends Model{
             $query->where("user_id",$search);
         }
     }
-    public function scopeSaleDay($query, $date, $rol, $user){
+    public function scopeMethodPay($query, $date, $rol, $user){
         if($date != "" && trim($rol) != ""){
             $query->select('metodopago')
                 ->selectRaw('SUM(total) as total')
                 ->WhereDate("created_at",$date)
                 ->groupBy('metodopago');
+           
+            if(trim($user) != ""){
+                $user = $user * 1;
+                if(!$rol->rol && $user > 1){
+                    $query->where('user_id',$user);
+                } else if($rol->rol) {
+                    $query->where('user_id',$rol->id);
+                }
+            } else {
+                if($rol->rol){
+                    $query->where('user_id',$rol->id);
+                }
+            }
+        }
+    }
+    public function scopeBankDetails($query, $date, $rol, $user){
+        if($date != "" && trim($rol) != ""){
+            $query->select('bank_id')
+                ->selectRaw('SUM(total) as total')
+                ->WhereDate("created_at",$date)
+                ->Where("bank_id", "!=", 0)
+                ->groupBy('bank_id');
            
             if(trim($user) != ""){
                 $user = $user * 1;
