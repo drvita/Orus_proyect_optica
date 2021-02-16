@@ -4,6 +4,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Sale;
 use App\Models\Messenger;
+use App\Models\Config;
+use App\User;
 use Illuminate\Support\Facades\Auth;
 
 class Payment extends Model{
@@ -17,10 +19,10 @@ class Payment extends Model{
         'created_at'
     ];
     public function user(){
-        return $this->belongsTo('App\User');
+        return $this->belongsTo(User::class);
     }
     public function bankName(){
-        return $this->belongsTo('App\Models\config', 'bank_id');
+        return $this->belongsTo(Config::class, 'bank_id', 'id');
     }
     public function scopeSale($query, $search){
         if(trim($search) != ""){

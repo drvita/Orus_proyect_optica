@@ -2,6 +2,8 @@
 
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use App\User;
+use App\Models\Category;
 
 class Category extends Model{
     protected $table = "categories";
@@ -14,13 +16,13 @@ class Category extends Model{
         'created_at'
     ];
     public function user(){
-        return $this->belongsTo('App\User');
+        return $this->belongsTo(User::class);
     }
     public function parent(){
-        return $this->belongsTo('App\Models\Category','category_id');
+        return $this->belongsTo(Category::class,'category_id');
     }
     public function categories(){
-        return $this->hasMany('App\Models\Category');
+        return $this->hasMany(Category::class);
     }
     public function scopeCategoryId($query, $search){
         if(trim($search) != ""){

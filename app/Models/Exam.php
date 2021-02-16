@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Contact;
+use App\User;
+use App\Models\Order;
 
 class Exam extends Model{
     protected $table = "exams";
@@ -24,13 +27,13 @@ class Exam extends Model{
         'created_at'
     ];
     public function paciente(){
-        return $this->belongsTo('App\Models\Contact','contact_id');
+        return $this->belongsTo(Contact::class,'contact_id');
     }
     public function user(){
-        return $this->belongsTo('App\User');
+        return $this->belongsTo(User::class);
     }
     public function orders(){
-        return $this->belongsTo('App\Models\Order','id','exam_id');
+        return $this->belongsTo(Order::class,'id','exam_id');
     }
     public function scopePaciente($query, $name){
         if(trim($name) != ""){

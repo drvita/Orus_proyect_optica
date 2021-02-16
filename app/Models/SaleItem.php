@@ -3,6 +3,7 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\StoreItem;
+use App\User;
 use Illuminate\Support\Facades\Log;
 
 class SaleItem extends Model{
@@ -16,10 +17,10 @@ class SaleItem extends Model{
         'created_at'
     ];
     public function user(){
-        return $this->belongsTo('App\User');
+        return $this->belongsTo(User::class);
     }
     public function item(){
-        return $this->belongsTo('App\Models\StoreItem','store_items_id');
+        return $this->belongsTo(StoreItem::class,'store_items_id');
     }
     public function scopeStock($query, $search){
         if($search != ""){

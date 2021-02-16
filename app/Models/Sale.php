@@ -2,6 +2,11 @@
 
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use App\User;
+use App\Models\Contact;
+use App\Models\Order;
+use App\Models\SaleItem;
+use App\Models\Payment;
 
 class Sale extends Model{
     protected $table = "sales";
@@ -14,19 +19,19 @@ class Sale extends Model{
         'created_at'
     ];
     public function user(){
-        return $this->belongsTo('App\User');
+        return $this->belongsTo(User::class);
     }
     public function cliente(){
-        return $this->belongsTo('App\Models\Contact','contact_id');
+        return $this->belongsTo(Contact::class,'contact_id');
     }
     public function pedido(){
-        return $this->belongsTo('App\Models\Order','order_id');
+        return $this->belongsTo(Order::class,'order_id');
     }
     public function items(){
-        return $this->hasMany('App\Models\SaleItem','session', 'session');
+        return $this->hasMany(SaleItem::class,'session', 'session');
     }
     public function abonos(){
-        return $this->hasMany('App\Models\Payment','sale_id', 'id')->selectRaw('SUM(total) as suma');
+        return $this->hasMany(Payment::class,'sale_id', 'id')->selectRaw('SUM(total) as suma');
     }
 
     public function scopeCliente($query, $name){

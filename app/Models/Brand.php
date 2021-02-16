@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\User;
+use App\Models\Contact;
 
 class Brand extends Model{
     protected $table = "brands";
@@ -15,10 +17,10 @@ class Brand extends Model{
         'created_at'
     ];
     public function user(){
-        return $this->belongsTo('App\User');
+        return $this->belongsTo(User::class);
     }
     public function proveedor(){
-        return $this->belongsTo('App\Models\Contact','contact_id');
+        return $this->belongsTo(Contact::class,'contact_id');
     }
     public function scopeSupplier($query, $search){
         if(trim($search) != ""){

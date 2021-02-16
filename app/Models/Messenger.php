@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\User;
 
 class Messenger extends Model{
     protected $table = "messengers";
@@ -15,7 +16,7 @@ class Messenger extends Model{
         'created_at'
     ];
     public function creador(){
-        return $this->belongsTo('App\User', 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
     public function scopeTable($query, $search){
         if(trim($search) != ""){

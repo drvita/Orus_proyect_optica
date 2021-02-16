@@ -13,6 +13,7 @@ class Payment extends JsonResource{
         $return['banco_id'] = $this->bank_id;
         $return['Autorizacion'] = $this->auth;
         $return['total'] = $this->total;
+        $return['sale'] = $this->sale_id;
         $return['created_user'] = $this->user->name;
         $return['created_at'] = $this->created_at->format('Y-m-d');
         $return['updated_at'] = $this->updated_at->format('Y-m-d');

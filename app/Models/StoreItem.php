@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use phpDocumentor\Reflection\Types\Boolean;
+use App\User;
+use App\Models\Category;
+use App\Models\Contact;
+use App\Models\StoreLot;
+use App\Models\Brand;
 
 class StoreItem extends Model{
     protected $table = "store_items";
@@ -16,19 +21,19 @@ class StoreItem extends Model{
         'created_at'
     ];
     public function user(){
-        return $this->belongsTo('App\User');
+        return $this->belongsTo(User::class);
     }
     public function categoria(){
-        return $this->belongsTo('App\Models\Category','category_id');
+        return $this->belongsTo(Category::class,'category_id');
     }
     public function supplier(){
-        return $this->belongsTo('App\Models\Contact','contact_id');
+        return $this->belongsTo(Contact::class,'contact_id');
     }
     public function lote(){
-        return $this->hasMany('App\Models\StoreLot','store_items_id');
+        return $this->hasMany(StoreLot::class,'store_items_id');
     }
     public function brand(){
-        return $this->belongsTo('App\Models\Brand','brand_id');
+        return $this->belongsTo(Brand::class,'brand_id');
     }
     public function scopeSearchItem($query, $search){
         if(trim($search) != ""){

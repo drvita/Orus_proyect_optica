@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\User;
 
 class Atm extends Model{
     protected $table = "atms";
@@ -15,7 +16,7 @@ class Atm extends Model{
         'created_at'
     ];
     public function user(){
-        return $this->belongsTo('App\User');
+        return $this->belongsTo(User::class);
     }
     public function scopeDate($query, $search){
         if(trim($search) != ""){

@@ -2,6 +2,11 @@
 
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use App\User;
+use App\Models\Sale;
+use App\Models\Order;
+use App\Models\Exam;
+use App\Models\Brand;
 
 class Contact extends Model{
     protected $table = "contacts";
@@ -15,22 +20,22 @@ class Contact extends Model{
         'birthday'
     ];
     public function user(){
-        return $this->belongsTo('App\User');
+        return $this->belongsTo(User::class);
     }
     public function buys(){
-        return $this->hasMany('App\Models\Sale','contact_id', 'id');
+        return $this->hasMany(Sale::class,'contact_id', 'id');
     }
     public function orders(){
-        return $this->hasMany('App\Models\Order','contact_id', 'id');
+        return $this->hasMany(Order::class,'contact_id', 'id');
     }
     public function supplier(){
-        return $this->hasMany('App\Models\Order','lab_id', 'id');
+        return $this->hasMany(Order::class,'lab_id', 'id');
     }
     public function exams(){
-        return $this->hasMany('App\Models\Exam','contact_id', 'id');
+        return $this->hasMany(Exam::class,'contact_id', 'id');
     }
     public function brands(){
-        return $this->hasMany('App\Models\Brand','contact_id', 'id');
+        return $this->hasMany(Brand::class,'contact_id', 'id');
     }
     public function scopeSearchUser($query, $search){
         if(trim($search) != ""){
