@@ -7,28 +7,28 @@ function getShortNameCat($string){
                 "code" => "MF",
                 "rangoInf" => -10,
                 "rangoSup" => 6,
-                "cil" => -4
+                "cil" => -6
           ];
         case "monofocal digital DriveSafe":
             return [
                 "code" => "MDSF",
                 "rangoInf" => -10,
                 "rangoSup" => 6,
-                "cil" => -4
+                "cil" => -6
             ];
         case "monofocal digital superb":
             return [
                 "code" => "MDSB",
                 "rangoInf" => -10,
                 "rangoSup" => 6,
-                "cil" => -4
+                "cil" => -6
             ];
         case "monofocal digital individual":
             return [
                 "code" => "MDI",
                 "rangoInf" => -10,
                 "rangoSup" => 6,
-                "cil" => -4
+                "cil" => -6
             ];
         case "bifocales":
             return [
