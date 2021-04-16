@@ -31,6 +31,9 @@ class Sale extends Model{
         return $this->hasMany(SaleItem::class,'session', 'session');
     }
     public function abonos(){
+        return $this->hasMany(Payment::class,'sale_id', 'id');
+    }
+    public function sumAbonos(){
         return $this->hasMany(Payment::class,'sale_id', 'id')->selectRaw('SUM(total) as suma');
     }
 

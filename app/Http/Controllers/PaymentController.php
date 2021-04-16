@@ -25,8 +25,9 @@ class PaymentController extends Controller{
 
         $payment = $this->payment
                 ->Sale($request->sale)
+                ->Date($request->date)
                 ->orderBy($orderby, $order)
-                ->User($request->user)
+                ->User(Auth::user(), $request->user)
                 ->paginate($page);
 
         return PaymentResources::collection($payment);

@@ -24,14 +24,26 @@ class Payment extends Model{
     public function bankName(){
         return $this->belongsTo(Config::class, 'bank_id', 'id');
     }
+    public function SaleDetails(){
+        return $this->belongsTo(Sale::class, 'sale_id', 'id');
+    }
     public function scopeSale($query, $search){
         if(trim($search) != ""){
             $query->where("sale_id",$search);
         }
     }
-    public function scopeUser($query, $search){
-        if(trim($search) != ""){
-            $query->where("user_id",$search);
+    public function scopeUser($query, $rol, $user){
+        if(trim($user) != ""){
+            $user = $user * 1;
+            if(!$rol->rol && $user > 1){
+                $query->where('user_id',$user);
+            } else if($rol->rol) {
+                $query->where('user_id',$rol->id);
+            }
+        } else {
+            if($rol->rol){
+                $query->where('user_id',$rol->id);
+            }
         }
     }
     public function scopeMethodPay($query, $date, $rol, $user){
@@ -75,6 +87,11 @@ class Payment extends Model{
                     $query->where('user_id',$rol->id);
                 }
             }
+        }
+    }
+    public function scopeDate($query, $search){
+        if(trim($search) != ""){
+            $query->WhereDate("created_at",$search);
         }
     }
 
