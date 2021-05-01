@@ -44,7 +44,6 @@ class OrderController extends Controller{
         $request['user_id']= Auth::user()->id;
         $order = $this->order->create($request->all());
         $order['items'] = $request->items;
-
         event(new OrderUpdated($order, false));
         return new OrderResources($order);
     }

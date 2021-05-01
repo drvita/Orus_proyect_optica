@@ -18,7 +18,6 @@ class SaveSale
     public function handle($event)
     {
         $sale = $event->sale;
-
         if(!$sale->order_id){
             $items = json_decode($sale->items, true);
             if($sale->session){

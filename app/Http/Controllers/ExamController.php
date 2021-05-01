@@ -68,7 +68,7 @@ class ExamController extends Controller{
      * @param  $exam identificador del examen
      * @return Json api rest
      */
-    public function update(ExamRequests $request, Exam $exam){
+    public function update(Request $request, Exam $exam){
         $request['user_id']=Auth::user()->id;
         $status = $exam->status;
         $rol = Auth::user()->rol;

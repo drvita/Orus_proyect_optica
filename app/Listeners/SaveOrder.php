@@ -38,14 +38,13 @@ class SaveOrder
         $order = $event->order;
         $udStatus = $event->udStatus;
         $items = json_decode($order->items, true);
-
+        
         //Actualiza la venta si la orden es creada o modificada
         if(is_array($items) && count($items)){
             $total = 0;
             foreach($items as $item){
                 $total += $item['subtotal'];
             }
-            
             $sale = Sale::where('order_id', $order->id)->first();
             
             if(is_object($sale) && $sale->id){
@@ -89,7 +88,7 @@ class SaveOrder
                     }
 
                 }
-
+                
                 if($items && count($items)){
                     foreach($items as $item){
                         $i_save['cant'] = $item['cant'];

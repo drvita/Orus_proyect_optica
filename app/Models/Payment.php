@@ -34,16 +34,8 @@ class Payment extends Model{
     }
     public function scopeUser($query, $rol, $user){
         if(trim($user) != ""){
-            $user = $user * 1;
-            if(!$rol->rol && $user > 1){
-                $query->where('user_id',$user);
-            } else if($rol->rol) {
-                $query->where('user_id',$rol->id);
-            }
-        } else {
-            if($rol->rol){
-                $query->where('user_id',$rol->id);
-            }
+            $user = intval($user);
+            if($user) $query->where('user_id',$user);
         }
     }
     public function scopeMethodPay($query, $date, $rol, $user){
