@@ -23,7 +23,7 @@ class OrderController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
-        $page = $request->itemsPage ? $request->itemsPage : 50;
+        $page = $request->itemsPage ? $request->itemsPage : 20;
         
         $orderdb = $this->order
             ->Estado($request->status)
