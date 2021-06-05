@@ -30,6 +30,9 @@ class AddAdicionMediaExams extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('exams', function (Blueprint $table) {
+            $table->dropColumn('adicion_media_oi');
+            $table->dropColumn('adicion_media_od');
+        });
     }
 }

@@ -35,6 +35,9 @@ class RenamePaymentsBancoDetails extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('payments', function (Blueprint $table) {
+            $table->dropColumn('details');
+            $table->dropColumn('bank_id');
+        });
     }
 }
