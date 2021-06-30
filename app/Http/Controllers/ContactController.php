@@ -41,6 +41,11 @@ class ContactController extends Controller{
      * @return Json api rest
      */
     public function store(ContactRequests $request){
+        $validated = $request->validate([
+            'name' => 'required|unique:contacts',
+            'email' => 'unique:contacts',
+        ]);
+
         $request['user_id']= Auth::user()->id;
         $contact = $this->contact->create($request->all());
         return New ContactResource($contact);
