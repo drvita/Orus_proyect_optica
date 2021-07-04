@@ -70,10 +70,10 @@ class ExamController extends Controller{
      */
     public function update(Request $request, Exam $exam){
         $request['user_id']=Auth::user()->id;
-        $status = $exam->status;
+        //$status = $exam->status;
         $rol = Auth::user()->rol;
         //Vendedores no pueden modificar el estado
-        if($rol === 1) $request['status']= $status;
+        //if($rol !== 2) $request['status']= $status;
         $exam->update( $request->all() );
         //Si es medico y estaba en no terminado y cambio a terminado
         if($rol === 2 && !$status && $exam->status) event(new ExamEvent($exam, $rol));
