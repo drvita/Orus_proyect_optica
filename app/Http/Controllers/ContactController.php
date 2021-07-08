@@ -24,6 +24,7 @@ class ContactController extends Controller{
         $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $contacts = $this->contact
+                ->with('user','buys','orders','supplier','exams','brands')
                 ->orderBy($orderby, $order)
                 ->SearchUser($request->search)
                 ->Name($request->name)

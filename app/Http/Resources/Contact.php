@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\ExamShort;
 
 class Contact extends JsonResource {
 
@@ -9,7 +10,7 @@ class Contact extends JsonResource {
         
         $return['id'] = $this->id;
         $return['nombre'] = $this->name;
-        $return['rfc'] = $this->rfc? $this->rfc : '';
+        $return['rfc'] = $this->rfc ?? '';
         $return['email'] = $this->email;
         $return['tipo'] = $this->type;
         $return['empresa'] = $this->business;
@@ -18,6 +19,7 @@ class Contact extends JsonResource {
         $return['domicilio'] = is_string($this->domicilio) ? json_decode($this->domicilio) : $this->domicilio;
         $return['enUso'] = count($this->buys) + count($this->orders) + count($this->supplier) + count($this->exams) + count($this->brands);
         $return['marcas'] = BrandShort::collection($this->brands);
+        $return['examenes'] = ExamShort::collection($this->exams);
         $return['created_user'] = $this->user->name;
         $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');

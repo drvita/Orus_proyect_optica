@@ -26,6 +26,7 @@ class OrderController extends Controller{
         $page = $request->itemsPage ? $request->itemsPage : 20;
         
         $orderdb = $this->order
+            ->with('examen','paciente','laboratorio','user','nota','items')
             ->Estado($request->status)
             ->orderBy($orderby, $order)
             ->Paciente($request->search)

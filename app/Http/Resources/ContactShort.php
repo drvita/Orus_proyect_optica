@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\ExamShort;
 
 class ContactShort extends JsonResource {
 
@@ -12,6 +13,7 @@ class ContactShort extends JsonResource {
         $return['email'] = $this->email;
         $return['telefonos'] = is_string($this->telnumbers) ? json_decode($this->telnumbers) : $this->telnumbers;;
         $return['f_nacimiento'] = ($this->birthday)?$this->birthday->format('Y-m-d'):null;
+        $return['examenes'] = ExamShort::collection($this->exams);
         return $return;
     }
 }
