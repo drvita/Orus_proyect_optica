@@ -27,6 +27,7 @@ class ExamController extends Controller{
         $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $exams = $this->exam
+                ->withRelation()
                 ->orderBy($orderby, $order)
                 ->Paciente($request->search)
                 ->ExamsByPaciente($request->paciente)
@@ -58,7 +59,11 @@ class ExamController extends Controller{
      * @param  $exam id que proviene de la URL
      * @return Json api rest
      */
-    public function show(Exam $exam){
+    public function show($id){
+        $exam = $this->exam::where('id', $id)
+                ->withRelation()
+                ->first();
+
         return new ExamResources($exam);
     }
 

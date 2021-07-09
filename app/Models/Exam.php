@@ -21,7 +21,7 @@ class Exam extends Model{
         "d_fcloi_time","status","contact_id","user_id","category_id","category_ii","adicion_media_oi",
         "adicion_media_od"
     ];
-    protected $hidden = [];
+    protected $hidden = ['category_id','category_ii','user_id','contact_id'];
     protected $dates = [
         'updated_at',
         'created_at'
@@ -33,8 +33,16 @@ class Exam extends Model{
         return $this->belongsTo(User::class);
     }
     public function orders(){
-        return $this->belongsTo(Order::class,'id','exam_id');
+        return $this->hasMany(Order::class,'exam_id','id');
     }
+    public function categoryPrimary(){
+        return $this->hasOne(Category::class, 'id', 'category_id');
+    }
+    public function categorySecondary(){
+        return $this->hasOne(Category::class, 'id', 'category_ii');
+    }
+
+    //Scopes
     public function scopePaciente($query, $name){
         if(trim($name) != ""){
             $query->whereHas('paciente', function($query) use ($name){
@@ -56,6 +64,9 @@ class Exam extends Model{
         if(trim($search) != ""){
             $query->orWhere("status",$search);
         }
+    }
+    public function scopeWithRelation($query){
+        $query->with('paciente','user','orders','categoryPrimary.parent.parent.parent','categorySecondary.parent.parent.parent');
     }
 
 }

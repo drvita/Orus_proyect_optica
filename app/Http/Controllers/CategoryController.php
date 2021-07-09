@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Category as CategoryResource;
+//use App\Http\Resources\CategoryInExam as CategoryResource;
 use App\Models\Category;
 
 class CategoryController extends Controller
@@ -22,11 +23,15 @@ class CategoryController extends Controller
         $order = $request->order=="desc"? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
 
-        $category = $this->category
+        $categories = $this->category
+                ->withRelation()
                 ->orderBy($orderby, $order)
-                ->CategoryId($request->categoryid)
+                ->categoryId($request->categoryid)
+                ->search($request->search)
                 ->paginate($page);
-        return CategoryResource::collection($category);
+
+        //return $categories;
+        return CategoryResource::collection($categories);
     }
 
     /**
@@ -49,8 +54,12 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return Json api rest
      */
-    public function show(Category $category){
-        return New CategoryResource($category);
+    public function show($id){
+        $category = $this->category::where('id', $id)
+                    ->withRelation()
+                    ->first();
+
+        return new CategoryResource($category);
     }
 
     /**

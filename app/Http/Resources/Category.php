@@ -2,18 +2,25 @@
 
 namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\User as UserResource;
+use App\Http\Resources\CategoryWithSons as CategoryResource;
 
 class Category extends JsonResource{
 
     public function toArray($request){
-        $return['id'] = $this->id;
-        $return['categoria'] = $this->name;
-        $return['meta'] = getShortNameCat($this->name);
-        $return['depende_de'] = new CategoryPadre($this->parent);
-        $return['hijos'] = CategoryHijos::collection($this->categories);
-        $return['created_user'] = $this->user->name;
-        $return['created_at'] = $this->created_at->diffForHumans();
-        $return['updated_at'] = $this->updated_at->diffForHumans();
+        $return = [];
+
+        
+        if(isset($this->id)){
+            $return['id'] = $this->id;
+            $return['name'] = $this->name;
+            $return['meta'] = $this->getCode();
+
+            $return['parent'] = $this->parent ? new Category($this->parent) : null;
+            $return['sons'] =  count($this->sons) ? CategoryResource::collection($this->sons) : null; //$this->sons;
+            $return['created'] = new UserResource($this->user);
+        }
+        
             
         return $return;
     }
