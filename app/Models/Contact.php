@@ -32,7 +32,7 @@ class Contact extends Model{
         return $this->hasMany(Order::class,'lab_id', 'id');
     }
     public function exams(){
-        return $this->hasMany(Exam::class,'contact_id', 'id');
+        return $this->hasMany(Exam::class,'contact_id', 'id')->orderBy('updated_at','DESC');
     }
     public function brands(){
         return $this->hasMany(Brand::class,'contact_id', 'id');
