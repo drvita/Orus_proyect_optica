@@ -91,7 +91,7 @@ class Exam extends JsonResource{
             $return['category_primary'] = new CategoryResource($this->categoryPrimary);
             $return['category_secondary'] = new CategoryResource($this->categorySecondary);
             $return['paciente'] = new ContactResource($this->paciente);
-            $return['orders'] = new OrderResource($this->orders);
+            $return['orders'] = OrderResource::collection($this->orders);
             $return['created'] = new UserResource($this->user);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');

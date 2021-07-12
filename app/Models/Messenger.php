@@ -18,6 +18,7 @@ class Messenger extends Model{
     public function creador(){
         return $this->belongsTo(User::class, 'user_id');
     }
+    //scopes
     public function scopeTable($query, $search){
         if(trim($search) != ""){
             $query->where("table",$search);

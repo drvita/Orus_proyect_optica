@@ -12,19 +12,10 @@ class OrderInExam extends JsonResource{
 
         if(isset($this->id)){
             $return['id'] = $this->id;
-            $return['session'] = $this->session;
-            $return['productos'] = $this->items
-                ? SaleResource::collection($this->items) 
-                : [];
-            $return['caja'] = $this->ncaja;
-            $return['folio_lab'] = $this->npedidolab;
-            $return['laboratorio'] = $this->laboratorio 
-                ? new ContactShort($this->laboratorio) 
-                : null;
-            $return['observaciones'] = $this->observaciones;
-            $return['estado'] = $this->status;
-            $return['nota'] = $this->nota;
-            $return['created'] = $this->user;
+            $return['status'] = $this->status;
+            $return['order_foreing'] = $this->npedidolab;
+            $return['nota'] = $this->nota->id;
+            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         }
         
         return $return;

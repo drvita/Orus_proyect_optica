@@ -10,12 +10,16 @@ class UserInExam extends JsonResource
      * @return Json api rest
      */
     public function toArray($request){
-        return [
-            'id' => $this->id,
-            'username' => $this->username,
-            'name' => $this->name,
-            'email' => $this->email,
-            'rol' => $this->rol,
-        ];
+        $return = [];
+
+        if(isset($this->id)){
+            $return['id'] = $this->id;
+            $return['username'] = $this->username;
+            $return['name'] = $this->name;
+            $return['email'] = $this->email;
+            $return['rol'] = $this->rol;
+
+        }
+        return $return;
     }
 }
