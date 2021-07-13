@@ -27,6 +27,7 @@ class ExamController extends Controller{
         $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $exams = $this->exam
+                ->withRelation()
                 ->orderBy($orderby, $order)
                 ->Paciente($request->search)
                 ->ExamsByPaciente($request->paciente)
@@ -58,7 +59,11 @@ class ExamController extends Controller{
      * @param  $exam id que proviene de la URL
      * @return Json api rest
      */
-    public function show(Exam $exam){
+    public function show($id){
+        $exam = $this->exam::where('id', $id)
+                ->withRelation()
+                ->first();
+
         return new ExamResources($exam);
     }
 
@@ -76,7 +81,7 @@ class ExamController extends Controller{
         //if($rol !== 2) $request['status']= $status;
         $exam->update( $request->all() );
         //Si es medico y estaba en no terminado y cambio a terminado
-        if($rol === 2 && !$status && $exam->status) event(new ExamEvent($exam, $rol));
+        //if($rol === 2 && !$status && $exam->status) event(new ExamEvent($exam, $rol));
         return New ExamResources($exam);
     }
 

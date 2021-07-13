@@ -10,7 +10,7 @@ class Category extends Model{
     protected $fillable = [
         "name","category_id","user_id"
     ];
-    protected $hidden = [];
+    protected $hidden = ['updated_at','created_at','user_id','category_id'];
     protected $dates = [
         'updated_at',
         'created_at'
@@ -19,18 +19,37 @@ class Category extends Model{
         return $this->belongsTo(User::class);
     }
     public function parent(){
-        return $this->belongsTo(Category::class,'category_id');
+        return $this->hasOne(Category::class,'id', 'category_id');
     }
     public function categories(){
-        return $this->hasMany(Category::class);
+        return $this->hasMany(Category::class,'category_id','id');
     }
+    public function sons(){
+        return $this->hasMany(Category::class,'category_id','id');
+    }
+
+    //scopes
     public function scopeCategoryId($query, $search){
         if(trim($search) != ""){
             if($search === "raiz"){
-                $query->where("category_id",null);
+                $query->whereNull("category_id");
             } else {
                 $query->where("category_id",$search);
             }
         }
+    }
+    public function scopeWithRelation($query){
+        $query->with('user','sons','parent.parent.parent');
+    }
+    public function scopeSearch($query, $search){
+        if(trim($search) != ""){
+            $query->Where("name", "like", "$search%");
+        }
+    }
+
+    //Acciones
+    public function getCode(){
+        //Return of helper
+        return getShortNameCat($this->name);
     }
 }

@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Http\Resources;
+
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CategoryStore extends JsonResource
+class CategorySons extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,9 +15,16 @@ class CategoryStore extends JsonResource
     public function toArray($request)
     {
         $return = [];
-        if($this->id){
+
+        if(isset($this->id)){
             $return['id'] = $this->id;
+            $return['name'] = $this->name;
+            $return['meta'] = $this->getCode();
+            $return['sons'] = $this->sons ? CategorySons::collection($this->sons) : null;
+
+            //old
             $return['categoria'] = $this->name;
+            $return['hijos'] = $this->sons ? CategorySons::collection($this->sons) : null;
         }
             
         return $return;
