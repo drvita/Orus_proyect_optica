@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CategoryWithSons extends JsonResource
+class CategorySons extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -20,7 +20,11 @@ class CategoryWithSons extends JsonResource
             $return['id'] = $this->id;
             $return['name'] = $this->name;
             $return['meta'] = $this->getCode();
-            $return['sons'] = $this->sons ? CategoryWithSons::collection($this->sons) : null;
+            $return['sons'] = $this->sons ? CategorySons::collection($this->sons) : null;
+
+            //old
+            $return['categoria'] = $this->name;
+            $return['hijos'] = $this->sons ? CategorySons::collection($this->sons) : null;
         }
             
         return $return;

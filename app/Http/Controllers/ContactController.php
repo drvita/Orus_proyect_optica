@@ -74,7 +74,7 @@ class ContactController extends Controller{
      * @param  int  $id
      * @return Json api rest
      */
-    public function update(ContactRequests $request, Contact $contact){
+    public function update(Request $request, Contact $contact){
         $request['user_id']=$contact->user_id;
         $request['updated_id'] = Auth::user()->id;
         $contact->update( $request->all() );

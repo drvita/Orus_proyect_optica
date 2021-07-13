@@ -81,7 +81,7 @@ class ExamController extends Controller{
         //if($rol !== 2) $request['status']= $status;
         $exam->update( $request->all() );
         //Si es medico y estaba en no terminado y cambio a terminado
-        if($rol === 2 && !$status && $exam->status) event(new ExamEvent($exam, $rol));
+        //if($rol === 2 && !$status && $exam->status) event(new ExamEvent($exam, $rol));
         return New ExamResources($exam);
     }
 

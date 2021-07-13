@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\User as UserResource;
-use App\Http\Resources\CategoryWithSons as CategoryResource;
 
 class Category extends JsonResource{
 
@@ -16,9 +15,15 @@ class Category extends JsonResource{
             $return['name'] = $this->name;
             $return['meta'] = $this->getCode();
 
-            $return['parent'] = $this->parent ? new Category($this->parent) : null;
-            $return['sons'] =  count($this->sons) ? CategoryResource::collection($this->sons) : null; //$this->sons;
+            $return['parent'] = $this->parent ? new CategoryParent($this->parent) : null;
+            $return['sons'] =  count($this->sons) ? CategorySons::collection($this->sons) : null;
             $return['created'] = new UserResource($this->user);
+
+            //Old
+            $return['categoria'] = $this->name;
+            $return['depende_de'] = $this->parent ? new CategoryParent($this->parent) : null;
+            $return['hijos'] = count($this->sons) ? CategorySons::collection($this->sons) : null;
+            $return['created_user'] = $this->user->name;
         }
         
             
