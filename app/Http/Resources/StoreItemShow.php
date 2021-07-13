@@ -22,7 +22,7 @@ class StoreItemShow extends JsonResource
         $return['unidad'] = $this->unit;
         $return['cantidades'] = $this->cant;
         $return['precio'] = $this->price;
-        $return['categoria'] = new CategoryStore($this->categoria);
+        $return['categoria'] = new Category($this->categoria);
         $return['lotes'] = $this->lote ? count($this->lote) : 0;
         $return['proveedor'] = new Contact($this->supplier);
         return $return;
