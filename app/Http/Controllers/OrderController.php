@@ -26,7 +26,7 @@ class OrderController extends Controller{
         $page = $request->itemsPage ? $request->itemsPage : 20;
         
         $orderdb = $this->order
-            ->with('examen','paciente','laboratorio','user','nota','items')
+            ->withRelation()
             ->Estado($request->status)
             ->orderBy($orderby, $order)
             ->Paciente($request->search)
@@ -55,6 +55,7 @@ class OrderController extends Controller{
      * @return Json api rest
      */
     public function show(Order $order){
+        $order->withRelation();
         return new OrderResources($order);
     }
 

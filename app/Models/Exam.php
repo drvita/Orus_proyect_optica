@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Contact;
 use App\User;
 use App\Models\Order;
+use Illuminate\Http\Request;
 
 class Exam extends Model{
     protected $table = "exams";
@@ -26,6 +27,7 @@ class Exam extends Model{
         'updated_at',
         'created_at'
     ];
+    //Relationships
     public function paciente(){
         return $this->belongsTo(Contact::class,'contact_id');
     }
@@ -41,7 +43,7 @@ class Exam extends Model{
     public function categorySecondary(){
         return $this->hasOne(Category::class, 'id', 'category_ii');
     }
-
+    //Funciones
     //Scopes
     public function scopePaciente($query, $name){
         if(trim($name) != ""){

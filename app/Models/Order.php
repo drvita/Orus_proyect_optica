@@ -20,6 +20,7 @@ class Order extends Model{
         'updated_at',
         'created_at'
     ];
+    //RElationships
     public function examen(){
         return $this->belongsTo(Exam::class,'exam_id');
     }
@@ -38,7 +39,7 @@ class Order extends Model{
     public function items(){
         return $this->hasMany(SaleItem::class,'session', 'session');
     }
-
+    //Scopes
     public function scopePaciente($query, $name){
         $name = preg_replace('/\d+/', "", $name);
         if(trim($name) != "" && is_string($name)){
@@ -60,7 +61,10 @@ class Order extends Model{
             $query->where("status",$search);
         }
     }
-
+    public function scopeWithRelation($query){
+        $query->with('examen','paciente','laboratorio','user','nota','items');
+    }
+    //Other
     protected static function booted(){
         static::created(function ($item) {
         });
