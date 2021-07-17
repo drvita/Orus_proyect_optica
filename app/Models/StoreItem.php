@@ -20,6 +20,7 @@ class StoreItem extends Model{
         'updated_at',
         'created_at'
     ];
+    //RelationsShip
     public function user(){
         return $this->belongsTo(User::class);
     }
@@ -35,6 +36,7 @@ class StoreItem extends Model{
     public function brand(){
         return $this->belongsTo(Brand::class,'brand_id');
     }
+    //Scopes
     public function scopeSearchItem($query, $search){
         if(trim($search) != ""){
             $query->where(function($q) use($search){
@@ -57,6 +59,25 @@ class StoreItem extends Model{
     public function scopeSearchCode($query, $search){
         if(trim($search) != ""){
             $query->where("code","LIKE",$search);
+        }
+    }
+    public function scopeSearchSupplier($query, $search){
+        //$name = preg_replace('/\d+/', "", $name);
+        
+        if(trim($search) != ""){
+            $contact_id = 0;
+            preg_match_all('!\d+!', $search, $matches);
+            if(count($matches[0])){
+                $contact_id = (int) $matches[0][0];
+            }
+
+            if($contact_id){
+                $query->orWhere('contact_id',$contact_id);
+            } else {
+                $query->whereHas('supplier', function($query) use ($search){
+                    $query->where('name',"LIKE","%$search%");
+                });
+            }
         }
     }
 }

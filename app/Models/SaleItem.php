@@ -16,12 +16,14 @@ class SaleItem extends Model{
         'updated_at',
         'created_at'
     ];
+    //Relationship
     public function user(){
         return $this->belongsTo(User::class);
     }
     public function item(){
         return $this->belongsTo(StoreItem::class,'store_items_id');
     }
+    //Scopes
     public function scopeStock($query, $search){
         if($search != ""){
             $search = $search == "true" ? 1 : 0;
@@ -40,6 +42,7 @@ class SaleItem extends Model{
                 ->groupBy('session');
         }
     }
+    //Liserning
     protected static function booted(){
         static::created(function ($item) {
             $updateItem = StoreItem::find($item->store_items_id);

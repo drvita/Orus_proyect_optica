@@ -25,10 +25,11 @@ class StoreItemController extends Controller{
         //dd("request",$request);
         $items = $this->store
                 ->orderBy($orderby, $order)
-                ->SearchItem((string) $request->search)
-                ->SearchCode((string) $request->code)
-                ->Zero($request->zero)
-                ->Category(intval($request->cat))
+                ->searchItem((string) $request->search)
+                ->searchCode((string) $request->code)
+                ->zero($request->zero)
+                ->category(intval($request->cat))
+                ->searchSupplier($request->supplier)
                 ->paginate($page);
         
         return StoreResources::collection($items);

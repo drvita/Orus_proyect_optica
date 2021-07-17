@@ -25,6 +25,7 @@ class ContactList extends JsonResource {
             $return['telefonos'] =  is_string($this->telnumbers) ? json_decode($this->telnumbers) : $this->telnumbers;
             $return['f_nacimiento'] = $this->birthday && intval($this->birthday->format('Y')) > 1900 ? $this->birthday->format('Y-m-d') : null;
             $return['edad'] = 1 < $edad && $edad < 120 ? $edad : 0;
+            $return['lab'] = $this->business;
 
             $return['enUso'] = count($this->buys) + 
                                 count($this->brands) + 
