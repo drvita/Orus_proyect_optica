@@ -11,24 +11,23 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-const public_key =
-    "BAXaaj09DxhifYLLpBqmDrY815JxlmqpslozLflLxeml4cmFUxPwk1rTIVLvoqBLqReVeKyeloWH_GZ90ryA8IE",
-  validPublicKey = urlBase64ToUint8Array(public_key),
-  subscription = async () => {
-    try {
-      if ("serviceWorker" in navigator && "PushManager" in window) {
-        const register = await navigator.serviceWorker
-          .register("/sw.js", {
-            scope: "/",
-          })
-          .then(function (swReg) {
-            console.log("[Main] SW Registrado");
-            return swReg;
-          })
-          .catch(function (error) {
-            console.error("[Main] SW error \n", error);
-          });
-
+//const public_key = "BAXaaj09DxhifYLLpBqmDrY815JxlmqpslozLflLxeml4cmFUxPwk1rTIVLvoqBLqReVeKyeloWH_GZ90ryA8IE",
+//  validPublicKey = urlBase64ToUint8Array(public_key),
+const subscription = async () => {
+  try {
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+      navigator.serviceWorker
+        .register("/sw.js", {
+          scope: ".",
+        })
+        .then(function (swReg) {
+          console.log("[Main] SW Registrado");
+          return swReg;
+        })
+        .catch(function (error) {
+          console.error("[Main] SW error \n", error);
+        });
+      /*
         await register.pushManager
           .subscribe({
             userVisibleOnly: true,
@@ -42,7 +41,7 @@ const public_key =
             console.error("[Main] Push Notify error \n", err);
           });
 
-        /*
+        
         console.log(JSON.stringify(subscrition));
         await fetch("http://localhost:3000/api/user/subscriptionNotify", {
           method: "GET",
@@ -58,22 +57,23 @@ const public_key =
             console.error("Error al enviar la subscripción al servidor", e);
           });
       */
-      } else {
-        console.log("[Main] Este navegador no soporta SW o Push");
-      }
-    } catch (err) {
-      console.error("[Main] Error en el montado de SW");
+    } else {
+      console.log("[Main] Este navegador no soporta SW o Push");
     }
-  };
+  } catch (err) {
+    console.error("[Main] Error en el montado de SW");
+  }
+};
 
-if (Notification.permission === "denied") {
-  console.log("[Main] Push Notify estan bloqueadas");
-} else {
-  console.log("[Main] Push Notify Ok");
-  subscription();
-  /*
-  navigator.serviceWorker.getRegistration().then(function (reg) {
-    reg.showNotification("Hello world!");
-  });
-  */
-}
+window.onload = function (e) {
+  if (Notification.permission === "denied") {
+    console.log("[Main] Push Notify estan bloqueadas");
+  } else {
+    subscription();
+    /*
+    navigator.serviceWorker.getRegistration().then(function (reg) {
+      reg.showNotification("Hello world!");
+    });
+    */
+  }
+};

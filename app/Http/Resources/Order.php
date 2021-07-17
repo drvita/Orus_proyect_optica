@@ -22,7 +22,7 @@ class Order extends JsonResource{
         $return['observaciones'] = $this->observaciones;
         $return['estado'] = $this->status;
         $return['nota'] = $this->nota;
-        $return['created'] = $this->user->name;
+        $return['created'] = new UserInExam($this->user);
         $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         return $return;
