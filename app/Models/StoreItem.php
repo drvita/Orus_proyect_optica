@@ -48,7 +48,7 @@ class StoreItem extends Model{
     }
     public function scopeZero($query, $search){
         if($search == "true"){
-            $query->where("cant",0);
+            $query->where("cant","<=",0);
         }
     }
     public function scopeCategory($query, $val){
@@ -72,9 +72,26 @@ class StoreItem extends Model{
             }
 
             if($contact_id){
-                $query->orWhere('contact_id',$contact_id);
+                $query->Where('contact_id',$contact_id);
             } else {
                 $query->whereHas('supplier', function($query) use ($search){
+                    $query->where('name',"LIKE","%$search%");
+                });
+            }
+        }
+    }
+    public function scopeSearchBrand($query, $search){
+        if(trim($search) != ""){
+            $brand_id = 0;
+            preg_match_all('!\d+!', $search, $matches);
+            if(count($matches[0])){
+                $brand_id = (int) $matches[0][0];
+            }
+            
+            if($brand_id){
+                $query->Where('brand_id',$brand_id);
+            } else {
+                $query->whereHas('brand', function($query) use ($search){
                     $query->where('name',"LIKE","%$search%");
                 });
             }

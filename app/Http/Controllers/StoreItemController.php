@@ -30,9 +30,9 @@ class StoreItemController extends Controller{
                 ->zero($request->zero)
                 ->category(intval($request->cat))
                 ->searchSupplier($request->supplier)
-                ->paginate($page);
+                ->searchBrand($request->brand);
         
-        return StoreResources::collection($items);
+        return StoreResources::collection($items->paginate($page));
     }
 
     /**
