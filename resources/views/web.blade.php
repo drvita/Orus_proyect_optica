@@ -56,9 +56,9 @@
         @while ( ($archivo = readdir($gestor)) !== false)
             @if (preg_match("/.+.chunk.js$/im", $archivo))
               @php
-                  $time = date('Ymd', filectime("$ruta$archivo"));
+                  $time = date('Ymdhi', filectime("$ruta$archivo"));
               @endphp
-              <title>Orus || sistema administrativo {{$time}} </title>
+              <title>Orus || {{$time}} </title>
             @endif
         @endwhile
         
