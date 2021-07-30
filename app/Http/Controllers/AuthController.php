@@ -20,7 +20,8 @@ class AuthController extends Controller{
             'password' => 'required|string'
         ]);
         $user = $this->user
-            ->UserEmail($credenciales['email'])
+            ->userEmail($credenciales['email'])
+            ->notDelete()
             ->first();
             
         if($user && Hash::check($credenciales['password'],$user->password)){

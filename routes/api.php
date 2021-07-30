@@ -17,7 +17,8 @@ Route::middleware('auth:api')->apiResource('messengers','MessengerController');
 Route::middleware('auth:api')->apiResource('users','UserController');
 // Rutas especiales
 Route::post('users/login','AuthController@login')->name('users.login');
-Route::middleware('auth:api')->post('users/logout','AuthController@logout')->name('users.logout');
+Route::middleware('auth:api')->post('/users/clearToken/{id}','UserController@clearToken')->name('users.clearToken');
+Route::middleware('auth:api')->post('/user/logout','AuthController@logout')->name('users.logout');
 Route::middleware('auth:api')->get('/user','AuthController@userData')->name('users.data');
 Route::middleware('auth:api')->post('/user/readAllNotifications', 'AuthController@userReadNotify')->name('users.readNotify');
 Route::middleware('auth:api')->get('/user/subscriptionNotify','AuthController@userSubscriptionNotify')->name('users.subscribtionNotify');

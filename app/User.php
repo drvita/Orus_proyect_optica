@@ -15,17 +15,19 @@ class User extends Authenticatable {
         "name","username","email","password","rol","api_token"
     ];
     protected $hidden = [
-        "password","remember_token","api_token"
+        "password","remember_token","api_token","deleted_at"
     ];
     protected $dates = [
-        'updated_at','created_at'
+        'updated_at','created_at','deleted_at'
     ];
     public function getAuthIdentifier(){
         return 1;
     }
+    //Relationship
     public function session(){
         return $this->belongsTo('App\Models\Session','id', 'session_id');
     }
+    //Scopes
     public function scopeSearch($query, $search){
         if(trim($search) != ""){
             $query->where(function($q) use($search){
@@ -45,18 +47,25 @@ class User extends Authenticatable {
             }
         }
     }
-    public function scopeUserName($query, $search){
+    public function scopeUserName($query, $search, $userId=false){
         if(trim($search) != ""){
             $query->where("username","LIKE",$search);
+            if($userId) $query->where("id","!=",$userId);
         }
     }
-    public function scopeUserEmail($query, $search){
+    public function scopeUserEmail($query, $search, $userId=false){
         if(trim($search) != ""){
             $query->where("email","LIKE",$search);
+            if($userId) $query->where("id","!=",$userId);
         }
     }
     public function scopeBot($query){
         $query->where("id","!=",1);
+    }
+    public function scopeNotDelete($query, $confirm=true){
+        if($confirm){
+            $query->whereNull("deleted_at");
+        }
     }
 
 }

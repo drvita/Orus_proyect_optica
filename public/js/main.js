@@ -1,3 +1,64 @@
+const subscription = async () => {
+  try {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then(function (response) {
+          if (response) {
+            console.log("[SW] Services Worker registrado con exito");
+            Notification.requestPermission()
+              .then((response) => {
+                if (response === "granted") {
+                  console.log("[SW] Servicio de notificaciones activadas");
+                  //window.sendPushMessage("Contactos", "Notificaciones activadas");
+                } else {
+                  console.error("[SW] Servicio de notificaciones rechazadas");
+                }
+              })
+              .catch((error) => console.error(error.message));
+          }
+        })
+        .catch(function (error) {
+          console.error("[Main] SW error \n", error);
+        });
+    } else {
+      console.log("[Main] Este navegador no soporta SW - Server no seguro");
+    }
+  } catch (err) {
+    console.error("[Main] Error en el montado de SW");
+  }
+};
+
+window.onload = function (e) {
+  subscription();
+};
+
+window.sendPushMessage = (title, message) => {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.ready.then((sw) => {
+      sw.showNotification(title, {
+        body: message,
+      }).catch((error) => {
+        console.error("[SW] Notificaciones no disponibles", error.message);
+        window.Swal.fire({
+          title: message,
+          showConfirmButton: title !== "error" ? false : true,
+          timer: title !== "error" ? 1500 : 9000,
+          position: "top",
+        });
+      });
+    });
+  } else {
+    window.Swal.fire({
+      title: message,
+      showConfirmButton: true,
+      timer: 6000,
+      position: "top",
+    });
+  }
+};
+
+/*
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -13,22 +74,16 @@ function urlBase64ToUint8Array(base64String) {
 
 //const public_key = "BAXaaj09DxhifYLLpBqmDrY815JxlmqpslozLflLxeml4cmFUxPwk1rTIVLvoqBLqReVeKyeloWH_GZ90ryA8IE",
 //  validPublicKey = urlBase64ToUint8Array(public_key),
-const subscription = async () => {
-  try {
-    if ("serviceWorker" in navigator && "PushManager" in window) {
-      navigator.serviceWorker
-        .register("/sw.js", {
-          scope: ".",
-        })
-        .then(function (swReg) {
-          console.log("[Main] SW Registrado");
-          return swReg;
-        })
-        .catch(function (error) {
-          console.error("[Main] SW error \n", error);
-        });
-      /*
-        await register.pushManager
+
+/*
+  if (Notification.permission === "denied") {
+    console.log("[Main] Push Notify estan bloqueadas");
+  } else {
+    subscription();
+  }
+  */
+/*
+        subscrition = await register.pushManager
           .subscribe({
             userVisibleOnly: true,
             applicationServerKey: validPublicKey,
@@ -57,23 +112,3 @@ const subscription = async () => {
             console.error("Error al enviar la subscripción al servidor", e);
           });
       */
-    } else {
-      console.log("[Main] Este navegador no soporta SW o Push");
-    }
-  } catch (err) {
-    console.error("[Main] Error en el montado de SW");
-  }
-};
-
-window.onload = function (e) {
-  if (Notification.permission === "denied") {
-    console.log("[Main] Push Notify estan bloqueadas");
-  } else {
-    subscription();
-    /*
-    navigator.serviceWorker.getRegistration().then(function (reg) {
-      reg.showNotification("Hello world!");
-    });
-    */
-  }
-};

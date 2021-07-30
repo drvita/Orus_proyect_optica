@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\User as UserResource;
 Use App\User;
+Use App\Models\Session;
+use Carbon\Carbon;
+
 
 class UserController extends Controller{
     public function __construct(User $user){
@@ -19,15 +23,41 @@ class UserController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
+        $search = $request->search;
+        $userId = $request->userId;
+        $username = $request->username;
+        $email = $request->email;
+        $rol = $request->rol;
+        $deleted = true;
+        $rol = Auth::user()->rol;
+
+        if(isset($request->deleted)){
+            $deleted = (int) $request->deleted;
+            $deleted = (boolean) $deleted;
+        }
+
+        if($rol){
+            return response()->json([
+                "data" => [],
+                "meta" => [
+                    "total" => 0
+                ],
+                "message" => "No tiene permisos administrativos"
+            ], 401);
+        }
+        
 
         $users = $this->user
+                ->with('session')
                 ->orderBy($orderby, $order)
-                ->Search($request->search)
-                ->UserName($request->username)
-                ->UserEmail($request->email)
-                ->Rol($request->rol)
-                ->Bot()
+                ->search($search)
+                ->userName($username, $userId)
+                ->userEmail($email, $userId)
+                ->rol($rol)
+                ->bot()
+                ->notDelete($deleted)
                 ->paginate($page);
+
         return UserResource::collection($users);
     }
     /**
@@ -36,6 +66,15 @@ class UserController extends Controller{
      * @return Json api rest
      */
     public function store(Request $request){
+        $rol = Auth::user()->rol;
+
+        if($rol){
+            return response()->json([
+                "data" => [],
+                "message" => "No tiene permisos administrativos"
+            ], 401);
+        }
+
         $user = User::create([
             'name' => $request->input('name'),
             'username' => $request->input('username'),
@@ -61,6 +100,15 @@ class UserController extends Controller{
      * @return Json api rest
      */
     public function update(Request $request, User $user){
+        $rol = Auth::user()->rol;
+
+        if($rol){
+            return response()->json([
+                "data" => [],
+                "message" => "No tiene permisos administrativos"
+            ], 401);
+        }
+
         if($request['password']) $request['password'] = Hash::make($request->input('password'));
         $user->update( $request->all() );
         return New UserResource($user);
@@ -71,7 +119,45 @@ class UserController extends Controller{
      * @return Json api rest
      */
     public function destroy(User $user){
-        $user->delete();
-        return New UserResource($user);
+        try {
+            $rol = Auth::user()->rol;
+
+            if($rol){
+                return response()->json([
+                    "data" => [],
+                    "message" => "No tiene permisos administrativos"
+                ], 401);
+            }
+
+            $user->delete();
+            return response()->json(null, 204);
+        } catch (\Throwable $th) {
+            $user->deleted_at = Carbon::now();
+            $user->api_token = null;
+            $user->save();
+            return response()->json(null, 204);
+        }
+    }
+    /**
+     * Limpia el token de un usuario
+     */
+    public function clearToken($id){
+        $user = $this->user::find($id);
+        $rol = Auth::user()->rol;
+
+        if($user && !$rol){
+            $session = Session::where('session_id',$id);
+            $session->delete();
+            $user->api_token = null;
+            $user->save();
+
+            return response()->json([
+                "success" => true
+            ], 202);
+        }
+
+        return response()->json([
+            "success" => false,
+        ], 401);
     }
 }
