@@ -29,14 +29,14 @@ class UserController extends Controller{
         $email = $request->email;
         $rol = $request->rol;
         $deleted = true;
-        $rol = Auth::user()->rol;
+        $auth = Auth::user();
 
         if(isset($request->deleted)){
             $deleted = (int) $request->deleted;
             $deleted = (boolean) $deleted;
         }
 
-        if($rol){
+        if($auth->rol){
             return response()->json([
                 "data" => [],
                 "meta" => [
@@ -66,9 +66,9 @@ class UserController extends Controller{
      * @return Json api rest
      */
     public function store(Request $request){
-        $rol = Auth::user()->rol;
+        $auth = Auth::user();
 
-        if($rol){
+        if($auth->rol){
             return response()->json([
                 "data" => [],
                 "message" => "No tiene permisos administrativos"
@@ -100,9 +100,9 @@ class UserController extends Controller{
      * @return Json api rest
      */
     public function update(Request $request, User $user){
-        $rol = Auth::user()->rol;
+        $auth = Auth::user();
 
-        if($rol){
+        if($auth->rol){
             return response()->json([
                 "data" => [],
                 "message" => "No tiene permisos administrativos"
@@ -120,9 +120,9 @@ class UserController extends Controller{
      */
     public function destroy(User $user){
         try {
-            $rol = Auth::user()->rol;
+            $auth = Auth::user();
 
-            if($rol){
+            if($auth->rol){
                 return response()->json([
                     "data" => [],
                     "message" => "No tiene permisos administrativos"
@@ -143,9 +143,9 @@ class UserController extends Controller{
      */
     public function clearToken($id){
         $user = $this->user::find($id);
-        $rol = Auth::user()->rol;
+        $auth = Auth::user();
 
-        if($user && !$rol){
+        if($user && !$auth->rol){
             $session = Session::where('session_id',$id);
             $session->delete();
             $user->api_token = null;
