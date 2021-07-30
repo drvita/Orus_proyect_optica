@@ -29,23 +29,11 @@ class UserController extends Controller{
         $email = $request->email;
         $rol = $request->rol;
         $deleted = true;
-        $auth = Auth::user();
 
         if(isset($request->deleted)){
             $deleted = (int) $request->deleted;
             $deleted = (boolean) $deleted;
         }
-
-        if($auth->rol){
-            return response()->json([
-                "data" => [],
-                "meta" => [
-                    "total" => 0
-                ],
-                "message" => "No tiene permisos administrativos"
-            ], 401);
-        }
-        
 
         $users = $this->user
                 ->with('session')
