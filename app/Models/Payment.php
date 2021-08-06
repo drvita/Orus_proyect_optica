@@ -18,6 +18,7 @@ class Payment extends Model{
         'updated_at',
         'created_at'
     ];
+    //Relations
     public function user(){
         return $this->belongsTo(User::class);
     }
@@ -27,6 +28,7 @@ class Payment extends Model{
     public function SaleDetails(){
         return $this->belongsTo(Sale::class, 'sale_id', 'id');
     }
+    //Scopes
     public function scopeSale($query, $search){
         if(trim($search) != ""){
             $query->where("sale_id",$search);
@@ -86,7 +88,7 @@ class Payment extends Model{
             $query->WhereDate("created_at",$search);
         }
     }
-
+    //Statics functions
     protected static function booted(){
         static::created(function ($pay) {
             $updateSale = Sale::find($pay->sale_id);

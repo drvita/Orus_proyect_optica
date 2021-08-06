@@ -2,10 +2,6 @@
 
 namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Order;
-use App\Http\Resources\ContactShort;
-use App\Http\Resources\SaleItemShort;
-//use App\Http\Resources\Payment;
 
 class Sale extends JsonResource{
 
@@ -15,13 +11,10 @@ class Sale extends JsonResource{
         $return['subtotal'] = $this->subtotal;
         $return['descuento'] = $this->descuento ? $this->descuento : 0 ;
         $return['total'] = $this->total;
-        $return['productos'] = is_object($this->items) 
-            ? SaleItemShort::collection($this->items) 
-            : [];
-        $return['cliente'] = new ContactShort($this->cliente);
+        $return['productos'] = SaleItemShort::collection($this->items);
+        $return['cliente'] = new ContactSimple($this->cliente);
         $return['pedido'] = $this->order_id;
-        //$return['abonos'] = Payment::collection($this->abonos);
-        $return['pagado'] = $this->sumAbonos[0]->suma ? $this->sumAbonos[0]->suma : 0;
+        $return['payments'] = Payment::collection($this->payments);
         $return['created'] = $this->user->name;
         $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');

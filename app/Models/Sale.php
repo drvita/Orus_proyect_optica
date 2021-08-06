@@ -18,6 +18,7 @@ class Sale extends Model{
         'updated_at',
         'created_at'
     ];
+    //Relations
     public function user(){
         return $this->belongsTo(User::class);
     }
@@ -30,13 +31,13 @@ class Sale extends Model{
     public function items(){
         return $this->hasMany(SaleItem::class,'session', 'session');
     }
-    public function abonos(){
+    public function payments(){
         return $this->hasMany(Payment::class,'sale_id', 'id');
     }
-    public function sumAbonos(){
-        return $this->hasMany(Payment::class,'sale_id', 'id')->selectRaw('SUM(total) as suma');
+    //Scopes
+    public function scopeRelations($query) {
+        $query->with('user','cliente','pedido','items','payments');
     }
-
     public function scopeCliente($query, $name){
         $name = preg_replace('/\d+/', "", $name);
         if(trim($name) != "" && is_string($name)){

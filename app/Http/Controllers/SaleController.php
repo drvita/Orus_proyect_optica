@@ -24,11 +24,12 @@ class SaleController extends Controller{
         $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $sale = $this->sale
+                ->relations()
                 ->orderBy($orderby, $order)
-                ->Cliente($request->search)
-                ->SearchId($request->search)
-                ->Type($request->type)
-                ->Date($request->date)
+                ->cliente($request->search)
+                ->searchId($request->search)
+                ->type($request->type)
+                ->date($request->date)
                 ->paginate($page);
         return SaleResources::collection($sale);
     }
