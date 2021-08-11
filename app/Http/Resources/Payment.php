@@ -19,7 +19,7 @@ class Payment extends JsonResource{
             $return['details'] = $this->details;
             //$return['sale'] = New Sale($this->SaleDetails);
             $return['created_user'] = $this->user->name;
-            $return['created'] = $this->user;
+            $return['created'] = new UserInExam($this->user);
             $return['created_at'] = $this->created_at->format('Y-m-d');
             $return['updated_at'] = $this->updated_at->format('Y-m-d');
         }
@@ -30,19 +30,19 @@ class Payment extends JsonResource{
     function methodName ($id) {
         switch ($id) {
             case 1:
-                return "Efectivo";
+                return "efectivo";
             case 2:
-                return "Tarjeta debito";
+                return "tarjeta debito";
             case 3:
-                return "Tarjeta de credito";
+                return "tarjeta de credito";
             case 4:
-                return "La marina";
+                return "la marina";
             case 5:
-                return "Cheque";
+                return "cheque";
             case 6:
-                return "Transferencia";
+                return "transferencia";
             default:
-                return "Otro";
+                return "otro";
         }
     }
 }

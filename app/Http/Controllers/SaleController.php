@@ -43,7 +43,10 @@ class SaleController extends Controller{
         $request['user_id'] = Auth::user()->id;
         $sale = $this->sale->create( $request->all() );
         $sale['items'] = $request->items;
+        $sale['payments'] = $request->payments;
         event(new SaleSave($sale));
+        //Get sale with new data
+        $sale = $sale::where('id', $sale->id)->relations()->first();
         return new SaleResources($sale);
     }
 

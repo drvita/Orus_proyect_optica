@@ -15,7 +15,7 @@ class Sale extends JsonResource{
         $return['cliente'] = new ContactSimple($this->cliente);
         $return['pedido'] = $this->order_id;
         $return['payments'] = Payment::collection($this->payments);
-        $return['created'] = $this->user->name;
+        $return['created'] = new UserInExam($this->user);
         $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         return $return;

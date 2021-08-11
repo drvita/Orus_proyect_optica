@@ -42,7 +42,7 @@ class SaleItem extends Model{
                 ->groupBy('session');
         }
     }
-    //Liserning
+    //Listerner
     protected static function booted(){
         static::created(function ($item) {
             $updateItem = StoreItem::find($item->store_items_id);
