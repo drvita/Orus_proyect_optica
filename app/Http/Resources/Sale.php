@@ -11,8 +11,8 @@ class Sale extends JsonResource{
         $return['subtotal'] = $this->subtotal;
         $return['descuento'] = $this->descuento ? $this->descuento : 0 ;
         $return['total'] = $this->total;
-        $return['productos'] = SaleItemShort::collection($this->items);
-        $return['cliente'] = new ContactSimple($this->cliente);
+        $return['items'] = SaleItemShort::collection($this->items);
+        $return['customer'] = new ContactSimple($this->cliente);
         $return['pedido'] = $this->order_id;
         $return['payments'] = Payment::collection($this->payments);
         $return['created'] = new UserInExam($this->user);

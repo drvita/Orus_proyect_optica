@@ -14,6 +14,7 @@ class Payment extends JsonResource{
             $return['metodopago'] = $this->metodopago;
             $return['metodoname'] = $this->methodName($this->metodopago);
             $return['banco'] = $this->bankName;
+            $return['bank_id'] = $this->bankName ? $this->bankName->id : null;
             $return['auth'] = $this->auth;
             $return['total'] = $this->total;
             $return['details'] = $this->details;

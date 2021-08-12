@@ -65,11 +65,13 @@ class SaleController extends Controller{
      * @param  $sale identificador de la venta
      * @return Json api rest
      */
-    public function update(SaleRequests $request, Sale $sale){
+    public function update(Request $request, Sale $sale){
         $request['user_id']= $sale->user_id;
         $sale->update( $request->all() );
         $sale['items'] = $request->items;
+        $sale['payments'] = $request->payments;
         event(new SaleSave($sale));
+        $sale = $sale::where('id', $sale->id)->relations()->first();
         return New SaleResources($sale);
     }
 

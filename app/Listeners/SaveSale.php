@@ -19,8 +19,8 @@ class SaveSale
     public function handle($event)
     {
         $sale = $event->sale;
-        $items = json_decode($sale->items, true);
-        $payments = json_decode($sale->payments, true);
+        $items = json_decode($sale->items ? $sale->items : "[]", true);
+        $payments = json_decode($sale->payments ? $sale->payments : "[]", true);
 
         if(count($items)){
             if($sale->session){
@@ -43,9 +43,10 @@ class SaveSale
             
         }
         if(count($payments)){
+            
             foreach($payments as $payment){
                 Payment::updateOrCreate(
-                    ['id' => isset($payment->id) ? $payment->id : null],
+                    ['id' => $payment['id']],
                     [
                         "metodopago" => $payment['metodopago'],
                         "details" => $payment['details'],

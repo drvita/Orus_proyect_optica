@@ -12,7 +12,9 @@ class SaleItemShort extends JsonResource{
             $return['store_items_id'] = $this->item->id;
             $return['producto'] = $this->item->name;
             $return['cantidad'] = $this->cant;
+            $return['cant'] = $this->cant;
             $return['precio'] = $this->price;
+            $return['price'] = $this->price;
             $return['subtotal'] = $this->subtotal;
             $return['inStorage'] = $this->inStorage ? true : false;
             $return['descripcion'] = $this->descripcion;
