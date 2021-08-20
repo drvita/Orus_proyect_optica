@@ -20,6 +20,7 @@ class ContactSimple extends JsonResource {
             $return['email'] = $this->email;
             $return['tipo'] = $this->type;
             $return['f_nacimiento'] = $this->birthday && intval($this->birthday->format('Y')) > 1900 ? $this->birthday->format('Y-m-d') : null;
+            $return['telefonos'] = is_string($this->telnumbers) ? json_decode($this->telnumbers) : $this->telnumbers;
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         }
