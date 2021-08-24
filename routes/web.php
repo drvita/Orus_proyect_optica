@@ -19,13 +19,16 @@ DB::listen(function($query){
 });
 */
 
-
+/*
 Route::get('/', 'WebController@index');
-Route::get('/contactos', 'WebController@index');
-Route::get('/consultorio', 'WebController@index');
-Route::get('/pedidos', 'WebController@index');
-Route::get('/notas', 'WebController@index');
-Route::get('/almacen', 'WebController@index');
-Route::get('/usuarios', 'WebController@index');
+Route::get('/contactos/{id?}', 'WebController@index');
+Route::get('/consultorio/{id?}', 'WebController@index');
+Route::get('/pedidos/{id?}', 'WebController@index');
+Route::get('/notas/{id?}', 'WebController@index');
+Route::get('/almacen/{id?}', 'WebController@index');
+Route::get('/usuarios/{id?}', 'WebController@index');
 Route::get('/configuraciones', 'WebController@index');
+*/
+
+Route::get('/{any}', 'WebController@index')->where('any', '.*');
 
