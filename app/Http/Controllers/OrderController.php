@@ -68,9 +68,13 @@ class OrderController extends Controller{
     public function update(Request $request, Order $order){
         $request['user_id']=$order->user_id;
         $udStatus = $order->status != $request->status ? true : false;
+        
         $order->update( $request->all() );
-        $order['items'] = $request->items;
-        event(new OrderUpdated($order, $udStatus));
+        if(isset($request->items)){
+            $order['items'] = is_string($request->items) ? json_decode($order->items, true) : $request->items;
+            event(new OrderUpdated($order, $udStatus));
+        }
+    
         return New OrderResources($order);
     }
 

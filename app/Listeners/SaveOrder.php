@@ -37,7 +37,6 @@ class SaveOrder
     {
         $order = $event->order;
         $udStatus = $event->udStatus;
-        $items = json_decode($order->items, true);
         
         //Actualiza la venta si la orden es creada o modificada
         if(is_array($items) && count($items)){
