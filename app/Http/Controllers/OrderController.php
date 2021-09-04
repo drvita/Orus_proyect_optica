@@ -44,8 +44,12 @@ class OrderController extends Controller{
     public function store(OrderRequests $request){
         $request['user_id']= Auth::user()->id;
         $order = $this->order->create($request->all());
-        $order['items'] = $request->items;
-        event(new OrderUpdated($order, false));
+
+        if(isset($request->items)){
+            $order['items'] = $this->getItemsRequest($request->items);
+            if(count($order['items'])) event(new OrderUpdated($order, false));
+        }
+
         return new OrderResources($order);
     }
 
@@ -71,7 +75,7 @@ class OrderController extends Controller{
         
         $order->update( $request->all() );
         if(isset($request->items)){
-            $order['items'] = is_string($request->items) ? json_decode($order->items, true) : $request->items;
+            $order['items'] = $this->getItemsRequest($request->items);
             
             if(count($order['items'])) event(new OrderUpdated($order, $udStatus));
         }
@@ -87,5 +91,11 @@ class OrderController extends Controller{
     public function destroy(Order $order){
         $order->delete();
         return response()->json(null, 204);
+    }
+
+    private function getItemsRequest($items){
+        if($items) return is_string($items) ? json_decode($items, true) : $items;
+
+        return null;
     }
 }

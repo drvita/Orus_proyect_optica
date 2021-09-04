@@ -38,7 +38,7 @@ class SaveOrder
         $order = $event->order;
         $udStatus = $event->udStatus;
         $items = $order->items;
-        
+
         //Actualiza la venta si la orden es creada o modificada
         if(is_array($items) && count($items)){
             $total = 0;
@@ -46,7 +46,7 @@ class SaveOrder
                 $total += $item['subtotal'];
             }
             $sale = Sale::where('order_id', $order->id)->first();
-            
+
             if(is_object($sale) && $sale->id){
                 $sale->session = $order->session;
                 $sale->subtotal = $total;
