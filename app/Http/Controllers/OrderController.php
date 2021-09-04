@@ -72,7 +72,8 @@ class OrderController extends Controller{
         $order->update( $request->all() );
         if(isset($request->items)){
             $order['items'] = is_string($request->items) ? json_decode($order->items, true) : $request->items;
-            event(new OrderUpdated($order, $udStatus));
+            
+            if(count($order['items'])) event(new OrderUpdated($order, $udStatus));
         }
     
         return New OrderResources($order);
