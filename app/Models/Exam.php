@@ -34,6 +34,9 @@ class Exam extends Model{
     public function user(){
         return $this->belongsTo(User::class);
     }
+    public function user_updated(){
+        return $this->belongsTo(User::class, 'updated_id', 'id');
+    }
     public function orders(){
         return $this->hasMany(Order::class,'exam_id','id');
     }
@@ -69,6 +72,9 @@ class Exam extends Model{
     }
     public function scopeWithRelation($query){
         $query->with('paciente','user','orders','categoryPrimary.parent.parent.parent','categorySecondary.parent.parent.parent');
+    }
+    public function scopePublish($query){
+        $query->whereNull('deleted_at');
     }
 
 }

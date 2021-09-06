@@ -30,6 +30,7 @@ class StoreItemController extends Controller{
                 ->zero($request->zero)
                 ->category(intval($request->cat))
                 ->searchSupplier($request->supplier)
+                ->publish()
                 ->searchBrand($request->brand);
         
         return StoreResources::collection($items->paginate($page));
@@ -72,8 +73,21 @@ class StoreItemController extends Controller{
      * @param  $storeItem identificador del producto
      * @return null 204
      */
-    public function destroy(StoreItem $store){
-        $store->delete();
+    public function destroy($id){
+        $store = $this->store::where('id', $id)
+                ->with('orders','salesItems')
+                ->first();
+
+        $enUso = count($store->lote) + count($store->salesItems);
+
+        if($enUso){
+            $store->deleted_at = Carbon::now();
+            $store->updated_id = Auth::user()->id;
+            $store->save();
+        } else {
+            $store->delete();
+        }
+        //$store->delete();
         return response()->json(null, 204);
     }
 }

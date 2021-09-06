@@ -31,6 +31,7 @@ class OrderController extends Controller{
             ->orderBy($orderby, $order)
             ->Paciente($request->search)
             ->SearchId($request->search)
+            ->publish()
             ->paginate($page);
 
         return OrderResources::collection($orderdb);
@@ -88,8 +89,22 @@ class OrderController extends Controller{
      * @param  $order identificador de la orden
      * @return null 404
      */
-    public function destroy(Order $order){
-        $order->delete();
+    public function destroy($id){
+        $order = $this->order::where('id', $id)
+                ->with('nota')
+                ->first();
+
+        $enUso = count($order->nota);
+
+        if($enUso){
+            $order->deleted_at = Carbon::now();
+            $order->updated_id = Auth::user()->id;
+            $order->save();
+        } else {
+            $order->delete();
+        }
+        
+        //$order->delete();
         return response()->json(null, 204);
     }
 

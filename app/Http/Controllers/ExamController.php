@@ -34,6 +34,7 @@ class ExamController extends Controller{
             ->ExamsByPaciente($request->paciente)
             ->Date($date)
             ->Status($status)
+            ->publish()
             ->paginate($page);
 
         return ExamResources::collection($exams);
@@ -91,8 +92,21 @@ class ExamController extends Controller{
      * @param  $exam identificador del examen
      * @return Json api rest
      */
-    public function destroy(Exam $exam){
-        $exam->delete();
+    public function destroy($id){
+        $exam = $this->exam::where('id', $id)
+                ->with('orders')
+                ->first();
+
+        $enUso = count($exam->orders);
+
+        if($enUso){
+            $exam->deleted_at = Carbon::now();
+            $exam->updated_id = Auth::user()->id;
+            $exam->save();
+        } else {
+            $exam->delete();
+        }
+        
         return response()->json(null, 204);
     }
 }

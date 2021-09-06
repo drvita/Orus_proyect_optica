@@ -22,6 +22,9 @@ class Payment extends Model{
     public function user(){
         return $this->belongsTo(User::class);
     }
+    public function user_updated(){
+        return $this->belongsTo(User::class, 'updated_id', 'id');
+    }
     public function bankName(){
         return $this->belongsTo(Config::class, 'bank_id', 'id');
     }
@@ -87,6 +90,9 @@ class Payment extends Model{
         if(trim($search) != ""){
             $query->WhereDate("created_at",$search);
         }
+    }
+    public function scopePublish($query){
+        $query->whereNull('deleted_at');
     }
     //Statics functions
     protected static function booted(){

@@ -24,6 +24,9 @@ class StoreItem extends Model{
     public function user(){
         return $this->belongsTo(User::class);
     }
+    public function user_updated(){
+        return $this->belongsTo(User::class, 'updated_id', 'id');
+    }
     public function categoria(){
         return $this->belongsTo(Category::class,'category_id');
     }
@@ -35,6 +38,9 @@ class StoreItem extends Model{
     }
     public function brand(){
         return $this->belongsTo(Brand::class,'brand_id');
+    }
+    public function salesItems(){
+        return $this->belongsTo(SalesItems::class,'store_items_id');
     }
     //Scopes
     public function scopeSearchItem($query, $search){
@@ -96,5 +102,8 @@ class StoreItem extends Model{
                 });
             }
         }
+    }
+    public function scopePublish($query){
+        $query->whereNull('deleted_at');
     }
 }

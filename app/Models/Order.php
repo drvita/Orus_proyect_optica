@@ -33,6 +33,9 @@ class Order extends Model{
     public function user(){
         return $this->belongsTo(User::class);
     }
+    public function user_updated(){
+        return $this->belongsTo(User::class, 'updated_id', 'id');
+    }
     public function nota(){
         return $this->belongsTo(Sale::class,'id', 'order_id');
     }
@@ -63,6 +66,9 @@ class Order extends Model{
     }
     public function scopeWithRelation($query){
         $query->with('examen','paciente','laboratorio','user','nota','items');
+    }
+    public function scopePublish($query){
+        $query->whereNull('deleted_at');
     }
     //Other
     protected static function booted(){

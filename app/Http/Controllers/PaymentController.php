@@ -28,6 +28,7 @@ class PaymentController extends Controller{
                 ->Date($request->date)
                 ->orderBy($orderby, $order)
                 ->User(Auth::user(), $request->user)
+                ->publish()
                 ->paginate($page);
 
         return PaymentResources::collection($payment);
@@ -93,8 +94,13 @@ class PaymentController extends Controller{
      * @param  $payment identificador del pago
      * @return null 404
      */
-    public function destroy(Payment $payment){
-        $payment->delete();
+    public function destroy($id){
+        $payment = $this->payment::where('id', $id)->first();
+
+        $payment->deleted_at = Carbon::now();
+        $payment->updated_id = Auth::user()->id;
+        $payment->save();
+        //$payment->delete();
         return response()->json(null, 204);
     }
 }

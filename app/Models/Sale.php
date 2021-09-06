@@ -22,6 +22,9 @@ class Sale extends Model{
     public function user(){
         return $this->belongsTo(User::class);
     }
+    public function user_updated(){
+        return $this->belongsTo(User::class, 'updated_id', 'id');
+    }
     public function cliente(){
         return $this->belongsTo(Contact::class,'contact_id');
     }
@@ -67,5 +70,8 @@ class Sale extends Model{
         if(trim($search) != ""){
             $query->WhereDate("created_at",$search);
         }
+    }
+    public function scopePublish($query){
+        $query->whereNull('deleted_at');
     }
 }

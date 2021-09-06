@@ -30,6 +30,7 @@ class SaleController extends Controller{
                 ->searchId($request->search)
                 ->type($request->type)
                 ->date($request->date)
+                ->publish()
                 ->paginate($page);
         return SaleResources::collection($sale);
     }
@@ -80,8 +81,13 @@ class SaleController extends Controller{
      * @param  $sale identificador de la venta
      * @return null 204
      */
-    public function destroy(Sale $sale){
-        $sale->delete();
+    public function destroy($id){
+        $sale = $this->sale::where('id', $id)->first();
+
+        $sale->deleted_at = Carbon::now();
+        $sale->updated_id = Auth::user()->id;
+        $sale->save();
+        //$sale->delete();
         return response()->json(null, 204);
     }
 }
