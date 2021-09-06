@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\StoreItem;
+use App\Models\Order;
 use Carbon\Carbon;
 
 class SetOrderEmpty extends Command
@@ -13,14 +13,14 @@ class SetOrderEmpty extends Command
      *
      * @var string
      */
-    protected $signature = 'orus:getstorecvs {--Z|zero: mostrar solo productos en cero}';
+    protected $signature = 'orus:setordersempty {date?}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Crea archivos CVS de productos en almacen';
+    protected $description = 'Elimina ordenes no procesadas en pedidos';
 
     /**
      * Create a new command instance.
@@ -39,52 +39,51 @@ class SetOrderEmpty extends Command
      */
     public function handle()
     {
-        //$zero = (boolean) $this->argument('zero');
-        if (!$this->confirm('Desea continuar con la generacion del archivo CVS?', true)) {
-            $this->info('Operacion cancelada!');
-            return 0;
-        }
-        $this->newLine();
+        try {
+            $dateInto = $this->argument('date');
+            if(!$dateInto){
+                $dateInto = date('d/m/Y');
+            }
 
-        $date = Carbon::now();
-        $filename = storage_path('/app/store_'. $date->format('d_m_Y-hms') .'.csv');
-        $store = StoreItem::All()->sortBy('name');
-        $columns = array(
-            'id', 
-            'codigo', 
-            'codigo_barra', 
-            'graduacion',
-            'nombre', 
-            'unidad',
-            'cantidad', 
-            'precio',
-            //'marca',
-            //'categoria',
-        );
-        
-        $file = fopen($filename, 'w');
-        fputcsv($file, $columns);
-        $bar = $this->output->createProgressBar(count($store));
-        $bar->start();
-        
-        foreach($store as $st) {
-            fputcsv($file, array(
-                (int) $st->id,
-                (string) $st->code,
-                (string) $st->codebar,
-                (string) $st->grad,
-                (string) $st->name,
-                (string) $st->unit,
-                (int) $st->cant, 
-                (float) $st->price,
-                //(string) $st->brand ? $st->brand->name : '',
-                //(int) $st->category_id,
-            ));
-            $bar->advance();
+            $date = Carbon::createFromFormat('d/m/Y', $dateInto);
+            $orders = Order::WhereDate("created_at","<=",$date)
+                        ->where('status',0)
+                        ->whereNull('deleted_at')
+                        ->get();
+
+            if(!count($orders)){
+                $this->info('No hay pedidos para procesar antes de esta fecha: '. $date->format('d M Y'));
+                return 0;
+            }
+
+            if (!$this->confirm('Se eliminaran ('. count($orders) .') pedidos antes de la fecha: '. $date->format('d M Y') .' :::: ¿Desea continuar?', true)) {
+                $this->info('Operacion cancelada!');
+                return 0;
+            }
+            //$this->newLine();
+
+            if($orders){
+                $bar = $this->output->createProgressBar(count($orders));
+                $bar->start();
+                foreach ($orders as $order) {
+                    $order->deleted_at = Carbon::now();
+                    $order->updated_id = 1;
+                    $order->save();
+
+                    $bar->advance();
+                }
+
+                $bar->finish();
+            }
+            //$this->newLine();
+            $this->info(' ::: Proceso terminado con exito: ');
+
+           return false;
+
+        } catch (\Throwable $th) {
+            $this->error('[ERROR] '. $th->getMessage());
+            //report($th);
+            return false;
         }
-        $bar->finish();
-        fclose($file);
-        $this->newLine();
-        $this->info('Archivo creado con exito: '. $filename);
     }
 }
