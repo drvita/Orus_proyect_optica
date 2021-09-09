@@ -14,8 +14,17 @@ class Config extends JsonResource
      */
     public function toArray($request)
     {
-        $return['id'] = $this->id;
-        $return['name'] = $this->value;
+        $return = [];
+
+        if(isset($this->id)){
+            $value = json_decode($this->value);
+
+            //dd($value);
+
+            $return['id'] = $this->id;
+            $return['name'] = $value ? $value : $this->value;
+        }
+        
         return $return;
     }
 }

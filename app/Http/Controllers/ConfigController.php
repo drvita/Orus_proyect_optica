@@ -26,7 +26,7 @@ class ConfigController extends Controller
         
         $config = $this->config
             ->orderBy($orderby, $order)
-            ->Name($request->name)
+            ->name($request->name)
             ->paginate($page);
         return ResourcesConfig::collection($config);
     }
@@ -39,9 +39,15 @@ class ConfigController extends Controller
      */
     public function store(Request $request)
     {
+        if(is_string($request->value)){
+            $value = $request->value;
+        } else {
+            $value = json_encode($request->value);
+        }
+
         $category = Config::create([
             'name' => $request->input('name'),
-            'value' => $request->input('value'),
+            'value' => $value,
         ]);
         return New ResourcesConfig($category);
     }
