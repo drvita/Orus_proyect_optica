@@ -18,7 +18,7 @@ class Payment extends JsonResource{
             $return['auth'] = $this->auth;
             $return['total'] = $this->total;
             $return['details'] = $this->details;
-            $return['sale'] = New SaleInContact($this->SaleDetails);
+            $return['sale'] = New SaleInPayment($this->SaleDetails);
             $return['created_user'] = $this->user->name;
             $return['created'] = new UserInExam($this->user);
             $return['created_at'] = $this->created_at->format('Y-m-d');
