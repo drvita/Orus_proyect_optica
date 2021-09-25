@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 Use App\User;
 Use App\Models\Session;
 use App\Http\Resources\UserNoty;
+use App\Http\Resources\User as UserResource;
 
 
 class AuthController extends Controller{
@@ -20,6 +21,7 @@ class AuthController extends Controller{
             'password' => 'required|string'
         ]);
         $user = $this->user
+            ->with('branch')
             ->userEmail($credenciales['email'])
             ->notDelete()
             ->first();
@@ -44,7 +46,7 @@ class AuthController extends Controller{
                 ]);
             }
 
-            $respons['data'] = $user;
+            $respons['data'] = new UserResource($user);
             $respons['message'] = "Bienvenido al sistema";
             $respons['token'] = $user->api_token;
             return response()->json($respons, 200);

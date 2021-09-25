@@ -36,7 +36,7 @@ class UserController extends Controller{
         }
 
         $users = $this->user
-                ->with('session')
+                ->with('session','branch')
                 ->orderBy($orderby, $order)
                 ->search($search)
                 ->userName($username, $userId)

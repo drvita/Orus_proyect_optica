@@ -12,7 +12,7 @@ class User extends Authenticatable {
 
     protected $table = "users";
     protected $fillable = [
-        "name","username","email","password","rol","api_token"
+        "name","username","email","password","rol","api_token","branch_id"
     ];
     protected $hidden = [
         "password","remember_token","api_token","deleted_at"
@@ -26,6 +26,9 @@ class User extends Authenticatable {
     //Relationship
     public function session(){
         return $this->belongsTo('App\Models\Session','id', 'session_id');
+    }
+    public function branch(){
+        return $this->belongsTo('App\Models\Config','branch_id', 'id');
     }
     //Scopes
     public function scopeSearch($query, $search){

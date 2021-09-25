@@ -20,7 +20,7 @@ class Exam extends Model{
         "alturaoi","pioi","piod","observaciones","pc","tablet","movil","lap","lap_time","pc_time",
         "tablet_time","movil_time","d_time","d_media","d_test","d_fclod","d_fcloi","d_fclod_time",
         "d_fcloi_time","status","contact_id","user_id","category_id","category_ii","adicion_media_oi",
-        "adicion_media_od"
+        "adicion_media_od","branch_id"
     ];
     protected $hidden = ['category_id','category_ii','user_id','contact_id'];
     protected $dates = [
@@ -45,6 +45,9 @@ class Exam extends Model{
     }
     public function categorySecondary(){
         return $this->hasOne(Category::class, 'id', 'category_ii');
+    }
+    public function branch(){
+        return $this->belongsTo(Config::class,'branch_id', 'id');
     }
     //Funciones
     //Scopes
@@ -71,10 +74,15 @@ class Exam extends Model{
         }
     }
     public function scopeWithRelation($query){
-        $query->with('paciente','user','orders','categoryPrimary.parent.parent.parent','categorySecondary.parent.parent.parent');
+        $query->with('paciente','user','orders','categoryPrimary.parent.parent.parent','categorySecondary.parent.parent.parent','branch');
     }
     public function scopePublish($query){
         $query->whereNull('deleted_at');
+    }
+    public function scopeBranch($query, $search){
+        if(trim($search) != ""){
+            $query->where("branch_id",$search);
+        }
     }
 
 }

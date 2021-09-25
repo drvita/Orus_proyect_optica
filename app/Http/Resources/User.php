@@ -10,15 +10,21 @@ class User extends JsonResource
      * @return Json api rest
      */
     public function toArray($request){
-        return [
-            'id' => $this->id,
-            'username' => $this->username,
-            'name' => $this->name,
-            'email' => $this->email,
-            'rol' => $this->rol,
-            'session' => $this->session,
-            'created_at' => $this->created_at->format('Y-m-d H:i'),
-            'updated_at' => $this->updated_at->format('Y-m-d H:i'),
-        ];
+        $return = [];
+        if(isset($this->id)){
+            $return =  [
+                'id' => $this->id,
+                'username' => $this->username,
+                'name' => $this->name,
+                'email' => $this->email,
+                'rol' => $this->rol,
+                'session' => $this->session,
+                'branch' => new Config($this->branch),
+                'created_at' => $this->created_at->format('Y-m-d H:i'),
+                'updated_at' => $this->updated_at->format('Y-m-d H:i'),
+            ];
+        }
+
+        return $return;
     }
 }

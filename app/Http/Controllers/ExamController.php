@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Http\Resources\Exam as ExamResources;
 use App\Http\Requests\Exam as ExamRequests;
 use App\Notifications\ExamNotification;
+use Carbon\Carbon;
 
 class ExamController extends Controller{
     protected $exam;
@@ -27,6 +28,7 @@ class ExamController extends Controller{
         $page = $request->itemsPage ? $request->itemsPage : 50;
         $date = $request->date;
         $status = $request->status;
+        $branch = Auth::user()->branch_id;
 
         $exams = $this->exam
             ->orderBy($orderby, $order)
@@ -35,6 +37,8 @@ class ExamController extends Controller{
             ->Date($date)
             ->Status($status)
             ->publish()
+            ->withRelation()
+            ->branch($branch)
             ->paginate($page);
 
         return ExamResources::collection($exams);
@@ -47,6 +51,7 @@ class ExamController extends Controller{
      */
     public function store(ExamRequests $request){
         $request['user_id']= Auth::user()->id;
+        $request['branch_id'] = Auth::user()->branch_id;
         $rol = Auth::user()->rol;
         //Cuando se crea no se puede cerrrar el examen
         $request['status']= 0;
@@ -76,7 +81,8 @@ class ExamController extends Controller{
      * @return Json api rest
      */
     public function update(Request $request, Exam $exam){
-        $request['user_id']=Auth::user()->id;
+        $request['updated_id']=Auth::user()->id;
+        //$request['branch_id'] = Auth::user()->branch_id;
         //$status = $exam->status;
         $rol = Auth::user()->rol;
         //Vendedores no pueden modificar el estado

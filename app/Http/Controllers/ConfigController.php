@@ -72,7 +72,14 @@ class ConfigController extends Controller
      */
     public function update(Request $request, Config $config)
     {
-        $config->update( $request->all() );
+        $data = $request->all();
+
+        if(!is_string($data['value'])){
+            $data['value'] = json_encode($data['value']);
+            
+        }
+
+        $config->update( $data );
         return New ResourcesConfig($config);
     }
 

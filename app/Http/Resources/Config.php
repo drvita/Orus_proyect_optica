@@ -23,6 +23,7 @@ class Config extends JsonResource
 
             $return['id'] = $this->id;
             $return['name'] = $value ? $value : $this->value;
+            $return['values'] = $value ? $value : $this->value;
         }
         
         return $return;
