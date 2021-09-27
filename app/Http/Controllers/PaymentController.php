@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Payment as PaymentResources;
 use App\Http\Requests\Payment as PaymentRequests;
-use App\Http\Resources\PaymentBankDetails;
+use Carbon\Carbon;
 
 class PaymentController extends Controller{
     protected $payment;
@@ -22,6 +22,18 @@ class PaymentController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order==="desc"? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
+        $rol = Auth::user()->rol;
+        
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request->branch)) $branch = Auth::user()->branch_id;
+            else {
+                if($request->branch === "all") $branch = null;
+                else $branch = $request->branch;
+            }
+        }else {
+            $branch = Auth::user()->branch_id;
+        }
 
         $payment = $this->payment
                 ->Sale($request->sale)
@@ -29,6 +41,7 @@ class PaymentController extends Controller{
                 ->orderBy($orderby, $order)
                 ->User(Auth::user(), $request->user)
                 ->publish()
+                ->branch($branch)
                 ->paginate($page);
 
         return PaymentResources::collection($payment);
@@ -52,7 +65,7 @@ class PaymentController extends Controller{
         $payment = $this->payment
             ->BankDetails($request->date, Auth::user(), $request->user)
             ->get();
-        return $payment;//new PaymentBankDetails($payment);
+        return $payment;
     }
 
     /**
@@ -62,6 +75,14 @@ class PaymentController extends Controller{
      */
     public function store(PaymentRequests $request){
         $request['user_id']= Auth::user()->id;
+        $rol = Auth::user()->rol;
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request['branch_id'])) $request['branch_id'] = Auth::user()->branch_id; 
+        }else {
+            $request['branch_id'] = Auth::user()->branch_id; 
+        } 
+        
         $payment = $this->payment->create($request->all());
         //event(new PaymentSave($payment, $messegeId, $table));
         return new PaymentResources($payment);

@@ -22,7 +22,7 @@ class SaleInContact extends JsonResource{
                 ? SaleItemShort::collection($this->items) 
                 : [];
             $return['pedido'] = $this->order_id;
-            //$return['abonos'] = Payment::collection($this->abonos);
+            $return['branch'] = new Config($this->branch);
             $return['created'] = new UserInExam($this->user);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i'); 

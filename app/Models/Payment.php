@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class Payment extends Model{
     protected $table = "payments";
     protected $fillable = [
-        "metodopago","details","bank_id","auth","total","sale_id","contact_id","user_id"
+        "metodopago","details","bank_id","auth","total","sale_id","contact_id","user_id","branch_id"
     ];
     protected $hidden = [];
     protected $dates = [
@@ -30,6 +30,9 @@ class Payment extends Model{
     }
     public function SaleDetails(){
         return $this->belongsTo(Sale::class, 'sale_id', 'id');
+    }
+    public function branch(){
+        return $this->belongsTo(Config::class,'branch_id', 'id');
     }
     //Scopes
     public function scopeSale($query, $search){
@@ -93,6 +96,11 @@ class Payment extends Model{
     }
     public function scopePublish($query){
         $query->whereNull('deleted_at');
+    }
+    public function scopeBranch($query, $search){
+        if(trim($search) != ""){
+            $query->where("branch_id",$search);
+        }
     }
     //Statics functions
     protected static function booted(){

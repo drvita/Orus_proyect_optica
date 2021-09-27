@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Order as OrderResources;
 use App\Http\Requests\Order as OrderRequests;
 use App\Events\OrderUpdated;
-//use Illuminate\Mail\Message;
-//use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class OrderController extends Controller{
     protected $order;
@@ -24,6 +23,18 @@ class OrderController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 20;
+        $rol = Auth::user()->rol;
+        
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request->branch)) $branch = Auth::user()->branch_id;
+            else {
+                if($request->branch === "all") $branch = null;
+                else $branch = $request->branch;
+            }
+        }else {
+            $branch = Auth::user()->branch_id;
+        }
         
         $orderdb = $this->order
             ->withRelation()
@@ -32,6 +43,7 @@ class OrderController extends Controller{
             ->Paciente($request->search)
             ->SearchId($request->search)
             ->publish()
+            ->branch($branch)
             ->paginate($page);
 
         return OrderResources::collection($orderdb);
@@ -45,6 +57,13 @@ class OrderController extends Controller{
     public function store(OrderRequests $request){
         $request['user_id']= Auth::user()->id;
         $order = $this->order->create($request->all());
+        $rol = Auth::user()->rol;
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request['branch_id'])) $request['branch_id'] = Auth::user()->branch_id; 
+        }else {
+            $request['branch_id'] = Auth::user()->branch_id; 
+        } 
 
         if(isset($request->items)){
             $order['items'] = $this->getItemsRequest($request->items);

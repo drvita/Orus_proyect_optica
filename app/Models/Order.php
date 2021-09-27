@@ -13,14 +13,14 @@ class Order extends Model{
     protected $table = "orders";
     protected $fillable = [
         "contact_id","exam_id","ncaja","npedidolab","lab_id","user_id",
-        "observaciones","session","status"
+        "observaciones","session","status","branch_id"
     ];
     protected $hidden = [];
     protected $dates = [
         'updated_at',
         'created_at'
     ];
-    //RElationships
+    //Relationships
     public function examen(){
         return $this->belongsTo(Exam::class,'exam_id');
     }
@@ -41,6 +41,9 @@ class Order extends Model{
     }
     public function items(){
         return $this->hasMany(SaleItem::class,'session', 'session');
+    }
+    public function branch(){
+        return $this->belongsTo(Config::class,'branch_id', 'id');
     }
     //Scopes
     public function scopePaciente($query, $name){
@@ -70,6 +73,11 @@ class Order extends Model{
     public function scopePublish($query){
         $query->whereNull('deleted_at');
     }
+    public function scopeBranch($query, $search){
+        if(trim($search) != ""){
+            $query->where("branch_id",$search);
+        }
+    }
     //Other
     protected static function booted(){
         static::created(function ($item) {
@@ -81,4 +89,5 @@ class Order extends Model{
             }
         });
     }
+    
 }

@@ -11,7 +11,7 @@ use App\Models\Payment;
 class Sale extends Model{
     protected $table = "sales";
     protected $fillable = [
-        "subtotal","descuento","total","pagado","contact_id","order_id","user_id","session"
+        "subtotal","descuento","total","pagado","contact_id","order_id","user_id","session","branch_id"
     ];
     protected $hidden = [];
     protected $dates = [
@@ -36,6 +36,9 @@ class Sale extends Model{
     }
     public function payments(){
         return $this->hasMany(Payment::class,'sale_id', 'id');
+    }
+    public function branch(){
+        return $this->belongsTo(Config::class,'branch_id', 'id');
     }
     //Scopes
     public function scopeRelations($query) {
@@ -73,5 +76,10 @@ class Sale extends Model{
     }
     public function scopePublish($query){
         $query->whereNull('deleted_at');
+    }
+    public function scopeBranch($query, $search){
+        if(trim($search) != ""){
+            $query->where("branch_id",$search);
+        }
     }
 }

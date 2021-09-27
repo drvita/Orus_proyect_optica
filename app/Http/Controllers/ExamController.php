@@ -28,7 +28,18 @@ class ExamController extends Controller{
         $page = $request->itemsPage ? $request->itemsPage : 50;
         $date = $request->date;
         $status = $request->status;
-        $branch = Auth::user()->branch_id;
+        $rol = Auth::user()->rol;
+        
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request->branch)) $branch = Auth::user()->branch_id;
+            else {
+                if($request->branch === "all") $branch = null;
+                else $branch = $request->branch;
+            }
+        }else {
+            $branch = Auth::user()->branch_id;
+        }
 
         $exams = $this->exam
             ->orderBy($orderby, $order)
@@ -51,13 +62,20 @@ class ExamController extends Controller{
      */
     public function store(ExamRequests $request){
         $request['user_id']= Auth::user()->id;
-        $request['branch_id'] = Auth::user()->branch_id;
         $rol = Auth::user()->rol;
-        //Cuando se crea no se puede cerrrar el examen
+        //The first time the exam is open
         $request['status']= 0;
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request['branch_id'])) $request['branch_id'] = Auth::user()->branch_id; 
+        }else {
+            $request['branch_id'] = Auth::user()->branch_id; 
+        }
+        //Create new exam
         $exam = $this->exam->create($request->all());
-        //Si es vendedora hay que notificar al medico
+        //If the user is employ send notify to doctor
         if($rol === 1) event(new ExamEvent($exam, $rol));
+        
         return new ExamResources($exam);
     }
 

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\StoreLot as StoreResources;
 use App\Http\Requests\StoreLot as StoreRequests;
+use Carbon\Carbon;
 
 class StoreLotController extends Controller{
     protected $item;
@@ -20,9 +21,23 @@ class StoreLotController extends Controller{
      */
     public function index(Request $request){
         $page = $request->itemsPage ? $request->itemsPage : 50;
+        $rol = Auth::user()->rol;
+        
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request->branch)) $branch = Auth::user()->branch_id;
+            else {
+                if($request->branch === "all") $branch = null;
+                else $branch = $request->branch;
+            }
+        }else {
+            $branch = Auth::user()->branch_id;
+        }
+
         if($request->store_items_id){
             $items = $this->item
                     ->where('store_items_id',$request->store_items_id)
+                    ->branch($branch)
                     ->paginate($page);
         } else {
             $items = $this->item::paginate($page);
@@ -38,6 +53,14 @@ class StoreLotController extends Controller{
      */
     public function store(StoreRequests $request){
         $request['user_id']= Auth::user()->id;
+        $rol = Auth::user()->rol;
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request['branch_id'])) $request['branch_id'] = Auth::user()->branch_id; 
+        }else {
+            $request['branch_id'] = Auth::user()->branch_id; 
+        }
+        
         $item = $this->item->create($request->all());
         return new StoreResources($item);
     }

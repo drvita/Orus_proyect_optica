@@ -49,7 +49,6 @@ class Exam extends Model{
     public function branch(){
         return $this->belongsTo(Config::class,'branch_id', 'id');
     }
-    //Funciones
     //Scopes
     public function scopePaciente($query, $name){
         if(trim($name) != ""){

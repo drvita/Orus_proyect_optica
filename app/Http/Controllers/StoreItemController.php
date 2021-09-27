@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\StoreItem as StoreResources;
 use App\Http\Resources\StoreItemShow as StoreResourceShow;
 use App\Http\Requests\StoreItem as StoreRequests;
+use Carbon\Carbon;
 
 class StoreItemController extends Controller{
     protected $store;
@@ -22,7 +23,8 @@ class StoreItemController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="asc"? "asc" : "desc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
-        //dd("request",$request);
+        
+
         $items = $this->store
                 ->orderBy($orderby, $order)
                 ->searchItem((string) $request->search)
@@ -43,6 +45,7 @@ class StoreItemController extends Controller{
      */
     public function store(StoreRequests $request){
         $request['user_id']= Auth::user()->id;
+        
         $store = $this->store->create($request->all());
         return new StoreResources($store);
     }

@@ -21,11 +21,24 @@ class AtmController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order==="desc"? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
+        $rol = Auth::user()->rol;
+        
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request->branch)) $branch = Auth::user()->branch_id;
+            else {
+                if($request->branch === "all") $branch = null;
+                else $branch = $request->branch;
+            }
+        }else {
+            $branch = Auth::user()->branch_id;
+        }
 
         $atm = $this->atm
                 ->orderBy($orderby, $order)
                 ->Date($request->date)
                 ->User($request->user, Auth::user())
+                ->branch($branch)
                 ->paginate($page);
 
         return AtmResources::collection($atm);
@@ -38,6 +51,13 @@ class AtmController extends Controller{
      */
     public function store(AtmRequests $request){
         $request['user_id'] = Auth::user()->id;
+        $rol = Auth::user()->rol;
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request['branch_id'])) $request['branch_id'] = Auth::user()->branch_id; 
+        }else {
+            $request['branch_id'] = Auth::user()->branch_id; 
+        }
         $atm = $this->atm->create( $request->all() );
         return new AtmResources( $atm );
     }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Sale as SaleResources;
 use App\Http\Requests\Sale as SaleRequests;
 use App\Events\SaleSave;
+use Carbon\Carbon;
 
 class SaleController extends Controller{
     protected $sale;
@@ -22,6 +23,18 @@ class SaleController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
+        $rol = Auth::user()->rol;
+        
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request->branch)) $branch = Auth::user()->branch_id;
+            else {
+                if($request->branch === "all") $branch = null;
+                else $branch = $request->branch;
+            }
+        }else {
+            $branch = Auth::user()->branch_id;
+        }
 
         $sale = $this->sale
                 ->relations()
@@ -31,6 +44,7 @@ class SaleController extends Controller{
                 ->type($request->type)
                 ->date($request->date)
                 ->publish()
+                ->branch($branch)
                 ->paginate($page);
         return SaleResources::collection($sale);
     }
@@ -42,9 +56,18 @@ class SaleController extends Controller{
      */
     public function store(SaleRequests $request){
         $request['user_id'] = Auth::user()->id;
+        $rol = Auth::user()->rol;
+        //Validation for branchs to admins
+        if(!$rol){
+            if(!isset($request['branch_id'])) $request['branch_id'] = Auth::user()->branch_id; 
+        }else {
+            $request['branch_id'] = Auth::user()->branch_id; 
+        } 
+
         $sale = $this->sale->create( $request->all() );
         $sale['items'] = $request->items;
         $sale['payments'] = $request->payments;
+        
         event(new SaleSave($sale));
         //Get sale with new data
         $sale = $sale::where('id', $sale->id)->relations()->first();

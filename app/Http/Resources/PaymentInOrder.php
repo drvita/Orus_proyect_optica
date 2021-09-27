@@ -18,6 +18,7 @@ class PaymentInOrder extends JsonResource{
             $return['auth'] = $this->auth;
             $return['total'] = $this->total;
             $return['details'] = $this->details;
+            $return['branch'] = new Config($this->branch);
             $return['created'] = new UserInExam($this->user);
             $return['created_at'] = $this->created_at->format('Y-m-d');
         }

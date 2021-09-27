@@ -15,6 +15,7 @@ class OrderInExam extends JsonResource{
             $return['status'] = $this->status;
             $return['order_foreing'] = $this->npedidolab;
             $return['nota'] = $this->nota ? $this->nota->id : null;
+            $return['branch'] = new Config($this->branch);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         }
         
