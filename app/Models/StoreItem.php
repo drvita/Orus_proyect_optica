@@ -36,9 +36,6 @@ class StoreItem extends Model{
     public function lote(){
         return $this->hasMany(StoreLot::class,'store_items_id');
     }
-    public function brand(){
-        return $this->belongsTo(Brand::class,'brand_id');
-    }
     public function salesItems(){
         return $this->belongsTo(SalesItems::class,'store_items_id');
     }
