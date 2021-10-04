@@ -12,14 +12,14 @@ class SetStoreCvs extends Command
      *
      * @var string
      */
-    protected $signature = 'orus:setstorecvs {file}';
+    protected $signature = 'orus:setstorecsv {file}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Importa archivos CVS a productos en almacen';
+    protected $description = 'Importa archivos CSV a productos en almacen';
 
     /**
      * Create a new command instance.
@@ -29,6 +29,19 @@ class SetStoreCvs extends Command
     public function __construct()
     {
         parent::__construct();
+    }
+
+    public function saveStoreItem($row, $store){
+
+        if($row['codigo']) $store->code = (string) $row['codigo'];
+        if($row['codigo_barra']) $store->codebar = (string) $row['codigo_barra'];
+        if($row['graduacion']) $store->grad = (string) $row['graduacion'];
+        if($row['nombre']) $store->name = (string) $row['nombre'];
+        if($row['unidad']) $store->unit = (string)$row['unidad'];
+        if(!empty($row['cantidad'])) $store->cant = (string)$row['cantidad'];
+        if(!empty($row['precio'])) $store->price = (float) $row['precio'];
+
+        $store->save();
     }
 
     /**
@@ -47,29 +60,68 @@ class SetStoreCvs extends Command
             $this->info('Operacion cancelada!');
             return 0;
         }
-        $this->newLine();
-        //turn into array
+        
         $file = file($path);
         //remove first line
-        $data = array_slice($file, 1);
-        $data = array_map('str_getcsv', $data);
-        //$bar = $this->output->createProgressBar(count($store));
-        //$bar->start();
+        //$data = array_slice($file, 1);
+        $csv = array_map('str_getcsv', $file);
 
-        //loop over the data
-        foreach($data as $row) {
-            $store = StoreItem::find((int) $row[0]);
+        array_walk($csv, function(&$a) use ($csv) {
+            $a = array_combine($csv[0], $a);
+        });
+        array_shift($csv); # remove column header
+        
+        
+
+        foreach($csv as $row) {
+            $store = StoreItem::where("id",(int) $row['id'])
+                        ->with('lote')
+                        ->publish()
+                        ->first();
 
             if($store){
-                if($row[1]) $store->code = (string) $row[1];
-                if($row[2]) $store->codebar = (string) $row[2];
-                if($row[3]) $store->grad = (string) $row[3];
-                if($row[4]) $store->name = (string) $row[4];
-                if($row[5]) $store->unit = (string)$row[5];
-                if(!empty($row[6])) $store->cant = (int) $row[6];
-                if(!empty($row[7])) $store->price = (float) $row[7];
-                $store->save();
-                $this->info('Actualizando registro para: '. (string) strtoupper($row[4]) ." (". (int) $row[6] .")" );
+                $cant_csv = (int)$row['cantidad'];
+                $cant_store = $store->cant;
+                
+                if(count($store->lote)){
+                    $cant_store = 0;
+                    foreach ($store->lote as $lot) {
+                        if($lot->branch_id === $row['almacen']) $cant_store += $lot->amount;
+                    }
+                }
+
+                dd("Lote", $store->lote);
+                //I'M HERE
+
+                if($cant_store === $cant_csv ){
+                    dd("Iguales", $store->cant, $cant_csv);
+
+                    $this->saveStoreItem($row, $store);
+                } else {
+                    if($cant_csv > $store->cant){
+                        dd("CSV mayor", $store->cant, $cant_csv);
+
+                        
+
+                        
+                    } else {
+                        dd("CSV menor", $store->cant, $row);
+
+                        if($row['codigo']) $store->code = (string) $row['codigo'];
+                        if($row['codigo_barra']) $store->codebar = (string) $row['codigo_barra'];
+                        if($row['graduacion']) $store->grad = (string) $row['graduacion'];
+                        if($row['nombre']) $store->name = (string) $row['nombre'];
+                        if($row['nombre']) $store->unit = (string)$row['unidad'];
+                        if(!empty($row['nombre'])) $store->cant = $cant_csv;
+                        if(!empty($row['precio'])) $store->price = (float) $row['precio'];
+
+                        $store->save();
+                    }
+                }
+                
+                //$this->info('Actualizando registro para: '. (string) strtoupper($row[4]) ." (". (int) $row[6] .")" );
+            } else {
+                //Producto nuevo
             }
 
             /*
@@ -90,7 +142,7 @@ class SetStoreCvs extends Command
             
         }
         //$bar->finish();
-        $this->newLine();
+        
         $this->info('::: ALMACEN ACTUALIZADO CON EXITO :::');
         
     }
