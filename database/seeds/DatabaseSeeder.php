@@ -10,7 +10,8 @@ class DatabaseSeeder extends Seeder
      * @return void
      */
     public function run(){
-
+        
+        dd("Correr seeder");
         $this->call(UserSeeder::class);
         $this->call(CategorySeeder::class);
         $this->call(BankSeeder::class);

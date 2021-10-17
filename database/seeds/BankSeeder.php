@@ -56,5 +56,21 @@ class BankSeeder extends Seeder
             'name' => 'bank',
             'value' => 'bancoppel',
         ]);
+        DB::table('config')->insert([
+            'name' => 'branches',
+            'value' => json_encode([
+                'name' => 'tecnologico',
+                'domicilio' => 'Av. Tecnologico 32-A',
+                'telefono' => '3123125353'
+            ]),
+        ]);
+        DB::table('config')->insert([
+            'name' => 'branches',
+            'value' => json_encode([
+                'name' => 'constitucion',
+                'domicilio' => 'Av. Constitución 32-A',
+                'telefono' => '3123125353'
+            ]),
+        ]);
     }
 }

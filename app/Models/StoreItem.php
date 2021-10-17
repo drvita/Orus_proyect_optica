@@ -9,11 +9,12 @@ use App\Models\Category;
 use App\Models\Contact;
 use App\Models\StoreLot;
 use App\Models\Brand;
+use App\Models\StoreBranch;
 
 class StoreItem extends Model{
     protected $table = "store_items";
     protected $fillable = [
-        "code","codebar","grad","brand_id","name","unit","cant","price","category_id","contact_id","user_id"
+        "code","codebar","grad","brand_id","name","unit","cant","price","category_id","contact_id","user_id","branch_default"
     ];
     protected $hidden = [];
     protected $dates = [
@@ -41,6 +42,9 @@ class StoreItem extends Model{
     }
     public function salesItems(){
         return $this->belongsTo(SalesItems::class,'store_items_id');
+    }
+    public function inBranch(){
+        return $this->hasMany(StoreBranch::class,'store_item_id','id');
     }
     //Scopes
     public function scopeSearchItem($query, $search){
@@ -105,5 +109,8 @@ class StoreItem extends Model{
     }
     public function scopePublish($query){
         $query->whereNull('deleted_at');
+    }
+    public function scopeWithRelation($query){
+        $query->with('user','supplier','brand','inBranch');
     }
 }

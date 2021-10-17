@@ -1,17 +1,20 @@
 <?php
 
 namespace App\Http\Resources;
+
 use Illuminate\Http\Resources\Json\JsonResource;
 
 //use App\Http\Resources\ContactShort as ContactResource;
 use App\Http\Resources\UserInExam as UserResource;
 
-class ExamShort extends JsonResource{
+class ExamShort extends JsonResource
+{
 
-    public function toArray($request){
+    public function toArray($request)
+    {
         $return = [];
 
-        if(isset($this->id)){
+        if (isset($this->id)) {
             $return['id'] = $this->id;
             $return['esferaoi'] = $this->esferaoi;
             $return['esferaod'] = $this->esferaod;
@@ -33,7 +36,7 @@ class ExamShort extends JsonResource{
             $return['observaciones'] = $this->observaciones ?? "";
             $return['category_id'] = $this->category_id;
             $return['category_ii'] = $this->category_ii;
-            $return['estado'] = $this->status;
+            $return['status'] = $this->status;
 
             $return['created'] = new UserResource($this->user);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');

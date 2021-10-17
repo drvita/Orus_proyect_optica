@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\StoreItem;
+use App\Models\StoreBranch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\StoreItem as StoreResources;
@@ -26,6 +27,7 @@ class StoreItemController extends Controller{
         
 
         $items = $this->store
+                ->withoutRelations()
                 ->orderBy($orderby, $order)
                 ->searchItem((string) $request->search)
                 ->searchCode((string) $request->code)
@@ -50,12 +52,44 @@ class StoreItemController extends Controller{
         return new StoreResources($store);
     }
 
+    public static function getEloquentSqlWithBindings($query)
+    {
+        return vsprintf(str_replace('?', '%s', $query->toSql()), collect($query->getBindings())->map(function ($binding) {
+            $binding = addslashes($binding);
+            return is_numeric($binding) ? $binding : "'{$binding}'";
+        })->toArray());
+    }
+
     /**
      * Muestra un producto en espesifico
      * @param  $store identificador del producto
      * @return Json api rest
      */
-    public function show(StoreItem $store){
+    public function show(int $id){
+        
+        
+        $store = $this->store
+                ->where('id', $id)
+                ->with('lote','categoria.parent.parent','supplier','brand','inBranch')
+                ->first();
+
+                
+
+        // if($store){
+        //     dd($id, $store->toArray());
+            
+        //     $branches = StoreBranch::where("store_item_id", $store->id)->first();
+            
+        //     if($branches){
+        //         dd($id, "store_item_id", $branches->toArray());
+        //     } else {
+        //         dd($id, "store_item_id", $branches);
+        //     }
+            
+        // }
+                
+        
+
         return new StoreResourceShow($store);
     }
 

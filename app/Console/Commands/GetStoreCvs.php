@@ -13,7 +13,7 @@ class GetStoreCvs extends Command
      *
      * @var string
      */
-    protected $signature = 'orus:getstorecvs {--Z|zero: mostrar solo productos en cero}';
+    protected $signature = 'orus:getstorecsv {--Z|zero: mostrar solo productos en cero}';
 
     /**
      * The console command description.
@@ -40,34 +40,33 @@ class GetStoreCvs extends Command
     public function handle()
     {
         //$zero = (boolean) $this->argument('zero');
-        if (!$this->confirm('Desea continuar con la generacion del archivo CVS?', true)) {
+        if (!$this->confirm('Desea continuar con la generacion del archivo CSV?', true)) {
             $this->info('Operacion cancelada!');
             return 0;
         }
-        $this->newLine();
 
         $date = Carbon::now();
-        $filename = storage_path('/app/store_'. $date->format('d_m_Y-hms') .'.csv');
+        $filename = storage_path('app/store_' . $date->format('d_m_Y-hms') . '.csv');
         $store = StoreItem::All()->sortBy('name');
         $columns = array(
-            'id', 
-            'codigo', 
-            'codigo_barra', 
+            'id',
+            'codigo',
+            'codigo_barra',
             'graduacion',
-            'nombre', 
+            'nombre',
             'unidad',
-            'cantidad', 
+            'cantidad',
             'precio',
             //'marca',
             //'categoria',
         );
-        
+
         $file = fopen($filename, 'w');
         fputcsv($file, $columns);
         $bar = $this->output->createProgressBar(count($store));
         $bar->start();
-        
-        foreach($store as $st) {
+
+        foreach ($store as $st) {
             fputcsv($file, array(
                 (int) $st->id,
                 (string) $st->code,
@@ -75,7 +74,7 @@ class GetStoreCvs extends Command
                 (string) $st->grad,
                 (string) $st->name,
                 (string) $st->unit,
-                (int) $st->cant, 
+                (int) $st->cant,
                 (float) $st->price,
                 //(string) $st->brand ? $st->brand->name : '',
                 //(int) $st->category_id,
@@ -84,7 +83,6 @@ class GetStoreCvs extends Command
         }
         $bar->finish();
         fclose($file);
-        $this->newLine();
-        $this->info('Archivo creado con exito: '. $filename);
+        $this->info("\n" . 'Archivo creado con exito: ' . $filename);
     }
 }

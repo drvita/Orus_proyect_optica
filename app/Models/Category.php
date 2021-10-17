@@ -3,7 +3,7 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\User;
-use App\Models\Category;
+//use App\Models\Category;
 
 class Category extends Model{
     protected $table = "categories";

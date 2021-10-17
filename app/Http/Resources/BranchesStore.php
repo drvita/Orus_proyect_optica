@@ -4,18 +4,20 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BrandShort extends JsonResource{
+use function GuzzleHttp\json_decode;
+
+class BranchesStore extends JsonResource{
 
     public function toArray($request){
         $return = [];
 
         if(isset($this->id)){
+            $data = json_decode($this->value, true);
+
             $return['id'] = $this->id;
-            $return['marca'] = $this->name;
-            $return['name'] = $this->name;
+            $return['name'] = $data->name;
         }
         
-
         return $return;
     }
 }

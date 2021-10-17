@@ -22,18 +22,19 @@ class SaleController extends Controller{
     public function index(Request $request){
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order=="desc"? "desc" : "asc";
-        $page = $request->itemsPage ? $request->itemsPage : 50;
-        $rol = Auth::user()->rol;
+        $page = $request->itemsPage ? $request->itemsPage : 20;
+        $currentUser = Auth::user();
+        $branchUser = $currentUser->branch_id;
+        $branch = $branchUser;
         
-        //Validation for branchs to admins
-        if(!$rol){
-            if(!isset($request->branch)) $branch = Auth::user()->branch_id;
-            else {
-                if($request->branch === "all") $branch = null;
-                else $branch = $request->branch;
+        // If branches var is not present, use the same branch of user
+        // only admin can see all branches
+        if(isset($request->branch)){
+            if($request->branch === "all"){
+                $branch = null;
+            } else {
+                $branch = $request->branch;
             }
-        }else {
-            $branch = Auth::user()->branch_id;
         }
 
         $sale = $this->sale
@@ -55,14 +56,17 @@ class SaleController extends Controller{
      * @return json api rest
      */
     public function store(SaleRequests $request){
-        $request['user_id'] = Auth::user()->id;
-        $rol = Auth::user()->rol;
-        //Validation for branchs to admins
-        if(!$rol){
-            if(!isset($request['branch_id'])) $request['branch_id'] = Auth::user()->branch_id; 
-        }else {
-            $request['branch_id'] = Auth::user()->branch_id; 
-        } 
+        $currentUser = Auth::user();
+        $request['user_id']= $currentUser->id;
+        $request['branch_id'] = $currentUser->branch_id;
+        $request['status']= 0;
+        $rolUser = $currentUser->rol;
+
+        //Only admin can save in differents branches
+        if(!$rolUser){
+            if(isset($request->branch_id)) $request['branch_id'] = $request->branch_id; 
+        }
+
 
         $sale = $this->sale->create( $request->all() );
         $sale['items'] = $request->items;
@@ -90,12 +94,24 @@ class SaleController extends Controller{
      * @return Json api rest
      */
     public function update(Request $request, Sale $sale){
-        $request['user_id']= $sale->user_id;
-        $sale->update( $request->all() );
-        $sale['items'] = $request->items;
-        $sale['payments'] = $request->payments;
-        event(new SaleSave($sale));
-        $sale = $sale::where('id', $sale->id)->relations()->first();
+        $currentUser = Auth::user();
+        $request['updated_id']= $currentUser->id;
+        $rolUser = $currentUser->rol;
+        //Only admin can modify branches
+        if(isset($request->branch_id) && $rolUser){
+            unset($request['branch_id']);
+        }
+
+        if($sale){
+            $sale->update( $request->all() );
+
+            $sale['items'] = $request->items;
+            $sale['payments'] = $request->payments;
+            event(new SaleSave($sale));
+            $sale = $sale::where('id', $sale->id)->relations()->first();
+        }
+
+        
         return New SaleResources($sale);
     }
 

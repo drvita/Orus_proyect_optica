@@ -12,14 +12,14 @@ class SetStoreCvs extends Command
      *
      * @var string
      */
-    protected $signature = 'orus:setstorecvs {file}';
+    protected $signature = 'orus:setstorecsv {file}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Importa archivos CVS a productos en almacen';
+    protected $description = 'Importa archivos CSV a productos en almacen';
 
     /**
      * Create a new command instance.
@@ -47,7 +47,6 @@ class SetStoreCvs extends Command
             $this->info('Operacion cancelada!');
             return 0;
         }
-        $this->newLine();
         //turn into array
         $file = file($path);
         //remove first line
@@ -57,19 +56,19 @@ class SetStoreCvs extends Command
         //$bar->start();
 
         //loop over the data
-        foreach($data as $row) {
+        foreach ($data as $row) {
             $store = StoreItem::find((int) $row[0]);
 
-            if($store){
-                if($row[1]) $store->code = (string) $row[1];
-                if($row[2]) $store->codebar = (string) $row[2];
-                if($row[3]) $store->grad = (string) $row[3];
-                if($row[4]) $store->name = (string) $row[4];
-                if($row[5]) $store->unit = (string)$row[5];
-                if(!empty($row[6])) $store->cant = (int) $row[6];
-                if(!empty($row[7])) $store->price = (float) $row[7];
+            if ($store) {
+                if ($row[1]) $store->code = (string) $row[1];
+                if ($row[2]) $store->codebar = (string) $row[2];
+                if ($row[3]) $store->grad = (string) $row[3];
+                if ($row[4]) $store->name = (string) $row[4];
+                if ($row[5]) $store->unit = (string)$row[5];
+                if (!empty($row[6])) $store->cant = (int) $row[6];
+                if (!empty($row[7])) $store->price = (float) $row[7];
                 $store->save();
-                $this->info('Actualizando registro para: '. (string) strtoupper($row[4]) ." (". (int) $row[6] .")" );
+                $this->info('Actualizando registro para: ' . (string) strtoupper($row[4]) . " (" . (int) $row[6] . ")");
             }
 
             /*
@@ -87,11 +86,9 @@ class SetStoreCvs extends Command
             ]);
             //$bar->advance();
             */
-            
         }
         //$bar->finish();
         $this->newLine();
         $this->info('::: ALMACEN ACTUALIZADO CON EXITO :::');
-        
     }
 }

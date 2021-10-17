@@ -38,6 +38,11 @@ class CreateFiledBranchesAllTables extends Migration
                 ->after('user_id')
                 ->default(12);
         });
+        Schema::table('sales_items', function (Blueprint $table) {
+            $table->unsignedBigInteger('branch_id')
+                ->after('store_items_id')
+                ->default(12);
+        });
         Schema::table('store_lots', function (Blueprint $table) {
             $table->unsignedBigInteger('branch_id')
                 ->after('user_id')
@@ -72,7 +77,10 @@ class CreateFiledBranchesAllTables extends Migration
         Schema::table('sales', function (Blueprint $table) {
             $table->dropColumn('branch_id');
         });
-        Schema::table('store_items', function (Blueprint $table) {
+        Schema::table('sales_items', function (Blueprint $table) {
+            $table->dropColumn('branch_id');
+        });
+        Schema::table('store_lots', function (Blueprint $table) {
             $table->dropColumn('branch_id');
         });
         Schema::table('users', function (Blueprint $table) {

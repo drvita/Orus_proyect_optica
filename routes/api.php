@@ -15,6 +15,8 @@ Route::middleware('auth:api')->apiResource('atms','AtmController');
 Route::middleware('auth:api')->apiResource('brands','BrandController');
 Route::middleware('auth:api')->apiResource('messengers','MessengerController');
 Route::middleware('auth:api')->apiResource('users','UserController');
+Route::middleware('auth:api')->apiResource('branches','StoreBranchController')->except("index","show","destroy");
+
 // Rutas especiales
 Route::post('users/login','AuthController@login')->name('users.login');
 Route::middleware('auth:api')->post('/users/clearToken/{id}','UserController@clearToken')->name('users.clearToken');
@@ -25,5 +27,3 @@ Route::middleware('auth:api')->get('/user/subscriptionNotify','AuthController@us
 //DELETE in the future
 Route::middleware('auth:api')->get('saleday','PaymentController@saleday')->name('payments.saleday');
 Route::middleware('auth:api')->get('bankdetails','PaymentController@bankdetails')->name('payments.bankdetails');
-
-

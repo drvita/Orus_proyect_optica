@@ -22,18 +22,6 @@ class PaymentController extends Controller{
         $orderby = $request->orderby? $request->orderby : "created_at";
         $order = $request->order==="desc"? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
-        $rol = Auth::user()->rol;
-        
-        //Validation for branchs to admins
-        if(!$rol){
-            if(!isset($request->branch)) $branch = Auth::user()->branch_id;
-            else {
-                if($request->branch === "all") $branch = null;
-                else $branch = $request->branch;
-            }
-        }else {
-            $branch = Auth::user()->branch_id;
-        }
 
         $payment = $this->payment
                 ->Sale($request->sale)
@@ -41,7 +29,6 @@ class PaymentController extends Controller{
                 ->orderBy($orderby, $order)
                 ->User(Auth::user(), $request->user)
                 ->publish()
-                ->branch($branch)
                 ->paginate($page);
 
         return PaymentResources::collection($payment);
@@ -74,14 +61,15 @@ class PaymentController extends Controller{
      * @return Json api rest
      */
     public function store(PaymentRequests $request){
-        $request['user_id']= Auth::user()->id;
-        $rol = Auth::user()->rol;
-        //Validation for branchs to admins
-        if(!$rol){
-            if(!isset($request['branch_id'])) $request['branch_id'] = Auth::user()->branch_id; 
-        }else {
-            $request['branch_id'] = Auth::user()->branch_id; 
-        } 
+        $currentUser = Auth::user();
+        $request['user_id']= $currentUser->id;
+        $request['branch_id'] = $currentUser->branch_id;
+        $rolUser = $currentUser->rol;
+
+        //Only admin can save in differents branches
+        if(!$rolUser){
+            if(isset($request->branch_id)) $request['branch_id'] = $request->branch_id; 
+        }
         
         $payment = $this->payment->create($request->all());
         //event(new PaymentSave($payment, $messegeId, $table));
@@ -104,9 +92,18 @@ class PaymentController extends Controller{
      * @return Json api rest
      */
     public function update(PaymentRequests $request, Payment $payment){
-        $request['user_id']=$payment->user_id;
-        $payment->update( $request->all() );
-        //event(new OrderUpdated($order));
+        $currentUser = Auth::user();
+        $request['updated_id']= $currentUser->id;
+        $rolUser = $currentUser->rol;
+        //Only admin can modify branches
+        if(isset($request->branch_id) && $rolUser){
+            unset($request['branch_id']);
+        }
+
+        if($payment){
+            $payment->update( $request->all() );
+        }
+        
         return New PaymentResources($payment);
     }
 

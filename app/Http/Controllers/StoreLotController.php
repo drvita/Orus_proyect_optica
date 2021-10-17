@@ -40,7 +40,7 @@ class StoreLotController extends Controller{
                     ->branch($branch)
                     ->paginate($page);
         } else {
-            $items = $this->item::paginate($page);
+            $items = $this->item->branch($branch)->paginate($page);
         }
         
         return StoreResources::collection($items);
