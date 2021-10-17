@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\StoreItem;
+use App\Models\StoreBranch;
 
 class SetStoreCvs extends Command
 {
@@ -12,7 +13,7 @@ class SetStoreCvs extends Command
      *
      * @var string
      */
-    protected $signature = 'orus:setstorecsv {file}';
+    protected $signature = 'orus:setstorecsv {file} {--branch=}';
 
     /**
      * The console command description.
@@ -31,6 +32,56 @@ class SetStoreCvs extends Command
         parent::__construct();
     }
 
+    public function saveStoreItem($row, $branchId)
+    {
+        // Save general data
+        $toSave = [
+            'id' => (int) $row['id'],
+            'code' => (string) $row['codigo'],
+            'codebar' => $row['codigo_barra'] ? (string) $row['codigo_barra'] : null,
+            'grad' => (string) $row['graduacion'],
+            'name' => (string) $row['nombre'],
+            'unit' => (string)$row['unidad'],
+            'updated_id' => 1,
+        ];
+        $storeItem = StoreItem::updateOrCreate([
+            'id' => $toSave['id'],
+        ], $toSave);
+
+        if ($storeItem && $storeItem->id) {
+            // Save branch data
+            $cant = (int) $row['cantidad'] > 0 ? (int) $row['cantidad'] : 0;
+            $toBranches = [
+                'store_item_id' => $storeItem->id,
+                "cant" => $cant,
+                "price" => (float) $row['precio'],
+                "branch_id" => (int) $branchId,
+                'updated_id' => 1,
+                'user_id' => 1,
+            ];
+            StoreBranch::updateOrCreate([
+                'store_item_id' => $toBranches['store_item_id'],
+                'branch_id' => $toBranches['branch_id'],
+            ], $toBranches);
+        }
+    }
+    public function getCanInBranches($inBranches, $branchId)
+    {
+        if (!$inBranches) {
+            return 0;
+        }
+        $cant = 0;
+
+        foreach ($inBranches as $branch) {
+            if ($branch["branch_id"] === $branchId) {
+                $cant = $branch["cant"];
+                break;
+            }
+        }
+
+        return $cant;
+    }
+
     /**
      * Execute the console command.
      *
@@ -39,56 +90,54 @@ class SetStoreCvs extends Command
     public function handle()
     {
         $path = $this->argument('file');
+        $branch = (int) $this->option('branch');
+
         if (!$path) {
             $this->info('Operacion cancelada por NO introduccion el archivo CSV!');
+            return 0;
+        }
+        if (!$branch) {
+            $this->info('Operacion cancelada, es necesesario espesificar el ID del almacen. EJ: --B=12');
             return 0;
         }
         if (!$this->confirm('Desea continuar con la importacion del archivo CVS?')) {
             $this->info('Operacion cancelada!');
             return 0;
         }
-        //turn into array
-        $file = file($path);
-        //remove first line
-        $data = array_slice($file, 1);
-        $data = array_map('str_getcsv', $data);
-        //$bar = $this->output->createProgressBar(count($store));
-        //$bar->start();
 
-        //loop over the data
-        foreach ($data as $row) {
-            $store = StoreItem::find((int) $row[0]);
+        $file = file($path);
+        $csv = array_map('str_getcsv', $file);
+
+        array_walk($csv, function (&$a) use ($csv) {
+            $a = array_combine($csv[0], $a);
+        });
+        array_shift($csv); # remove column header
+
+        $bar = $this->output->createProgressBar(count($csv));
+        $bar->start();
+
+        foreach ($csv as $row) {
+            $store = StoreItem::where("id", (int) $row['id'])
+                ->with('inBranch')
+                ->publish()
+                ->first();
 
             if ($store) {
-                if ($row[1]) $store->code = (string) $row[1];
-                if ($row[2]) $store->codebar = (string) $row[2];
-                if ($row[3]) $store->grad = (string) $row[3];
-                if ($row[4]) $store->name = (string) $row[4];
-                if ($row[5]) $store->unit = (string)$row[5];
-                if (!empty($row[6])) $store->cant = (int) $row[6];
-                if (!empty($row[7])) $store->price = (float) $row[7];
-                $store->save();
-                $this->info('Actualizando registro para: ' . (string) strtoupper($row[4]) . " (" . (int) $row[6] . ")");
-            }
+                // Updated item
+                $cant_csv = (int) $row['cantidad'];
+                $cant_store = $this->getCanInBranches($store->inBranch->toArray(), $branch); //$store->cant;
 
-            /*
-            StoreItem::updateOrCreate([
-                'id' => (int) $row[0],
-            ], [
-                'code' => (string) $row[1],
-                'codebar' => (string) $row[2],
-                'grad' => (string) $row[3],
-                'name' => (string) $row[4],
-                'unit' => (string)$row[5],
-                'cant' => (int) $row[6],
-                'price' => (float) $row[7],
-                //'category_id' => (int) $row[8],
-            ]);
-            //$bar->advance();
-            */
+                if ($cant_store !== $cant_csv) {
+                    $this->saveStoreItem($row, $branch);
+                }
+            } else {
+                // new Item
+                $this->saveStoreItem($row, $branch);
+            }
+            $bar->advance();
         }
-        //$bar->finish();
-        $this->newLine();
-        $this->info('::: ALMACEN ACTUALIZADO CON EXITO :::');
+        $bar->finish();
+
+        $this->info("\n" . '::: ALMACEN ACTUALIZADO CON EXITO :::');
     }
 }

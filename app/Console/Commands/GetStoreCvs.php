@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\StoreItem;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class GetStoreCvs extends Command
 {
@@ -13,14 +14,14 @@ class GetStoreCvs extends Command
      *
      * @var string
      */
-    protected $signature = 'orus:getstorecsv {--Z|zero: mostrar solo productos en cero}';
+    protected $signature = 'orus:getstorecsv {branch}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Crea archivos CVS de productos en almacen';
+    protected $description = 'Crea archivos CSV de productos en almacen';
 
     /**
      * Create a new command instance.
@@ -39,26 +40,32 @@ class GetStoreCvs extends Command
      */
     public function handle()
     {
-        //$zero = (boolean) $this->argument('zero');
-        if (!$this->confirm('Desea continuar con la generacion del archivo CSV?', true)) {
-            $this->info('Operacion cancelada!');
+        $id_branch = (int) $this->argument('branch');
+        if (!$this->confirm('Desea continuar con la generacion del archivo CVS?', true)) {
+            $this->info('\n Operacion cancelada!');
             return 0;
         }
 
         $date = Carbon::now();
-        $filename = storage_path('app/store_' . $date->format('d_m_Y-hms') . '.csv');
-        $store = StoreItem::All()->sortBy('name');
+        $filename = storage_path('/app/store_' . $date->format('d_m_Y-hms') . '.csv');
+        $store = StoreItem::with('categoria')->orderBy('name')->get();
+        /*
+        $store_lot = StoreItem::with('lote')->whereHas('lote', function(Builder $query) use ($id_branch){
+            $query->where('branch_id', '==', $id_branch);
+        })->get();
+        */
+
         $columns = array(
             'id',
             'codigo',
             'codigo_barra',
             'graduacion',
             'nombre',
+            'categoria',
             'unidad',
             'cantidad',
             'precio',
-            //'marca',
-            //'categoria',
+            'almacen',
         );
 
         $file = fopen($filename, 'w');
@@ -73,16 +80,16 @@ class GetStoreCvs extends Command
                 (string) $st->codebar,
                 (string) $st->grad,
                 (string) $st->name,
+                (string) $st->categoria->name,
                 (string) $st->unit,
                 (int) $st->cant,
                 (float) $st->price,
-                //(string) $st->brand ? $st->brand->name : '',
-                //(int) $st->category_id,
+                (string) 'sin definir',
             ));
             $bar->advance();
         }
         $bar->finish();
         fclose($file);
-        $this->info("\n" . 'Archivo creado con exito: ' . $filename);
+        $this->info('\n Archivo creado con exito: ' . $filename);
     }
 }

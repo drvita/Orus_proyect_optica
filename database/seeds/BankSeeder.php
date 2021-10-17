@@ -60,16 +60,16 @@ class BankSeeder extends Seeder
             'name' => 'branches',
             'value' => json_encode([
                 'name' => 'tecnologico',
-                'domicilio' => 'Av. Tecnologico 32-A',
-                'telefono' => '3123125353'
+                'address' => 'Av. Tecnologico 32-A',
+                'phone' => '3123125353'
             ]),
         ]);
         DB::table('config')->insert([
             'name' => 'branches',
             'value' => json_encode([
                 'name' => 'constitucion',
-                'domicilio' => 'Av. Constitución 32-A',
-                'telefono' => '3123125353'
+                'address' => 'Av. Constitución 32-A',
+                'phone' => '3123125353'
             ]),
         ]);
     }
