@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\StoreItem;
 use App\Models\StoreBranch;
+use PhpParser\Node\Expr\Cast\Bool_;
 
 class SetStoreCvs extends Command
 {
@@ -13,7 +14,7 @@ class SetStoreCvs extends Command
      *
      * @var string
      */
-    protected $signature = 'orus:setstorecsv {file} {--branch=}';
+    protected $signature = 'orus:setstorecsv {file} {--branch=} {--nocheck}';
 
     /**
      * The console command description.
@@ -42,6 +43,7 @@ class SetStoreCvs extends Command
             'grad' => (string) $row['graduacion'],
             'name' => (string) $row['nombre'],
             'unit' => (string)$row['unidad'],
+            'branch_default' => $row['almacen'] ? (int)$row['almacen'] : null,
             'updated_id' => 1,
         ];
         $storeItem = StoreItem::updateOrCreate([
@@ -91,13 +93,14 @@ class SetStoreCvs extends Command
     {
         $path = $this->argument('file');
         $branch = (int) $this->option('branch');
+        $nocheck = $this->option('nocheck');
 
         if (!$path) {
             $this->info('Operacion cancelada por NO introduccion el archivo CSV!');
             return 0;
         }
         if (!$branch) {
-            $this->info('Operacion cancelada, es necesesario espesificar el ID del almacen. EJ: --B=12');
+            $this->info('Operacion cancelada, es necesesario espesificar el ID del almacen. EJ: --branch=12');
             return 0;
         }
         if (!$this->confirm('Desea continuar con la importacion del archivo CVS?')) {
@@ -127,7 +130,7 @@ class SetStoreCvs extends Command
                 $cant_csv = (int) $row['cantidad'];
                 $cant_store = $this->getCanInBranches($store->inBranch->toArray(), $branch); //$store->cant;
 
-                if ($cant_store !== $cant_csv) {
+                if ($cant_store !== $cant_csv || $nocheck) {
                     $this->saveStoreItem($row, $branch);
                 }
             } else {

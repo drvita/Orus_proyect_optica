@@ -42,7 +42,7 @@ class GetStoreCvs extends Command
     {
         $id_branch = (int) $this->argument('branch');
         if (!$this->confirm('Desea continuar con la generacion del archivo CVS?', true)) {
-            $this->info('\n Operacion cancelada!');
+            $this->info('Operacion cancelada!');
             return 0;
         }
 
@@ -84,12 +84,12 @@ class GetStoreCvs extends Command
                 (string) $st->unit,
                 (int) $st->cant,
                 (float) $st->price,
-                (string) 'sin definir',
+                (string) $st->branch_default,
             ));
             $bar->advance();
         }
         $bar->finish();
         fclose($file);
-        $this->info('\n Archivo creado con exito: ' . $filename);
+        $this->info("\n Archivo creado con exito: " . $filename);
     }
 }
