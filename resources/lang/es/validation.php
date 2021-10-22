@@ -110,5 +110,7 @@ return [
             'rule-name' => 'custom-message',
         ],
     ],
-    'attributes' => [],
+    'attributes' => [
+        'name' => 'nombre'
+    ],
 ];

@@ -24,10 +24,27 @@ class StoreItem extends FormRequest
     public function rules()
     {
         return [
-            "code" => "required|unique:store_items",
-            "name" => "required|unique:store_items",
-            "unit" => "required",
+            "code" => "required|unique:store_items|max:18",
+            "name" => "required|max:150",
+            "unit" => "required|max:4",
             "category_id" => "required"
+        ];
+    }
+
+    public function attributes()
+    {
+        return [
+            "code" => "codigo del producto",
+            "name" => "mombre del producto",
+            "unit" => "unidad de presentación",
+            "category_id" => "categoria del producto"
+        ];
+    }
+    public function messages()
+    {
+        return [
+            "code.max" => "El codigo del producto no debe de ser mayor a 18 caracteres",
+            "name.max" => "El nombre del producto no debe de ser mayor a 150 caracteres"
         ];
     }
 }
