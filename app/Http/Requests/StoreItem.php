@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreItem extends FormRequest
 {
@@ -23,8 +24,16 @@ class StoreItem extends FormRequest
      */
     public function rules()
     {
+        // dd($this->route('store'));
         return [
-            "code" => "required|unique:store_items|max:18",
+            "code" => [
+                "required", "max:18",
+                Rule::unique('store_items')->ignore($this->route('store'))
+            ],
+            "codebar" => [
+                "max:100",
+                Rule::unique('store_items')->ignore($this->route('store'))
+            ],
             "name" => "required|max:150",
             "unit" => "required|max:4",
             "category_id" => "required"
@@ -35,6 +44,7 @@ class StoreItem extends FormRequest
     {
         return [
             "code" => "codigo del producto",
+            "codebar" => "codigo de barras",
             "name" => "mombre del producto",
             "unit" => "unidad de presentación",
             "category_id" => "categoria del producto"
@@ -44,7 +54,9 @@ class StoreItem extends FormRequest
     {
         return [
             "code.max" => "El codigo del producto no debe de ser mayor a 18 caracteres",
-            "name.max" => "El nombre del producto no debe de ser mayor a 150 caracteres"
+            "name.max" => "El nombre del producto no debe de ser mayor a 150 caracteres",
+            "code.unique" => "El codigo ya se encuentra registrado en otro producto",
+            "codebar.unique" => "El codigo de barras ya se encuentra registrado en otros productos"
         ];
     }
 }

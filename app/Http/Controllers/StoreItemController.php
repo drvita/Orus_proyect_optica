@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\StoreItem;
 use App\Models\StoreBranch;
 use Illuminate\Http\Request;
@@ -10,33 +11,36 @@ use App\Http\Resources\StoreItemShow as StoreResourceShow;
 use App\Http\Requests\StoreItem as StoreRequests;
 use Carbon\Carbon;
 
-class StoreItemController extends Controller{
+class StoreItemController extends Controller
+{
     protected $store;
 
-    public function __construct(StoreItem $store){
+    public function __construct(StoreItem $store)
+    {
         $this->store = $store;
     }
     /**
      * Muestra una lista de los productos en almacen
      * @return Json api rest
      */
-    public function index(Request $request){
-        $orderby = $request->orderby? $request->orderby : "created_at";
-        $order = $request->order=="asc"? "asc" : "desc";
+    public function index(Request $request)
+    {
+        $orderby = $request->orderby ? $request->orderby : "created_at";
+        $order = $request->order == "asc" ? "asc" : "desc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
-        
+
 
         $items = $this->store
-                ->withoutRelations()
-                ->orderBy($orderby, $order)
-                ->searchItem((string) $request->search)
-                ->searchCode((string) $request->code)
-                ->zero($request->zero)
-                ->category(intval($request->cat))
-                ->searchSupplier($request->supplier)
-                ->publish()
-                ->searchBrand($request->brand);
-        
+            ->withoutRelations()
+            ->orderBy($orderby, $order)
+            ->searchItem((string) $request->search)
+            ->searchCode((string) $request->code)
+            ->zero($request->zero)
+            ->category(intval($request->cat))
+            ->searchSupplier($request->supplier)
+            ->publish()
+            ->searchBrand($request->brand);
+
         return StoreResources::collection($items->paginate($page));
     }
 
@@ -45,9 +49,10 @@ class StoreItemController extends Controller{
      * @param  $request datos a almacenar a traves del body en formato json
      * @return Json api rest
      */
-    public function store(StoreRequests $request){
-        $request['user_id']= Auth::user()->id;
-        
+    public function store(StoreRequests $request)
+    {
+        $request['user_id'] = Auth::user()->id;
+
         $store = $this->store->create($request->all());
         return new StoreResources($store);
     }
@@ -65,30 +70,12 @@ class StoreItemController extends Controller{
      * @param  $store identificador del producto
      * @return Json api rest
      */
-    public function show(int $id){
-        
-        
+    public function show(int $id)
+    {
         $store = $this->store
-                ->where('id', $id)
-                ->with('lote','categoria.parent.parent','supplier','brand','inBranch')
-                ->first();
-
-                
-
-        // if($store){
-        //     dd($id, $store->toArray());
-            
-        //     $branches = StoreBranch::where("store_item_id", $store->id)->first();
-            
-        //     if($branches){
-        //         dd($id, "store_item_id", $branches->toArray());
-        //     } else {
-        //         dd($id, "store_item_id", $branches);
-        //     }
-            
-        // }
-                
-        
+            ->where('id', $id)
+            ->with('lote', 'categoria.parent.parent', 'supplier', 'brand', 'inBranch')
+            ->first();
 
         return new StoreResourceShow($store);
     }
@@ -99,10 +86,11 @@ class StoreItemController extends Controller{
      * @param  $store identificador del producto a actualizar
      * @return Json api rest
      */
-    public function update(Request $request, StoreItem $store){
-        $request['user_id']=$store->user_id;
-        $store->update( $request->all() );
-        return New StoreResources($store);
+    public function update(StoreRequests $request, StoreItem $store)
+    {
+        $request['user_id'] = $store->user_id;
+        $store->update($request->all());
+        return new StoreResources($store);
     }
 
     /**
@@ -110,14 +98,15 @@ class StoreItemController extends Controller{
      * @param  $storeItem identificador del producto
      * @return null 204
      */
-    public function destroy($id){
+    public function destroy($id)
+    {
         $store = $this->store::where('id', $id)
-                ->with('orders','salesItems')
-                ->first();
+            ->with('orders', 'salesItems')
+            ->first();
 
         $enUso = count($store->lote) + count($store->salesItems);
 
-        if($enUso){
+        if ($enUso) {
             $store->deleted_at = Carbon::now();
             $store->updated_id = Auth::user()->id;
             $store->save();
