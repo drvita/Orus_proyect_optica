@@ -24,17 +24,21 @@ class StoreItem extends FormRequest
      */
     public function rules()
     {
-        // dd($this->route('store'));
+        $data = $this->request->all();
+        $ruleCodeBar = ["max:100"];
+
+        if ($data['codebar']) {
+            $ruleCodeBar = Rule::unique('store_items')->ignore($this->route('store'));
+        }
+
+        // dd($ruleCodeBar);
         return [
             "code" => [
                 "required", "max:18",
                 Rule::unique('store_items')->ignore($this->route('store'))
             ],
-            "codebar" => [
-                "max:100",
-                Rule::unique('store_items')->ignore($this->route('store'))
-            ],
-            "name" => "required|max:150",
+            "codebar" => $ruleCodeBar,
+            "name" => ["required", "max:150", Rule::unique('store_items')->ignore($this->route('store'))],
             "unit" => "required|max:4",
             "category_id" => "required"
         ];
@@ -45,7 +49,7 @@ class StoreItem extends FormRequest
         return [
             "code" => "codigo del producto",
             "codebar" => "codigo de barras",
-            "name" => "mombre del producto",
+            "name" => "nombre del producto",
             "unit" => "unidad de presentación",
             "category_id" => "categoria del producto"
         ];

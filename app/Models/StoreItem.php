@@ -84,6 +84,12 @@ class StoreItem extends Model
             $query->where("code", "LIKE", $search);
         }
     }
+    public function scopeSearchCodeBar($query, $search)
+    {
+        if (trim($search) != "") {
+            $query->where("codebar", "LIKE", $search);
+        }
+    }
     public function scopeSearchSupplier($query, $search)
     {
         //$name = preg_replace('/\d+/', "", $name);
