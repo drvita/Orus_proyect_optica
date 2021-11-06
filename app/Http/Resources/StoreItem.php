@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
 
 class StoreItem extends JsonResource
 {
@@ -10,13 +11,19 @@ class StoreItem extends JsonResource
     public function toArray($request)
     {
         $return = [];
-
+        $user = Auth::user();
 
         if (isset($this->id)) {
-            $cant = 0;
+            $cantAll = 0;
+            $cantBranch = 0;
+            $price = 0;
             if ($this->inBranch) {
                 foreach ($this->inBranch as $item) {
-                    $cant += $item->cant;
+                    $cantAll += $item->cant;
+                    if ($user->branch_id === $item->branch_id) {
+                        $price = $item->price;
+                        $cantBranch = $item->cant;
+                    }
                 }
             }
 
@@ -27,9 +34,9 @@ class StoreItem extends JsonResource
             $return['graduacion'] = $this->grad ? $this->grad : "+000000";
             $return['marca'] = new BrandShort($this->brand);
             $return['unidad'] = $this->unit;
-            $return['cant_total'] = $cant;
-            // $return['cantidades'] = $this->cant;
-            $return['precio'] = $this->price;
+            $return['cant_total'] = $cantAll;
+            $return['cant'] = $cantBranch;
+            $return['precio'] = $price;
             // $return['categoria'] = new CategoryParent($this->categoria);
             // $return['lotes'] = $this->lote ? count($this->lote) : 0;
             $return['proveedor'] = new Contact($this->supplier);
