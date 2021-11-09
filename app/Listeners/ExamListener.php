@@ -29,14 +29,13 @@ class ExamListener
      */
     public function handle($event)
     {
-        $notifyto = $event->rol === 1 || !$event->rol ? 2 : 1;
-        User::all()
-            ->except(1)
-            ->except(Auth::user()->id)
+        $notifyto = $event->rol === 1 ? 2 : 1;
+        User::where("id", "!=", 1)
+            ->where("id", "!=", Auth::user()->id)
             ->where("rol", $notifyto)
-            ->each(function (User $user) use ($event){
+            ->each(function (User $user) use ($event) {
                 //$user->notify(new ExamNotification($event->exam));
-                Notification::send($user, new ExamNotification($event->exam)); 
+                Notification::send($user, new ExamNotification($event->exam));
             });
     }
 }

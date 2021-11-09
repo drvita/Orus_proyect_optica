@@ -2,24 +2,26 @@
 
 namespace App\Notifications;
 
-use App\Models\Exam;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ExamNotification extends Notification
+class ErrorStoreNotification extends Notification
 {
     use Queueable;
+    private $item;
+    private $sale;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct(Exam $exam)
+    public function __construct($sale, $item)
     {
-        $this->exam = $exam;
+        $this->item = $item;
+        $this->sale = $sale;
     }
 
     /**
@@ -55,11 +57,17 @@ class ExamNotification extends Notification
      */
     public function toArray($notifiable)
     {
+        $order = $this->sale->order;
+        $sale = $this->sale->saleDetails;
+
         return [
-            'paciente' => $this->exam->paciente->name,
-            'contact_id' => $this->exam->contact_id,
-            'user' => $this->exam->user->name,
-            'id' => $this->exam->id
+            'item' => $this->item->name,
+            'item_branch_default' => $this->item->branch_default,
+            'branch_id' => $this->sale->branch_id,
+            'cant' => $this->sale->cant,
+            'user' => $this->sale->user->name,
+            'order_id' => $order ? $order->id : 0,
+            'sale_id' => $sale ? $sale->id : 0
         ];
     }
 }

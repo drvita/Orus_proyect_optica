@@ -12,30 +12,32 @@ use App\Http\Requests\Exam as ExamRequests;
 use App\Notifications\ExamNotification;
 use Carbon\Carbon;
 
-class ExamController extends Controller{
+class ExamController extends Controller
+{
     protected $exam;
 
-    public function __construct(Exam $exam){
+    public function __construct(Exam $exam)
+    {
         $this->exam = $exam;
     }
     /**
      * Muestra una lista de examenes
      * @return Json api rest
      */
-    public function index(Request $request){
-        $orderby = $request->orderby? $request->orderby : "created_at";
-        $order = $request->order=="desc"? "desc" : "asc";
+    public function index(Request $request)
+    {
+        $orderby = $request->orderby ? $request->orderby : "created_at";
+        $order = $request->order == "desc" ? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
         $date = $request->date;
         $status = $request->status;
         $currentUser = Auth::user();
         $branchUser = $currentUser->branch_id;
         $branch = $branchUser;
-        
+
         // If branches var is not present, use the same branch of user
-        // only admin can see all branches
-        if(isset($request->branch)){
-            if($request->branch === "all"){
+        if (isset($request->branch)) {
+            if ($request->branch === "all") {
                 $branch = null;
             } else {
                 $branch = $request->branch;
@@ -61,23 +63,24 @@ class ExamController extends Controller{
      * @param  $request body en json
      * @return Json api rest
      */
-    public function store(ExamRequests $request){
+    public function store(ExamRequests $request)
+    {
         $currentUser = Auth::user();
-        $request['user_id']= $currentUser->id;
+        $request['user_id'] = $currentUser->id;
         $request['branch_id'] = $currentUser->branch_id;
-        $request['status']= 0;
+        $request['status'] = 0;
         $rolUser = $currentUser->rol;
 
         //Only admin can save in differents branches
-        if(!$rolUser){
-            if(isset($request->branch_id)) $request['branch_id'] = $request->branch_id; 
+        if (!$rolUser) {
+            if (isset($request->branch_id)) $request['branch_id'] = $request->branch_id;
         }
 
         //Create new exam
         $exam = $this->exam->create($request->all());
         //If the user is employ send notify to doctor
-        if($rolUser === 1) event(new ExamEvent($exam, $rolUser));
-        
+        if ($rolUser === 1) event(new ExamEvent($exam, $rolUser));
+
         return new ExamResources($exam);
     }
 
@@ -86,11 +89,12 @@ class ExamController extends Controller{
      * @param  $exam id que proviene de la URL
      * @return Json api rest
      */
-    public function show($id){
+    public function show($id)
+    {
 
         $exam = $this->exam::where('id', $id)
-                ->withRelation()
-                ->first();
+            ->withRelation()
+            ->first();
 
         return new ExamResources($exam);
     }
@@ -101,20 +105,21 @@ class ExamController extends Controller{
      * @param  $exam identificador del examen
      * @return Json api rest
      */
-    public function update(Request $request, Exam $exam){
+    public function update(Request $request, Exam $exam)
+    {
         $currentUser = Auth::user();
-        $request['updated_id']= $currentUser->id;
+        $request['updated_id'] = $currentUser->id;
         $rolUser = $currentUser->rol;
         //Only admin can modify branches
-        if(isset($request->branch_id) && $rolUser){
+        if (isset($request->branch_id) && $rolUser) {
             unset($request['branch_id']);
         }
 
-        if($exam){
-            $exam->update( $request->all() );
+        if ($exam) {
+            $exam->update($request->all());
         }
 
-        return New ExamResources($exam);
+        return new ExamResources($exam);
     }
 
     /**
@@ -122,21 +127,22 @@ class ExamController extends Controller{
      * @param  $exam identificador del examen
      * @return Json api rest
      */
-    public function destroy($id){
+    public function destroy($id)
+    {
         $exam = $this->exam::where('id', $id)
-                ->with('orders')
-                ->first();
+            ->with('orders')
+            ->first();
 
         $enUso = count($exam->orders);
 
-        if($enUso){
+        if ($enUso) {
             $exam->deleted_at = Carbon::now();
             $exam->updated_id = Auth::user()->id;
             $exam->save();
         } else {
             $exam->delete();
         }
-        
+
         return response()->json(null, 204);
     }
 }

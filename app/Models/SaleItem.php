@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\StoreItem;
 use App\Models\StoreBranch;
+use App\Notifications\ErrorStoreNotification;
 use App\User;
-use App\Models\Messenger;
+// use Illuminate\Support\Facades\Auth;
 
 class SaleItem extends Model
 {
@@ -22,11 +23,19 @@ class SaleItem extends Model
     //Relationship
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
     public function item()
     {
         return $this->belongsTo(StoreItem::class, 'store_items_id');
+    }
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'session', 'session');
+    }
+    public function saleDetails()
+    {
+        return $this->belongsTo(Sale::class, 'session', 'session');
     }
     //Scopes
     public function scopeStock($query, $search)
@@ -49,68 +58,79 @@ class SaleItem extends Model
                 ->groupBy('session');
         }
     }
+    // Other functions
+    public function sendErrorNotification($sale, $item)
+    {
+        User::where("id", "!=", 1)
+            ->where("rol", 0)
+            ->get()
+            ->each(function (User $user) use ($sale, $item) {
+                $user->notify(new ErrorStoreNotification($sale, $item));
+            });
+    }
+    public function processInStorageItem($sale, $type = "created")
+    {
+        $item = StoreItem::where("id", $sale->store_items_id)->with('inBranch')->first();
+
+        // Check is item exist
+        if ($item) {
+            // Check if we have items in branches
+            if ($item->inBranch) {
+                if ($item->branch_default) {
+                    foreach ($item->inBranch as $branch) {
+                        // If the same?
+                        if ($branch->branch_id === $item->branch_default) {
+                            // Only discount if we have cant
+                            if ($sale->cant) {
+                                $storeBranch = StoreBranch::find($branch->id);
+                                if ($type === "created") {
+                                    $storeBranch->cant -= $sale->cant;
+                                } else {
+                                    $storeBranch->cant += $sale->cant;
+                                }
+                                $storeBranch->save();
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                } else {
+                    //Interate on all branches search the same the item
+                    foreach ($item->inBranch as $itemBranch) {
+                        // If the same?
+                        if ($itemBranch->branch_id === $item->branch_id) {
+                            // Only discount if we have cant
+                            if ($sale->cant) {
+                                $storeBranch = StoreBranch::find($itemBranch->id);
+                                if ($type === "created") {
+                                    $storeBranch->cant -= $sale->cant;
+                                } else {
+                                    $storeBranch->cant += $sale->cant;
+                                }
+                                $storeBranch->save();
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // send notification because no exit in branch
+                $sale->sendErrorNotification($sale, $item);
+            }
+        } else {
+            // send notification because no exit item
+            $sale->sendErrorNotification($sale, $item);
+        }
+    }
     //Listerner
     protected static function booted()
     {
-        static::created(function ($item) {
-
-            $itemInStore = StoreItem::where("id", $item->store_items_id)->with('inBranch')->first();
-
-            // Check if we have items in branches
-            if ($itemInStore->inBranch) {
-                // dd("Si tiene branches:", $item->branch_id, $item->store_items_id, $itemInStore->toArray());
-                //Interate on all branches search the same the item
-                foreach ($itemInStore->inBranch as $itemBranch) {
-                    // If the same?
-                    if ($itemBranch->branch_id === $item->branch_id) {
-                        // Only discount if we have cant
-                        if ($item->cant) {
-                            $storeBranch = StoreBranch::find($itemBranch->id);
-                            $storeBranch->cant -= $item->cant;
-                            $storeBranch->save();
-                            return;
-                        }
-                        break;
-                    }
-                }
-            } else {
-                // send notification because no exit in branch
-                Messenger::create([
-                    "table" => "admins",
-                    "idRow" => $item->id,
-                    "message" => `Este no tiene entradas en alamacen`,
-                    "user_id" => 1
-                ]);
-            }
+        static::created(function ($sale) {
+            $sale->processInStorageItem($sale, "created");
         });
-        static::deleted(function ($item) {
-            $itemInStore = StoreItem::where("id", $item->store_items_id)->with('inBranch')->first();
-            // Check if we have items in branches
-            if ($itemInStore->inBranch) {
-                //Interate on all branches search the same the item
-                foreach ($itemInStore->inBranch as $itemBranch) {
-                    // If the same?
-                    if ($itemBranch->branch_id === $item->branch_id) {
-                        // Only discount if we have cant
-                        if ($item->cant) {
-                            $storeBranch = StoreBranch::find($itemBranch->id);
-                            $storeBranch->cant += $item->cant;
-                            $storeBranch->save();
-                            return;
-                        }
-                        break;
-                    }
-                }
-            } else {
-                // send notification because no exit in branch
-
-            }
-            // $updateItem = StoreItem::find($item->store_items_id);
-            // Log::debug("Item eliminado, agregando producto a almacen");
-            // if($item->cant){
-            //     $updateItem->cant += $item->cant;
-            //     $updateItem->save();
-            // }
+        static::deleted(function ($sale) {
+            $sale->processInStorageItem($sale, "deleted");
         });
     }
 }

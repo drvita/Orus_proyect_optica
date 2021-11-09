@@ -17,12 +17,29 @@ class StoreItem extends JsonResource
             $cantAll = 0;
             $cantBranch = 0;
             $price = 0;
+            $from = 0;
+
+
             if ($this->inBranch) {
-                foreach ($this->inBranch as $item) {
-                    $cantAll += $item->cant;
-                    if ($user->branch_id === $item->branch_id) {
-                        $price = $item->price;
-                        $cantBranch = $item->cant;
+                $branches = $this->inBranch->toArray();
+
+                if ($this->branch_default) {
+                    foreach ($branches as $item) {
+                        $cantAll += $item['cant'];
+                        if ($this->branch_default === $item['branch_id']) {
+                            $price = $item['price'];
+                            $cantBranch = $item['cant'];
+                            $from = $this->branch_default;
+                        }
+                    }
+                } else {
+                    foreach ($branches as $item) {
+                        $cantAll += $item['cant'];
+                        if ($user->branch_id === $item['branch_id']) {
+                            $price = $item['price'];
+                            $cantBranch = $item['cant'];
+                            $from = $user->branch_id;
+                        }
                     }
                 }
             }
@@ -37,8 +54,8 @@ class StoreItem extends JsonResource
             $return['cant_total'] = $cantAll;
             $return['cant'] = $cantBranch;
             $return['precio'] = $price;
-            // $return['categoria'] = new CategoryParent($this->categoria);
-            // $return['lotes'] = $this->lote ? count($this->lote) : 0;
+            $return['from'] = $from;
+            $return['branch_default'] = $this->branch_default;
             $return['proveedor'] = new Contact($this->supplier);
             $return['created'] = new UserInExam($this->user);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');

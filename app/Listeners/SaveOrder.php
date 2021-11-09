@@ -132,13 +132,13 @@ class SaveOrder
                     }
                 }
 
-                User::all()
-                    ->except(1)
-                    ->except(Auth::user()->id)
-                    ->where("rol", 0)
-                    ->each(function (User $user) use ($order) {
-                        Notification::send($user, new OrderNotification($order));
-                    });
+                // User::all()
+                //     ->except(1)
+                //     ->except(Auth::user()->id)
+                //     ->where("rol", 0)
+                //     ->each(function (User $user) use ($order) {
+                //         Notification::send($user, new OrderNotification($order));
+                //     });
             } else if ($order->status === 3) {
                 // Debugbar::info($order->paciente->name .":". $order->id);
                 if ($order->paciente->email && !preg_match('/.+@domain.com$/', $order->paciente->email)) {

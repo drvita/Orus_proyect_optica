@@ -27,7 +27,7 @@ class SaleItem extends FormRequest
             "cant" => "required",
             "price" => "required",
             "subtotal" => "required",
-            "store_items_id" => "required",
+            "store_items_id" => "required|exists:store_items,id",
             "session" => "required"
         ];
     }
