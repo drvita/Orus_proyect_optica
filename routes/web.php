@@ -30,5 +30,5 @@ Route::get('/usuarios/{id?}', 'WebController@index');
 Route::get('/configuraciones', 'WebController@index');
 */
 
+Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 Route::get('/{any}', 'WebController@index')->where('any', '.*');
-

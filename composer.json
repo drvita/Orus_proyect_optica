@@ -16,6 +16,7 @@
         "laravel/framework": "^8.0",
         "laravel/tinker": "^2.0",
         "nesbot/carbon": "^2.36",
+        "rap2hpoutre/laravel-log-viewer": "^2.0",
         "spatie/laravel-permission": "^5.3"
     },
     "require-dev": {
