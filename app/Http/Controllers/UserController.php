@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\User as UserResource;
+use App\Http\Requests\UserRequest;
 use App\User;
 use App\Models\Session;
 use Carbon\Carbon;
@@ -61,7 +62,7 @@ class UserController extends Controller
      * @param  $request que se traen de post body json
      * @return Json api rest
      */
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
         $user = User::create([
             'name' => $request->input('name'),
@@ -88,7 +89,7 @@ class UserController extends Controller
      * @param  int  $id
      * @return Json api rest
      */
-    public function update(Request $request, User $user)
+    public function update(UserRequest $request, User $user)
     {
         $auth = Auth::user();
         $currenUser = User::find($auth->id);
