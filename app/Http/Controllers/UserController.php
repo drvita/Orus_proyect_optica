@@ -6,22 +6,31 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\User as UserResource;
-Use App\User;
-Use App\Models\Session;
+use App\Http\Requests\UserRequest;
+use App\User;
+use App\Models\Session;
 use Carbon\Carbon;
 
 
-class UserController extends Controller{
-    public function __construct(User $user){
+class UserController extends Controller
+{
+    public function __construct(User $user)
+    {
+        $this->middleware('can:user.list')->only('index');
+        $this->middleware('can:user.show')->only('show');
+        $this->middleware('can:user.add')->only('store');
+        $this->middleware('can:user.edit')->only('update');
+        $this->middleware('can:user.delete')->only('destroy');
         $this->user = $user;
     }
     /**
      * Muestra la lista de usuarios en sistema
      * @return Json api rest
      */
-    public function index(Request $request){
-        $orderby = $request->orderby? $request->orderby : "created_at";
-        $order = $request->order=="desc"? "desc" : "asc";
+    public function index(Request $request)
+    {
+        $orderby = $request->orderby ? $request->orderby : "created_at";
+        $order = $request->order == "desc" ? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
         $search = $request->search;
         $userId = $request->userId;
@@ -30,21 +39,21 @@ class UserController extends Controller{
         $rol = $request->rol;
         $deleted = true;
 
-        if(isset($request->deleted)){
+        if (isset($request->deleted)) {
             $deleted = (int) $request->deleted;
-            $deleted = (boolean) $deleted;
+            $deleted = (bool) $deleted;
         }
 
         $users = $this->user
-                ->with('session','branch')
-                ->orderBy($orderby, $order)
-                ->search($search)
-                ->userName($username, $userId)
-                ->userEmail($email, $userId)
-                ->rol($rol)
-                ->bot()
-                ->notDelete($deleted)
-                ->paginate($page);
+            ->with('session', 'branch')
+            ->orderBy($orderby, $order)
+            ->search($search)
+            ->userName($username, $userId)
+            ->userEmail($email, $userId)
+            ->rol($rol)
+            ->bot()
+            ->notDelete($deleted)
+            ->paginate($page);
 
         return UserResource::collection($users);
     }
@@ -53,16 +62,8 @@ class UserController extends Controller{
      * @param  $request que se traen de post body json
      * @return Json api rest
      */
-    public function store(Request $request){
-        $auth = Auth::user();
-
-        if($auth->rol){
-            return response()->json([
-                "data" => [],
-                "message" => "No tiene permisos administrativos"
-            ], 401);
-        }
-
+    public function store(UserRequest $request)
+    {
         $user = User::create([
             'name' => $request->input('name'),
             'username' => $request->input('username'),
@@ -71,15 +72,16 @@ class UserController extends Controller{
             'password' => Hash::make($request->input('password'))
         ]);
         //$user->createToken('AppName')->accessToken;
-        return New UserResource($user);
+        return new UserResource($user);
     }
     /**
      * Muestra unj usuario espesifico
      * @param  int  $id
      * @return Json api rest
      */
-    public function show(User $user){
-        return New UserResource($user);
+    public function show(User $user)
+    {
+        return new UserResource($user);
     }
     /**
      * Actualiza el registro de un susuario
@@ -87,30 +89,34 @@ class UserController extends Controller{
      * @param  int  $id
      * @return Json api rest
      */
-    public function update(Request $request, User $user){
+    public function update(UserRequest $request, User $user)
+    {
         $auth = Auth::user();
+        $currenUser = User::find($auth->id);
 
-        if($auth->rol){
-            return response()->json([
-                "data" => [],
-                "message" => "No tiene permisos administrativos"
-            ], 401);
+        if ($user->branch_id !== $request->branch_id) {
+            if (!$currenUser->can('auth.changeBranch')) {
+                return response()->json([
+                    "message" => "This action is unauthorized."
+                ], 401);
+            }
         }
+        if ($request['password']) $request['password'] = Hash::make($request->input('password'));
 
-        if($request['password']) $request['password'] = Hash::make($request->input('password'));
-        $user->update( $request->all() );
-        return New UserResource($user);
+        $user->update($request->all());
+        return new UserResource($user);
     }
     /**
      * Elimina un usuario en espesifico.
      * @param  int  $id
      * @return Json api rest
      */
-    public function destroy(User $user){
+    public function destroy(User $user)
+    {
         try {
             $auth = Auth::user();
 
-            if($auth->rol){
+            if ($auth->rol) {
                 return response()->json([
                     "data" => [],
                     "message" => "No tiene permisos administrativos"
@@ -129,12 +135,13 @@ class UserController extends Controller{
     /**
      * Limpia el token de un usuario
      */
-    public function clearToken($id){
+    public function clearToken($id)
+    {
         $user = $this->user::find($id);
         $auth = Auth::user();
 
-        if($user && !$auth->rol){
-            $session = Session::where('session_id',$id);
+        if ($user && !$auth->rol) {
+            $session = Session::where('session_id', $id);
             $session->delete();
             $user->api_token = null;
             $user->save();

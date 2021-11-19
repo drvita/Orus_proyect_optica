@@ -158,6 +158,25 @@ class SaveOrder
                     ]);
                 }
             }
+            // else if ($order->status === 3) {
+            //     // Debugbar::info($order->paciente->name .":". $order->id);
+            //     if ($order->paciente->email && !preg_match('/.+@domain.com$/', $order->paciente->email)) {
+            //         // Mail::to($order->paciente->email)->send(new orderEmail($order->paciente->name, $order->id));
+            //         Messenger::create([
+            //             "table" => "orders",
+            //             "idRow" => $order->id,
+            //             "message" => "Se envio notificación por correo electronico a: " . $order->paciente->email,
+            //             "user_id" => 1
+            //         ]);
+            //     } else {
+            //         Messenger::create([
+            //             "table" => "orders",
+            //             "idRow" => $order->id,
+            //             "message" => "No pude enviar un correo electronico de notificación por que no tiene asignado uno",
+            //             "user_id" => 1
+            //         ]);
+            //     }
+            // }
         } else {
             // Order created without sales
             Messenger::create([
