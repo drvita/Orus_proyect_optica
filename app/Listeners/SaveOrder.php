@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use App\Mail\orderEmail;
+use Illuminate\Support\Facades\Log;
 
 class SaveOrder
 {
@@ -121,12 +122,13 @@ class SaveOrder
                         $i_save['updated_at'] = $order->updated_at;
 
                         SaleItem::create($i_save);
+                        Log::debug('Create item save');
                     } else {
                         // send notification to admins because someone buy anything and this not exist
                         Messenger::create([
                             "table" => "orders",
                             "idRow" => $order->id,
-                            "message" => `Se intento vender {$item['cant']} productos del id: {$item['cant']} y no puede agregarlos a la venta`,
+                            "message" => `Se intento vender {$item['cant']} productos del codigo: {$item['code']} y no puede agregarlos a la venta`,
                             "user_id" => 1
                         ]);
                     }
@@ -139,25 +141,26 @@ class SaveOrder
                 //     ->each(function (User $user) use ($order) {
                 //         Notification::send($user, new OrderNotification($order));
                 //     });
-            } else if ($order->status === 3) {
-                // Debugbar::info($order->paciente->name .":". $order->id);
-                if ($order->paciente->email && !preg_match('/.+@domain.com$/', $order->paciente->email)) {
-                    Mail::to($order->paciente->email)->send(new orderEmail($order->paciente->name, $order->id));
-                    Messenger::create([
-                        "table" => "orders",
-                        "idRow" => $order->id,
-                        "message" => "Se envio notificación por correo electronico a: " . $order->paciente->email,
-                        "user_id" => 1
-                    ]);
-                } else {
-                    Messenger::create([
-                        "table" => "orders",
-                        "idRow" => $order->id,
-                        "message" => "No pude enviar un correo electronico de notificación por que no tiene asignado uno",
-                        "user_id" => 1
-                    ]);
-                }
             }
+            // else if ($order->status === 3) {
+            //     // Debugbar::info($order->paciente->name .":". $order->id);
+            //     if ($order->paciente->email && !preg_match('/.+@domain.com$/', $order->paciente->email)) {
+            //         Mail::to($order->paciente->email)->send(new orderEmail($order->paciente->name, $order->id));
+            //         Messenger::create([
+            //             "table" => "orders",
+            //             "idRow" => $order->id,
+            //             "message" => "Se envio notificación por correo electronico a: " . $order->paciente->email,
+            //             "user_id" => 1
+            //         ]);
+            //     } else {
+            //         Messenger::create([
+            //             "table" => "orders",
+            //             "idRow" => $order->id,
+            //             "message" => "No pude enviar un correo electronico de notificación por que no tiene asignado uno",
+            //             "user_id" => 1
+            //         ]);
+            //     }
+            // }
             // else if ($order->status === 3) {
             //     // Debugbar::info($order->paciente->name .":". $order->id);
             //     if ($order->paciente->email && !preg_match('/.+@domain.com$/', $order->paciente->email)) {
