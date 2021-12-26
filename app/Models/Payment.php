@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Sale;
 use App\Models\Messenger;
@@ -8,10 +9,11 @@ use App\Models\Config;
 use App\User;
 use Illuminate\Support\Facades\Auth;
 
-class Payment extends Model{
+class Payment extends Model
+{
     protected $table = "payments";
     protected $fillable = [
-        "metodopago","details","bank_id","auth","total","sale_id","contact_id","user_id","branch_id"
+        "metodopago", "details", "bank_id", "auth", "total", "sale_id", "contact_id", "user_id", "branch_id"
     ];
     protected $hidden = [];
     protected $dates = [
@@ -19,95 +21,108 @@ class Payment extends Model{
         'created_at'
     ];
     //Relations
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
-    public function user_updated(){
+    public function user_updated()
+    {
         return $this->belongsTo(User::class, 'updated_id', 'id');
     }
-    public function bankName(){
+    public function bankName()
+    {
         return $this->belongsTo(Config::class, 'bank_id', 'id');
     }
-    public function SaleDetails(){
+    public function SaleDetails()
+    {
         return $this->belongsTo(Sale::class, 'sale_id', 'id');
     }
-    public function branch(){
-        return $this->belongsTo(Config::class,'branch_id', 'id');
+    public function branch()
+    {
+        return $this->belongsTo(Config::class, 'branch_id', 'id');
     }
     //Scopes
-    public function scopeSale($query, $search){
-        if(trim($search) != ""){
-            $query->where("sale_id",$search);
+    public function scopeSale($query, $search)
+    {
+        if (trim($search) != "") {
+            $query->where("sale_id", $search);
         }
     }
-    public function scopeUser($query, $rol, $user){
-        if(trim($user) != ""){
+    public function scopeUser($query, $rol, $user)
+    {
+        if (trim($user) != "") {
             $user = intval($user);
-            if($user) $query->where('user_id',$user);
+            if ($user) $query->where('user_id', $user);
         }
     }
-    public function scopeMethodPay($query, $date, $rol, $user){
-        if($date != "" && trim($rol) != ""){
+    public function scopeMethodPay($query, $date, $rol, $user)
+    {
+        if ($date != "" && trim($rol) != "") {
             $query->select('metodopago')
                 ->selectRaw('SUM(total) as total')
-                ->WhereDate("created_at",$date)
+                ->WhereDate("created_at", $date)
                 ->groupBy('metodopago');
-           
-            if(trim($user) != ""){
+
+            if (trim($user) != "") {
                 $user = $user * 1;
-                if(!$rol->rol && $user > 1){
-                    $query->where('user_id',$user);
-                } else if($rol->rol) {
-                    $query->where('user_id',$rol->id);
+                if (!$rol->rol && $user > 1) {
+                    $query->where('user_id', $user);
+                } else if ($rol->rol) {
+                    $query->where('user_id', $rol->id);
                 }
             } else {
-                if($rol->rol){
-                    $query->where('user_id',$rol->id);
+                if ($rol->rol) {
+                    $query->where('user_id', $rol->id);
                 }
             }
         }
     }
-    public function scopeBankDetails($query, $date, $rol, $user){
-        if($date != "" && trim($rol) != ""){
+    public function scopeBankDetails($query, $date, $rol, $user)
+    {
+        if ($date != "" && trim($rol) != "") {
             $query->select('bank_id')
                 ->selectRaw('SUM(total) as total')
-                ->WhereDate("created_at",$date)
+                ->WhereDate("created_at", $date)
                 ->Where("bank_id", "!=", 0)
                 ->groupBy('bank_id');
-           
-            if(trim($user) != ""){
+
+            if (trim($user) != "") {
                 $user = $user * 1;
-                if(!$rol->rol && $user > 1){
-                    $query->where('user_id',$user);
-                } else if($rol->rol) {
-                    $query->where('user_id',$rol->id);
+                if (!$rol->rol && $user > 1) {
+                    $query->where('user_id', $user);
+                } else if ($rol->rol) {
+                    $query->where('user_id', $rol->id);
                 }
             } else {
-                if($rol->rol){
-                    $query->where('user_id',$rol->id);
+                if ($rol->rol) {
+                    $query->where('user_id', $rol->id);
                 }
             }
         }
     }
-    public function scopeDate($query, $search){
-        if(trim($search) != ""){
-            $query->WhereDate("created_at",$search);
+    public function scopeDate($query, $search)
+    {
+        if (trim($search) != "") {
+            $query->WhereDate("created_at", $search);
         }
     }
-    public function scopePublish($query){
+    public function scopePublish($query)
+    {
         $query->whereNull('deleted_at');
     }
-    public function scopeBranch($query, $search){
-        if(trim($search) != ""){
-            $query->where("branch_id",$search);
+    public function scopeBranch($query, $search)
+    {
+        if (trim($search) != "") {
+            $query->where("branch_id", $search);
         }
     }
     //Statics functions
-    protected static function booted(){
+    protected static function booted()
+    {
         static::created(function ($pay) {
             $updateSale = Sale::find($pay->sale_id);
 
-            if($updateSale->order_id){
+            if ($updateSale->order_id) {
                 $messegeId = $updateSale->order_id;
                 $table = "orders";
             } else {
@@ -120,14 +135,14 @@ class Payment extends Model{
             Messenger::create([
                 "table" => $table,
                 "idRow" => $messegeId,
-                "message" => Auth::user()->name ." abono a la cuenta ($ ". $pay->total .")",
+                "message" => Auth::user()->name . " abono a la cuenta ($ " . $pay->total . ")",
                 "user_id" => 1
             ]);
         });
         static::deleted(function ($pay) {
             $updateSale = Sale::find($pay->sale_id);
 
-            if($updateSale->order_id){
+            if ($updateSale->order_id) {
                 $messegeId = $updateSale->order_id;
                 $table = "orders";
             } else {
@@ -140,7 +155,7 @@ class Payment extends Model{
             Messenger::create([
                 "table" => $table,
                 "idRow" => $messegeId,
-                "message" => Auth::user()->name ." elimino un abono ($ ". $pay->total .")",
+                "message" => Auth::user()->name . " elimino un abono ($ " . $pay->total . ")",
                 "user_id" => 1
             ]);
         });
