@@ -78,46 +78,24 @@ class SaleItem extends Model
         if ($item) {
             // Check if we have items in branches
             if ($item->inBranch) {
+                $branch_id = $item->branch_default ? $item->branch_default : $sale->branch_id;
 
-                if ($item->branch_default) {
-                    Log::debug(`Down item in store for branch default: {$item->branch_default}`);
-                    foreach ($item->inBranch as $branch) {
-                        // If the same?
-                        if ($branch->branch_id === $item->branch_default) {
-                            // Only discount if we have cant
-                            if ($sale->cant) {
-                                $storeBranch = StoreBranch::find($branch->id);
-                                if ($type === "created") {
-                                    $storeBranch->cant -= $sale->cant;
-                                } else {
-                                    $storeBranch->cant += $sale->cant;
-                                }
-                                $storeBranch->save();
-                                return;
+                Log::debug(`Down item in store for branch default: {$item->branch_default}`);
+                foreach ($item->inBranch as $branch) {
+                    // If the same?
+                    if ($branch->branch_id === $branch_id) {
+                        // Only discount if we have cant
+                        if ($sale->cant) {
+                            $storeBranch = StoreBranch::find($branch->id);
+                            if ($type === "created") {
+                                $storeBranch->cant -= $sale->cant;
+                            } else {
+                                $storeBranch->cant += $sale->cant;
                             }
-                            break;
+                            $storeBranch->save();
+                            return;
                         }
-                    }
-                } else {
-                    //Interate on all branches search the same the item
-                    Log::debug(`Down item in store because not branch default: {$sale->branch_id}`);
-                    foreach ($item->inBranch as $itemBranch) {
-                        // If the same?
-                        if ($itemBranch->branch_id === $sale->branch_id) {
-                            // Only discount if we have cant
-                            if ($sale->cant) {
-                                $storeBranch = StoreBranch::find($itemBranch->id);
-
-                                if ($type === "created") {
-                                    $storeBranch->cant -= $sale->cant;
-                                } else {
-                                    $storeBranch->cant += $sale->cant;
-                                }
-                                $storeBranch->save();
-                                return;
-                            }
-                            break;
-                        }
+                        break;
                     }
                 }
             } else {
