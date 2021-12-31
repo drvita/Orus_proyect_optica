@@ -68,11 +68,13 @@ class SetStoreWithSales extends Command
         $filename = storage_path('/app/store_uptade_sales' . $date->format('d_m_Y-hms') . '.csv');
         $made = [];
         $this->info('Total de registros a dar de baja: ' . $total);
+        $bar = $this->output->createProgressBar($total);
+        $bar->start();
 
         foreach ($sales as $sale) {
             $itemData = StoreItem::where('id', $sale->store_items_id)
                 ->publish()
-                ->with(['categoria.parent.parent.parent', 'inBranch'])
+                ->with(['categoria.parent.parent.parent'])
                 ->first();
 
             if ($itemData) {
@@ -89,33 +91,8 @@ class SetStoreWithSales extends Command
 
                 if ($catidCheck && $catidCheck === $catid) continue;
 
-                if ($itemData->inBranch && count($itemData->inBranch)) {
-                    foreach ($itemData->inBranch as $itemBranchToDown) {
-                        $branch_id = $itemData->branch_default ? $itemData->branch_default : $sale->branch_id;
-
-                        if ($branch_id === $itemBranchToDown->branch_id) {
-                            $catInBranch = $itemBranchToDown->cant > 0 ? $itemBranchToDown->cant : 0;
-                            $catToSave = $catInBranch ? $catInBranch - $sale->cant : 0;
-                            $made[] = $this->setDownInStore($itemBranchToDown->id, $catToSave, $itemData);
-                        }
-                    }
-                } else {
-                    $this->error('Item not have branches');
-                    $made[] = [
-                        "itemId" => $itemData->id,
-                        "name" => $itemData->name,
-                        "code" => $itemData->code,
-                        "branch" => $sale->branch_id,
-                        "cant" => $sale->cant,
-                        "status" => "failer",
-                        "message" => "Item not have branches"
-                    ];
-                }
+                $made[] = $sale->processInStorageItem($sale, "created");
             } else {
-                // $itemInStore = StoreItem::where('id', $item->store_items_id)->with('inBranch')->first();
-
-                // dd("ERROR:", $item->toArray(), $itemInBranch);
-                $this->error('Item not found in store: ' . $sale->store_item_id);
                 $made[] = [
                     "itemId" => $sale->store_item_id,
                     "name" => "",
@@ -126,7 +103,9 @@ class SetStoreWithSales extends Command
                     "message" => "Item not found in store"
                 ];
             }
+            $bar->advance();
         }
+        $bar->finish();
 
         $columns = array(
             'itemId',
@@ -140,9 +119,10 @@ class SetStoreWithSales extends Command
         $file = fopen($filename, 'w');
         fputcsv($file, $columns);
         foreach ($made as $st) {
-            // dd($st);
+            if (!isset($st["itemId"])) continue;
+
             fputcsv($file, array(
-                (int) $st["itemId"],
+                (int) $st["itemId"] ? $st["itemId"] : 0,
                 (string) $st["name"],
                 (string) $st["code"],
                 (string) $st["branch"],
@@ -152,37 +132,7 @@ class SetStoreWithSales extends Command
             ));
         }
         fclose($file);
-        $this->info('Operaciones concluidas exitosamente: ' . count($made) . '/' . $total);
+        // $this->info('Operaciones concluidas exitosamente: ' . count($made) . '/' . $total);
         return 1;
-    }
-
-    function setDownInStore($id, $cant, $data)
-    {
-        $item = StoreBranch::find($id);
-
-        if ($item) {
-            $item->cant = $cant;
-            $item->save();
-
-            return [
-                "itemId" => $data->id,
-                "name" => $data->name,
-                "code" => $data->code,
-                "branch" => $item->branch_id,
-                "cant" => $cant,
-                "status" => "OK",
-                "message" => ""
-            ];
-        } else {
-            return [
-                "itemId" => $data->id,
-                "name" => $data->name,
-                "code" => $data->code,
-                "branch" => $data->branch_default ? $data->branch_default : $id,
-                "cant" => $cant,
-                "status" => "failer",
-                "message" => "Branch not found when save data"
-            ];
-        }
     }
 }

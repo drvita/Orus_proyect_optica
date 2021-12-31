@@ -18,6 +18,10 @@ class StoreBranch extends Model
     {
         return $this->belongsTo(StoreItem::class, 'store_item_id', 'id');
     }
+    public function branchData()
+    {
+        return $this->belongsTo(Config::class, 'branch_id', 'id');
+    }
     //Scopes
     public function scopePublish($query)
     {

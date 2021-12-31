@@ -77,36 +77,82 @@ class SaleItem extends Model
         // Check is item exist
         if ($item) {
             // Check if we have items in branches
-            if ($item->inBranch) {
+            if ($item->inBranch && count($item->inBranch)) {
                 $branch_id = $item->branch_default ? $item->branch_default : $sale->branch_id;
-
-                Log::debug(`Down item in store for branch default: {$item->branch_default}`);
                 foreach ($item->inBranch as $branch) {
                     // If the same?
                     if ($branch->branch_id === $branch_id) {
                         // Only discount if we have cant
+
                         if ($sale->cant) {
-                            $storeBranch = StoreBranch::find($branch->id);
+                            $storeBranch = StoreBranch::where("id", $branch->id)->with("branchData")->first();
+                            // $catInBranch = $storeBranch->cant > 0 ? $storeBranch->cant : 0;
+                            // $catToSave = $catInBranch ? $catInBranch - $sale->cant : 0;
+                            $branchName = "No definido";
+                            if ($storeBranch->branchData) {
+                                $branchName = json_decode($storeBranch->branchData->value, true)['name'];
+                            }
+
                             if ($type === "created") {
                                 $storeBranch->cant -= $sale->cant;
                             } else {
                                 $storeBranch->cant += $sale->cant;
                             }
                             $storeBranch->save();
-                            return;
+                            Log::debug("The item $item->code was download from store $branchName");
+                        } else {
+                            Log::error("The sales $item->session with item $item->code not have cant to download");
                         }
-                        break;
+
+                        return [
+                            "itemId" => $item->id,
+                            "name" => $item->name,
+                            "code" => $item->code,
+                            "branch" => $sale->branch_id,
+                            "cant" => $sale->cant,
+                            "status" => $sale->cant ? "OK" : "failer",
+                            "message" => $sale->cant ? "" : "Cant no found o zero"
+                        ];
                     }
                 }
+
+                Log::error("The item $item->code doesn't match with branches: $sale->branch_id");
+                return [
+                    "itemId" => $item->id,
+                    "name" => $item->name,
+                    "code" => $item->code,
+                    "branch" => $sale->branch_id,
+                    "cant" => $sale->cant,
+                    "status" => "failer",
+                    "message" => "Item doesn't do match with branches"
+                ];
             } else {
                 // send notification because no exit in branch
-                Log::debug('Branch not exist');
+                Log::error("The item $item->code doesn't have branches");
                 $sale->sendErrorNotification($sale, $item);
+                return [
+                    "itemId" => $item->id,
+                    "name" => $item->name,
+                    "code" => $item->code,
+                    "branch" => $sale->branch_id,
+                    "cant" => $sale->cant,
+                    "status" => "failer",
+                    "message" => "Item not have branches"
+                ];
             }
         } else {
             // send notification because no exit item
-            Log::debug('Item not exist');
+            Log::error("The item $sale->store_item_id not found");
             $sale->sendErrorNotification($sale);
+            return [
+                "itemId" => $sale->store_item_id,
+                "name" => "",
+                "code" => "",
+                "branch" => $sale->branch_id,
+                "cant" => $sale->cant,
+                "status" => "failer",
+                "message" => "Item not found in store"
+            ];
         }
     }
     //Listerner
