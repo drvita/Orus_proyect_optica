@@ -108,7 +108,7 @@ class SaleItem extends Model
                             "itemId" => $item->id,
                             "name" => $item->name,
                             "code" => $item->code,
-                            "branch" => $sale->branch_id,
+                            "branch" => $branch->branch_id,
                             "cant" => $sale->cant,
                             "status" => $sale->cant ? "OK" : "failer",
                             "message" => $sale->cant ? "" : "Cant no found o zero"
@@ -116,12 +116,12 @@ class SaleItem extends Model
                     }
                 }
 
-                Log::error("The item $item->code doesn't match with branches: $sale->branch_id");
+                Log::error("The item $item->code doesn't match with branches: $branch_id");
                 return [
                     "itemId" => $item->id,
                     "name" => $item->name,
                     "code" => $item->code,
-                    "branch" => $sale->branch_id,
+                    "branch" => $branch_id,
                     "cant" => $sale->cant,
                     "status" => "failer",
                     "message" => "Item doesn't do match with branches"
@@ -160,6 +160,10 @@ class SaleItem extends Model
     {
         static::created(function ($sale) {
             $sale->processInStorageItem($sale, "created");
+            // $result = $sale->processInStorageItem($sale, "created");
+            // if ($result['status'] === "failer") {
+            //     dd($result, $sale);
+            // }
         });
         static::deleted(function ($sale) {
             $sale->processInStorageItem($sale, "deleted");

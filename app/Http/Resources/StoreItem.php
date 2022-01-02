@@ -18,6 +18,7 @@ class StoreItem extends JsonResource
             $cantBranch = 0;
             $price = 0;
             $from = 0;
+            $branchSelect = null;
 
 
             if ($this->inBranch) {
@@ -32,6 +33,7 @@ class StoreItem extends JsonResource
                             $from = $this->branch_default;
                         }
                     }
+                    $branchSelect = $this->branch_default;
                 } else {
                     foreach ($branches as $item) {
                         $cantAll += $item['cant'];
@@ -41,6 +43,7 @@ class StoreItem extends JsonResource
                             $from = $user->branch_id;
                         }
                     }
+                    $branchSelect = $user->branch_id;
                 }
             }
 
@@ -53,6 +56,7 @@ class StoreItem extends JsonResource
             $return['unidad'] = $this->unit;
             $return['cant_total'] = $cantAll;
             $return['cant'] = $cantBranch;
+            $return['branch_select'] = $branchSelect;
             $return['precio'] = $price;
             $return['from'] = $from;
             $return['branch_default'] = $this->branch_default;

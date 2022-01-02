@@ -9,6 +9,7 @@ use App\Http\Resources\StoreItem as StoreResources;
 use App\Http\Resources\StoreItemShow as StoreResourceShow;
 use App\Http\Requests\StoreItem as StoreRequests;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class StoreItemController extends Controller
 {
@@ -27,6 +28,7 @@ class StoreItemController extends Controller
         $orderby = $request->orderby ? $request->orderby : "created_at";
         $order = $request->order == "asc" ? "asc" : "desc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
+        $auth = Auth::user();
 
 
         $items = $this->store
@@ -39,7 +41,13 @@ class StoreItemController extends Controller
             ->category(intval($request->cat))
             ->searchSupplier($request->supplier)
             ->publish()
-            ->searchBrand($request->brand);
+            ->searchBrand($request->brand)
+            ->filterBranch($request->branch);
+
+        if ($request->search || $request->code || $request->codebar) {
+            // dd($items->count());
+            Log::debug("User $auth->username search item [$request->search,$request->code,$request->codebar] in branch: $auth->branch_id and he has " . $items->count() . " results");
+        }
 
         return StoreResources::collection($items->paginate($page));
     }

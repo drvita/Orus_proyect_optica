@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use phpDocumentor\Reflection\Types\Boolean;
 use App\User;
 use App\Models\Category;
 use App\Models\Contact;
@@ -92,8 +91,6 @@ class StoreItem extends Model
     }
     public function scopeSearchSupplier($query, $search)
     {
-        //$name = preg_replace('/\d+/', "", $name);
-
         if (trim($search) != "") {
             $contact_id = 0;
             preg_match_all('!\d+!', $search, $matches);
@@ -126,6 +123,14 @@ class StoreItem extends Model
                     $query->where('name', "LIKE", "%$search%");
                 });
             }
+        }
+    }
+    public function scopeFilterBranch($query, $search)
+    {
+        if (trim($search) != "") {
+            $query->whereHas('inBranch', function ($query) use ($search) {
+                $query->where('branch_id', "==", (int) $search);
+            });
         }
     }
     public function scopePublish($query)

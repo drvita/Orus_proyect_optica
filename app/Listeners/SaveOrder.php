@@ -40,6 +40,7 @@ class SaveOrder
         $order = $event->order;
         $udStatus = $event->udStatus;
         $items = $order->items;
+        $auth = Auth::user();
 
         // Updated the sale if the order is created or updated
         if (is_array($items) && count($items)) {
@@ -61,7 +62,7 @@ class SaveOrder
                     Messenger::create([
                         "table" => "orders",
                         "idRow" => $order->id,
-                        "message" => Auth::user()->name . " actualizo la orden.",
+                        "message" => $auth->name . " actualizo la orden.",
                         "user_id" => 1
                     ]);
                 }
@@ -72,7 +73,7 @@ class SaveOrder
                 $A_sale['session'] = $order->session;
                 $A_sale['contact_id'] = $order->contact_id;
                 $A_sale['order_id'] = $order->id;
-                $A_sale['user_id'] = Auth::user()->id;
+                $A_sale['user_id'] = $auth->id;
                 $A_sale['branch_id'] = $order->branch_id;
                 $A_sale['created_at'] = $order->created_at;
                 $A_sale['updated_at'] = $order->updated_at;
@@ -83,6 +84,7 @@ class SaveOrder
                     "message" => "Cree una orden de venta",
                     "user_id" => 1
                 ]);
+                // Log::debug("$auth->username, created a sale");
             }
 
             // only is the order is new or status zero
@@ -117,14 +119,15 @@ class SaveOrder
                         $i_save['store_items_id'] = $item['store_items_id'];
                         $i_save['descripcion'] = isset($item['descripcion']) ? $item['descripcion'] : null;
                         $i_save['branch_id'] = $branch;
-                        $i_save['user_id'] = Auth::user()->id;
+                        $i_save['user_id'] = $auth->id;
                         $i_save['created_at'] = $order->created_at;
                         $i_save['updated_at'] = $order->updated_at;
 
                         SaleItem::create($i_save);
-                        Log::debug('Create item save');
+                        Log::debug("New item sale create $itemData->code in branch: $branch for $auth->username");
                     } else {
                         // send notification to admins because someone buy anything and this not exist
+                        Log::error("New item sale $itemData->code in branch: $branch for $auth->username not found in database");
                         Messenger::create([
                             "table" => "orders",
                             "idRow" => $order->id,
@@ -133,16 +136,28 @@ class SaveOrder
                         ]);
                     }
                 }
+            }
+        } else {
+            // Order created without sales
+            Log::warning("$auth->username create order but without items");
+            Messenger::create([
+                "table" => "orders",
+                "idRow" => $order->id,
+                "message" => `Se creo una orden sin articulos de venta`,
+                "user_id" => 1
+            ]);
+        }
+    }
+}
 
-                // User::all()
+// User::all()
                 //     ->except(1)
                 //     ->except(Auth::user()->id)
                 //     ->where("rol", 0)
                 //     ->each(function (User $user) use ($order) {
                 //         Notification::send($user, new OrderNotification($order));
                 //     });
-            }
-            // else if ($order->status === 3) {
+// else if ($order->status === 3) {
             //     // Debugbar::info($order->paciente->name .":". $order->id);
             //     if ($order->paciente->email && !preg_match('/.+@domain.com$/', $order->paciente->email)) {
             //         Mail::to($order->paciente->email)->send(new orderEmail($order->paciente->name, $order->id));
@@ -180,14 +195,3 @@ class SaveOrder
             //         ]);
             //     }
             // }
-        } else {
-            // Order created without sales
-            Messenger::create([
-                "table" => "orders",
-                "idRow" => $order->id,
-                "message" => `Se creo una orden sin articulos de venta`,
-                "user_id" => 1
-            ]);
-        }
-    }
-}
