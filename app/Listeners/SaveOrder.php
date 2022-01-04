@@ -41,6 +41,8 @@ class SaveOrder
         $udStatus = $event->udStatus;
         $items = $order->items;
         $auth = Auth::user();
+        $branch = $order->branch_id ? $order->branch_id : $auth->branch_id;
+        $branch = $branch ? $branch : 13;
 
         // Updated the sale if the order is created or updated
         if (is_array($items) && count($items)) {
@@ -74,7 +76,7 @@ class SaveOrder
                 $A_sale['contact_id'] = $order->contact_id;
                 $A_sale['order_id'] = $order->id;
                 $A_sale['user_id'] = $auth->id;
-                $A_sale['branch_id'] = $order->branch_id;
+                $A_sale['branch_id'] = $branch;
                 $A_sale['created_at'] = $order->created_at;
                 $A_sale['updated_at'] = $order->updated_at;
                 Sale::create($A_sale);
@@ -99,7 +101,6 @@ class SaveOrder
 
                 foreach ($items as $item) {
                     $itemData = StoreItem::where("id", $item['store_items_id'])->first();
-                    $branch = $order->branch_id;
 
                     if (isset($item['branch_id']) && $item['branch_id']) {
                         $branch = $item['branch_id'];
