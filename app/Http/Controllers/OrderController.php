@@ -65,14 +65,14 @@ class OrderController extends Controller
         $auth = Auth::user();
         $currentUser = User::find($auth->id);
         $request['user_id'] = $currentUser->id;
-        $request['branch_id'] = $currentUser->branch_id;
         $request['status'] = 0;
         $rolUserAdmin = $currentUser->hasRole("admin");
 
         //Only admin can save in differents branches
-        if (isset($request->branch_id) && !$rolUserAdmin) {
-            unset($request['branch_id']);
+        if (!$rolUserAdmin || !isset($request['branch_id'])) {
+            $request['branch_id'] = $currentUser->branch_id;
         }
+
         $order = $this->order->create($request->all());
 
         if (isset($request->items)) {
