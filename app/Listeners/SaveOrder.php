@@ -91,10 +91,10 @@ class SaveOrder
             if ($order->status === 0) {
                 // Delete items of session and create news
                 if ($order->session) {
-                    $articulos = SaleItem::where('session', $order->session)->get();
-                    foreach ($articulos as $articulo) {
-                        SaleItem::find($articulo->id)->delete();
-                    }
+                    $articulos = SaleItem::where('session', $order->session)->delete();
+                    // foreach ($articulos as $articulo) {
+                    //     SaleItem::find($articulo->id)->delete();
+                    // }
                 }
 
                 foreach ($items as $item) {

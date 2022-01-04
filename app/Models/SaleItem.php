@@ -85,26 +85,19 @@ class SaleItem extends Model
                         // Only discount if we have cant
 
                         if ($sale->cant) {
-                            $storeBranch = StoreBranch::where("id", $branch->id)->with("branchData")->first();
-                            // $catInBranch = $storeBranch->cant > 0 ? $storeBranch->cant : 0;
-                            // $catToSave = $catInBranch ? $catInBranch - $sale->cant : 0;
-                            $branchName = "No definido";
-                            if ($storeBranch->branchData) {
-                                $branchName = json_decode($storeBranch->branchData->value, true)['name'];
-                            }
-
+                            $storeBranch = StoreBranch::where("id", $branch->id)->first();
                             if ($type === "created") {
                                 $storeBranch->cant -= $sale->cant;
                             } else {
                                 $storeBranch->cant += $sale->cant;
                             }
                             $storeBranch->save();
-                            Log::debug("The item $item->code was download from store $branchName");
                         } else {
                             Log::error("The sales $item->session with item $item->code not have cant to download");
                         }
 
                         return [
+                            "saleID" => $sale->id,
                             "itemId" => $item->id,
                             "name" => $item->name,
                             "code" => $item->code,
@@ -116,8 +109,9 @@ class SaleItem extends Model
                     }
                 }
 
-                Log::error("The item $item->code doesn't match with branches: $branch_id");
+                Log::error("The item $item->code in sale $sale->id doesn't match with branches: $branch_id");
                 return [
+                    "saleID" => $sale->id,
                     "itemId" => $item->id,
                     "name" => $item->name,
                     "code" => $item->code,
@@ -131,6 +125,7 @@ class SaleItem extends Model
                 Log::error("The item $item->code doesn't have branches");
                 $sale->sendErrorNotification($sale, $item);
                 return [
+                    "saleID" => $sale->id,
                     "itemId" => $item->id,
                     "name" => $item->name,
                     "code" => $item->code,
@@ -145,6 +140,7 @@ class SaleItem extends Model
             Log::error("The item $sale->store_item_id not found");
             $sale->sendErrorNotification($sale);
             return [
+                "saleID" => $sale->id,
                 "itemId" => $sale->store_item_id,
                 "name" => "",
                 "code" => "",

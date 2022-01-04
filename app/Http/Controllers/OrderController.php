@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Order as OrderResources;
@@ -61,24 +62,23 @@ class OrderController extends Controller
      */
     public function store(OrderRequests $request)
     {
-        $currentUser = Auth::user();
+        $auth = Auth::user();
+        $currentUser = User::find($auth->id);
         $request['user_id'] = $currentUser->id;
         $request['branch_id'] = $currentUser->branch_id;
         $request['status'] = 0;
-        $rolUser = $currentUser->rol;
+        $rolUserAdmin = $currentUser->hasRole("admin");
 
         //Only admin can save in differents branches
-        if (!$rolUser) {
-            if (isset($request->branch_id)) $request['branch_id'] = $request->branch_id;
+        if (isset($request->branch_id) && !$rolUserAdmin) {
+            unset($request['branch_id']);
         }
-
         $order = $this->order->create($request->all());
 
         if (isset($request->items)) {
             $order['items'] = $this->getItemsRequest($request->items, $request['branch_id']);
             if (count($order['items'])) event(new OrderUpdated($order, false));
         }
-
 
         return new OrderResources($order);
     }
@@ -102,12 +102,13 @@ class OrderController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        $currentUser = Auth::user();
+        $auth = Auth::user();
+        $currentUser = User::find($auth->id);
         $request['updated_id'] = $currentUser->id;
         $udStatus = $order->status != $request->status ? true : false;
-        $rolUser = $currentUser->rol;
+        $rolUserAdmin = $currentUser->hasRole("admin");
         //Only admin can modify branches
-        if (isset($request->branch_id) && $rolUser) {
+        if (isset($request->branch_id) && !$rolUserAdmin) {
             unset($request['branch_id']);
         }
 

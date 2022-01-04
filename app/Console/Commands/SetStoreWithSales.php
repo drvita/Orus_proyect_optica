@@ -108,6 +108,7 @@ class SetStoreWithSales extends Command
         $bar->finish();
 
         $columns = array(
+            'SaleId',
             'itemId',
             'name',
             'code',
@@ -122,6 +123,7 @@ class SetStoreWithSales extends Command
             if (!isset($st["itemId"])) continue;
 
             fputcsv($file, array(
+                (int) $st["saleID"],
                 (int) $st["itemId"] ? $st["itemId"] : 0,
                 (string) $st["name"],
                 (string) $st["code"],

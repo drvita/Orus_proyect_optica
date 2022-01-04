@@ -44,10 +44,10 @@ class StoreItemController extends Controller
             ->searchBrand($request->brand)
             ->filterBranch($request->branch);
 
-        if ($request->search || $request->code || $request->codebar) {
-            // dd($items->count());
-            Log::debug("User $auth->username search item [$request->search,$request->code,$request->codebar] in branch: $auth->branch_id and he has " . $items->count() . " results");
-        }
+        // if ($request->search || $request->code || $request->codebar) {
+        //     // dd($items->count());
+        //     Log::debug("User $auth->username search item [$request->search,$request->code,$request->codebar] in branch: $auth->branch_id and he has " . $items->count() . " results");
+        // }
 
         return StoreResources::collection($items->paginate($page));
     }
