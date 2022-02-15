@@ -121,6 +121,7 @@ class RoleSeeder extends Seeder
         Permission::create(["name" => "auth.access", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleVentas, $roleDoctor]);
         Permission::create(["name" => "auth.changeBranch", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleDoctor]);
         Permission::create(["name" => "auth.closeSession", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot]);
+        Permission::create(["name" => "auth.changeRole", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot]);
 
         // Assign role to Users
         User::All()->except(1)->each(function (User $user) {

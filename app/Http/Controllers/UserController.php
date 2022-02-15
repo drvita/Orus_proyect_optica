@@ -97,11 +97,28 @@ class UserController extends Controller
         if ($user->branch_id !== $request->branch_id) {
             if (!$currenUser->can('auth.changeBranch')) {
                 return response()->json([
-                    "message" => "This action is unauthorized."
+                    "code" => "401",
+                    "status" => "No authorized",
+                    "message" => "This user has not permission to change branch"
                 ], 401);
             }
         }
         if ($request['password']) $request['password'] = Hash::make($request->input('password'));
+
+        if (!$user->hasRole($request->input('role'))) {
+            if (!$currenUser->can('auth.changeRole')) {
+                return response()->json([
+                    "code" => "401",
+                    "status" => "No authorized",
+                    "message" => "This user has not permission to change role"
+                ], 401);
+                return [];
+            }
+
+            $user->roles()->detach();
+            $user->assignRole($request->input('role'));
+            unset($request['role']);
+        }
 
         $user->update($request->all());
         return new UserResource($user);
