@@ -105,20 +105,23 @@ class UserController extends Controller
         }
         if ($request['password']) $request['password'] = Hash::make($request->input('password'));
 
-        if (!$user->hasRole($request->input('role'))) {
-            if (!$currenUser->can('auth.changeRole')) {
-                return response()->json([
-                    "code" => "401",
-                    "status" => "No authorized",
-                    "message" => "This user has not permission to change role"
-                ], 401);
-                return [];
-            }
+        if ($request->input('role')) {
+            if (!$user->hasRole($request->input('role'))) {
+                if (!$currenUser->can('auth.changeRole')) {
+                    return response()->json([
+                        "code" => "401",
+                        "status" => "No authorized",
+                        "message" => "This user has not permission to change role"
+                    ], 401);
+                    return [];
+                }
 
-            $user->roles()->detach();
-            $user->assignRole($request->input('role'));
-            unset($request['role']);
+                $user->roles()->detach();
+                $user->assignRole($request->input('role'));
+                unset($request['role']);
+            }
         }
+
 
         $user->update($request->all());
         return new UserResource($user);
