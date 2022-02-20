@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Order as OrderResources;
 use App\Http\Requests\Order as OrderRequests;
-use App\Events\OrderUpdated;
+use App\Events\OrderSave;
 use Carbon\Carbon;
 
 class OrderController extends Controller
@@ -77,7 +77,7 @@ class OrderController extends Controller
 
         if (isset($request->items)) {
             $order['items'] = $this->getItemsRequest($request->items, $request['branch_id']);
-            if (count($order['items'])) event(new OrderUpdated($order, false));
+            if (count($order['items'])) event(new OrderSave($order, false));
         }
 
         return new OrderResources($order);
@@ -118,7 +118,7 @@ class OrderController extends Controller
             if (isset($request->items)) {
                 $order['items'] = $this->getItemsRequest($request->items);
 
-                if (count($order['items'])) event(new OrderUpdated($order, $udStatus));
+                if (count($order['items'])) event(new OrderSave($order, $udStatus));
             }
         }
 

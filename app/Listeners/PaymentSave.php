@@ -7,7 +7,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use App\Models\Messenger;
 use Illuminate\Support\Facades\Auth;
 
-class SavePayment
+class PaymentSave
 {
     /**
      * Create the event listener.
@@ -33,7 +33,7 @@ class SavePayment
         Messenger::create([
             "table" => $table,
             "idRow" => $idMessege,
-            "message" => Auth::user()->name ." abono a la cuenta ($ ". $payment->total .")",
+            "message" => Auth::user()->name . " abono a la cuenta ($ " . $payment->total . ")",
             "user_id" => 1
         ]);
     }

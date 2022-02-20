@@ -67,9 +67,9 @@ class HandlePermission extends Command
                     $itemsPermission[] = $allPermissions[$i]["name"];
                 }
             }
-            // dd($itemsPermission);
-            $role->syncPermissions($itemsPermission);
 
+            $role->syncPermissions($itemsPermission);
+            // TODO: Finished
             dd($role->permissions->toArray());
         }
 

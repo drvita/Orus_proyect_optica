@@ -98,4 +98,14 @@ class Sale extends Model
             $query->where("branch_id", $search);
         }
     }
+    //Listener
+    protected static function booted()
+    {
+        static::created(function ($sale) {
+            // dd("Listener model", $sale);
+        });
+        static::deleted(function ($sale) {
+            // $sale->processInStorageItem($sale, "deleted");
+        });
+    }
 }

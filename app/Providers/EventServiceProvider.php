@@ -16,14 +16,11 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        \App\Events\OrderUpdated::class => [
-            \App\Listeners\SaveOrder::class,
-        ],
-        \App\Events\SaleSave::class => [
-            \App\Listeners\SaveSale::class,
+        \App\Events\OrderSave::class => [
+            \App\Listeners\OrderSave::class,
         ],
         \App\Events\PaymentSave::class => [
-            \App\Listeners\SavePayment::class,
+            \App\Listeners\PaymentSave::class,
         ],
         \App\Events\ExamEvent::class => [
             \App\Listeners\ExamListener::class,

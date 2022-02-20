@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Notification;
 use App\Mail\orderEmail;
 use Illuminate\Support\Facades\Log;
 
-class SaveOrder
+class OrderSave
 {
     /**
      * Create the event listener.
@@ -41,7 +41,7 @@ class SaveOrder
         $udStatus = $event->udStatus;
         $items = $order->items;
         $auth = Auth::user();
-        $branch = $order->branch_id ? $order->branch_id : $auth->branch_id;
+        $branchOrder = $order->branch_id ? $order->branch_id : $auth->branch_id;
 
         // Updated the sale if the order is created or updated
         if (is_array($items) && count($items)) {
@@ -49,6 +49,16 @@ class SaveOrder
             // Create total of sale
             foreach ($items as $item) {
                 $total += $item['subtotal'];
+            }
+
+            if (!$total) {
+                Log::warning("La orden '$order->id' no genero venta: $total");
+                Messenger::create([
+                    "table" => "orders",
+                    "idRow" => $order->id,
+                    "message" => `No se creo la venta! por total cero.`,
+                    "user_id" => 1
+                ]);
             }
 
             $sale = Sale::where('order_id', $order->id)->first();
@@ -75,7 +85,7 @@ class SaveOrder
                 $A_sale['contact_id'] = $order->contact_id;
                 $A_sale['order_id'] = $order->id;
                 $A_sale['user_id'] = $auth->id;
-                $A_sale['branch_id'] = $branch;
+                $A_sale['branch_id'] = $branchOrder;
                 $A_sale['created_at'] = $order->created_at;
                 $A_sale['updated_at'] = $order->updated_at;
                 Sale::create($A_sale);
@@ -91,15 +101,11 @@ class SaveOrder
             // only is the order is new or status zero
             if ($order->status === 0) {
                 // Delete items of session and create news
-                if ($order->session) {
-                    $articulos = SaleItem::where('session', $order->session)->delete();
-                    // foreach ($articulos as $articulo) {
-                    //     SaleItem::find($articulo->id)->delete();
-                    // }
-                }
+                if ($order->session) SaleItem::where('session', $order->session)->delete();
 
                 foreach ($items as $item) {
                     $itemData = StoreItem::where("id", $item['store_items_id'])->first();
+                    $branch = $item["branch_id"];
 
                     if ($itemData && $itemData->id) {
                         if ($itemData->branch_default) {
@@ -134,7 +140,6 @@ class SaveOrder
                 }
             }
         } else {
-            // Order created without sales
             Log::warning("$auth->username create order but without items");
             Messenger::create([
                 "table" => "orders",
@@ -145,49 +150,3 @@ class SaveOrder
         }
     }
 }
-
-// User::all()
-                //     ->except(1)
-                //     ->except(Auth::user()->id)
-                //     ->where("rol", 0)
-                //     ->each(function (User $user) use ($order) {
-                //         Notification::send($user, new OrderNotification($order));
-                //     });
-// else if ($order->status === 3) {
-            //     // Debugbar::info($order->paciente->name .":". $order->id);
-            //     if ($order->paciente->email && !preg_match('/.+@domain.com$/', $order->paciente->email)) {
-            //         Mail::to($order->paciente->email)->send(new orderEmail($order->paciente->name, $order->id));
-            //         Messenger::create([
-            //             "table" => "orders",
-            //             "idRow" => $order->id,
-            //             "message" => "Se envio notificación por correo electronico a: " . $order->paciente->email,
-            //             "user_id" => 1
-            //         ]);
-            //     } else {
-            //         Messenger::create([
-            //             "table" => "orders",
-            //             "idRow" => $order->id,
-            //             "message" => "No pude enviar un correo electronico de notificación por que no tiene asignado uno",
-            //             "user_id" => 1
-            //         ]);
-            //     }
-            // }
-            // else if ($order->status === 3) {
-            //     // Debugbar::info($order->paciente->name .":". $order->id);
-            //     if ($order->paciente->email && !preg_match('/.+@domain.com$/', $order->paciente->email)) {
-            //         // Mail::to($order->paciente->email)->send(new orderEmail($order->paciente->name, $order->id));
-            //         Messenger::create([
-            //             "table" => "orders",
-            //             "idRow" => $order->id,
-            //             "message" => "Se envio notificación por correo electronico a: " . $order->paciente->email,
-            //             "user_id" => 1
-            //         ]);
-            //     } else {
-            //         Messenger::create([
-            //             "table" => "orders",
-            //             "idRow" => $order->id,
-            //             "message" => "No pude enviar un correo electronico de notificación por que no tiene asignado uno",
-            //             "user_id" => 1
-            //         ]);
-            //     }
-            // }
