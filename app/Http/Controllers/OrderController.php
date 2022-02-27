@@ -20,8 +20,41 @@ class OrderController extends Controller
         $this->order = $order;
     }
     /**
-     * Muestra lista de ordenes
-     * @return Json api rest
+     * @OA\Get(
+     * path="/api/countries",
+     * summary="List of countries",
+     * description="GET list of countries in DB",
+     * operationId="index",
+     * tags={"Countries"},
+     * @OA\RequestBody(
+     *    required=false,
+     *    description="get content from countries in pagination",
+     *    @OA\JsonContent(
+     *       required={},
+     *       @OA\Property(property="orderby", type="string", format="", example="name"),
+     *       @OA\Property(property="order", type="string", format="", example="desc|asc"),
+     *       @OA\Property(property="page", type="number", format="", example="2"),
+     *       @OA\Property(property="itemsPage", type="number", format="", example="100"),
+     *    ),
+     * ),
+     *  @OA\Response(
+     *    response=422,
+     *    description="Wrong credentials response",
+     *    @OA\JsonContent(
+     *       @OA\Property(property="message", type="string", example="Sorry. Please try again")
+     *        )
+     *     ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Success",
+     *     @OA\JsonContent(
+     *        @OA\Property(property="data", type="object"),
+     *     )
+     *     ),
+     * )
+     *
+     * @param "" $request
+     * @return JsonResponse
      */
     public function index(Request $request)
     {
