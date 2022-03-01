@@ -20,18 +20,57 @@ class StoreItemController extends Controller
         $this->store = $store;
     }
     /**
-     * Muestra una lista de los productos en almacen
-     * @return Json api rest
+     * @OA\Get(
+     *  path="/api/store",
+     *  summary="List of store items",
+     *  description="GET list of store items in DB",
+     *  operationId="index",
+     *  tags={"Store"},
+     *  security={ {"bearer": {} }},
+     *  @OA\Parameter(name="orderby",in="query",required=false,@OA\Schema(type="string")),
+     *  @OA\Parameter(name="order",in="query",required=false,@OA\Schema(type="string")),
+     *  @OA\Parameter(name="itemsPage",in="query",required=false,@OA\Schema(type="string")),
+     *  @OA\Parameter( name="search",in="query",required=false,@OA\Schema(type="string")),
+     *  @OA\Parameter(name="code",in="query",required=false,@OA\Schema(type="string")),
+     *  @OA\Parameter(name="codebar",in="query",required=false,@OA\Schema(type="string")),
+     *  @OA\Parameter(name="zero",in="query",required=false,@OA\Schema(type="boolean")),
+     *  @OA\Parameter( name="cat",in="query",required=false,@OA\Schema(type="string")),
+     *  @OA\Parameter(name="supplier",in="query",required=false,@OA\Schema(type="string")),
+     *  @OA\Parameter(name="brand",in="query",required=false,@OA\Schema(type="string")),
+     *  @OA\Parameter(name="branch",in="query",required=false,@OA\Schema(type="string")),
+     *  @OA\Parameter( name="responseType",in="query",required=false,@OA\Schema(type="string")),
+     * 
+     *  @OA\Response(response=401,
+     *    description="Wrong credentials response",
+     *    @OA\JsonContent(
+     *       @OA\Property(property="message", type="string", example="Sorry. Please try again")
+     *    )
+     *  ),
+     *  @OA\Response(
+     *     response=200,
+     *     description="Success",
+     *     @OA\JsonContent(
+     *        @OA\Property(property="data", type="object"),
+     *     )
+     *  ),
+     *  @OA\Response(
+     *     response=201,
+     *     description="Success generate file csv",
+     *     @OA\JsonContent()
+     *  ),
+     * )
+     *
+     * @param "" $request
+     * @return JsonResponse
      */
     public function index(Request $request)
     {
         $orderby = $request->orderby ? $request->orderby : "created_at";
         $order = $request->order == "asc" ? "asc" : "desc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
-        $auth = Auth::user();
+        $responseType = $request->responseType ? $request->responseType : "json";
 
-
-        $items = $this->store
+        $store = $this->store
             ->withoutRelations()
             ->orderBy($orderby, $order)
             ->searchItem((string) $request->search)
@@ -44,12 +83,44 @@ class StoreItemController extends Controller
             ->searchBrand($request->brand)
             ->filterBranch($request->branch);
 
-        // if ($request->search || $request->code || $request->codebar) {
-        //     // dd($items->count());
-        //     Log::debug("User $auth->username search item [$request->search,$request->code,$request->codebar] in branch: $auth->branch_id and he has " . $items->count() . " results");
-        // }
+        if ($responseType === "csv") {
+            $fileName = 'storeItems.csv';
+            $items = $store->get();
 
-        return StoreResources::collection($items->paginate($page));
+            $headers = array(
+                "Content-type"        => "text/csv",
+                "Content-Disposition" => "attachment; filename=$fileName",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            );
+
+            $columns = array('code', 'codebar', 'brand_id', 'name', 'category_id');
+
+            $callback = function () use ($items, $columns) {
+                $file = fopen('php://output', 'w');
+                fputcsv($file, $columns);
+
+                foreach ($items as $item) {
+                    $row['code']  = $item->code;
+                    $row['codebar']    = $item->codebar;
+                    $row['brand_id']    = $item->brand_id;
+                    $row['name']  = $item->name;
+                    $row['category_id']  = $item->category_id;
+
+                    fputcsv($file, array($row['code'], $row['codebar'], $row['brand_id'], $row['name'], $row['category_id']));
+                }
+
+                fclose($file);
+            };
+
+            return response()->stream($callback, 201, $headers);
+        }
+
+
+
+
+        return StoreResources::collection($store->paginate($page));
     }
 
     /**

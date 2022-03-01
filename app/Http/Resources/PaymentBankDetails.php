@@ -12,11 +12,16 @@ class PaymentBankDetails extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array
      */
-    public function toArray($request){
-        //$return['banco'] = $this->bank_id ? $this->bankName->value : "";
-        $return['bank_id'] = $this->bank_id;
-        $return['total'] = $this->total;
-            
+    public function toArray($request)
+    {
+        $return = [];
+
+        if (isset($this->bank_id)) {
+            $return['name'] = $this->bankName["value"];
+            $return['total'] = $this->total;
+        }
+
+
         return $return;
     }
 }

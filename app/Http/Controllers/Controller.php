@@ -11,7 +11,7 @@ use Illuminate\Routing\Controller as BaseController;
  * @OA\Info(
  *    title="Orus API",
  *    version="1.0.0",
- *    description="Connect Legacy SaaS system with new version",
+ *    description="API to Orus System",
  *      @OA\Contact(
  *          email="servicioalcliente@iqissmexico.com.mx"
  *      ),

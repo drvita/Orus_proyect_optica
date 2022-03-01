@@ -18,39 +18,39 @@ class OrderController extends Controller
     public function __construct(Order $order)
     {
         $this->order = $order;
+
+        dd(Request::all());
     }
     /**
      * @OA\Get(
-     * path="/api/countries",
-     * summary="List of countries",
-     * description="GET list of countries in DB",
-     * operationId="index",
-     * tags={"Countries"},
-     * @OA\RequestBody(
-     *    required=false,
-     *    description="get content from countries in pagination",
-     *    @OA\JsonContent(
-     *       required={},
-     *       @OA\Property(property="orderby", type="string", format="", example="name"),
-     *       @OA\Property(property="order", type="string", format="", example="desc|asc"),
-     *       @OA\Property(property="page", type="number", format="", example="2"),
-     *       @OA\Property(property="itemsPage", type="number", format="", example="100"),
-     *    ),
-     * ),
+     *  path="/api/orders",
+     *  summary="List of orders",
+     *  description="GET list of orders in DB",
+     *  operationId="index",
+     *  tags={"Orders"},
+     *  security={ {"bearer": {} }},
+     *  @OA\Parameter(
+     *      name="email",
+     *      in="query",
+     *      required=false,
+     *      @OA\Schema(
+     *           type="string"
+     *      )
+     *  ),
      *  @OA\Response(
-     *    response=422,
+     *    response=401,
      *    description="Wrong credentials response",
      *    @OA\JsonContent(
      *       @OA\Property(property="message", type="string", example="Sorry. Please try again")
      *        )
-     *     ),
-     *   @OA\Response(
+     *  ),
+     *  @OA\Response(
      *     response=200,
      *     description="Success",
      *     @OA\JsonContent(
      *        @OA\Property(property="data", type="object"),
      *     )
-     *     ),
+     *  ),
      * )
      *
      * @param "" $request

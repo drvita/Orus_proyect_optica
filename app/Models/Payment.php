@@ -55,50 +55,54 @@ class Payment extends Model
             if ($user) $query->where('user_id', $user);
         }
     }
-    public function scopeMethodPay($query, $date, $rol, $user)
+    public function scopeDateStart($query, $search)
     {
-        if ($date != "" && trim($rol) != "") {
-            $query->select('metodopago')
-                ->selectRaw('SUM(total) as total')
-                ->WhereDate("created_at", $date)
-                ->groupBy('metodopago');
+        if (trim($search) != "") {
+            $query->WhereDate("created_at", ">=", $search);
+        }
+    }
+    public function scopeDateFinish($query, $search)
+    {
+        if (trim($search) != "") {
+            $query->WhereDate("created_at", "<=", $search);
+        }
+    }
+    public function scopeMethodPay($query)
+    {
+        $query->select('metodopago')
+            ->selectRaw('SUM(total) as total')
+            ->groupBy('metodopago');
+    }
+    public function scopeBranchId($query, $search)
+    {
+        if (trim($search) != "") {
+            $query->where("branch_id", (int) $search);
+        }
+    }
+    public function scopeProtected($query, $currentUser, $user)
+    {
+        $userRole = $currentUser->getRoleNames()[0];
 
-            if (trim($user) != "") {
-                $user = $user * 1;
-                if (!$rol->rol && $user > 1) {
-                    $query->where('user_id', $user);
-                } else if ($rol->rol) {
-                    $query->where('user_id', $rol->id);
-                }
+        if (trim($user) != "") {
+            $user = (int) $user;
+
+            if ($userRole === "admin" && $user > 1) {
+                $query->where('user_id', $user);
             } else {
-                if ($rol->rol) {
-                    $query->where('user_id', $rol->id);
-                }
+                $query->where('user_id', $currentUser->id);
+            }
+        } else {
+            if ($userRole !== "admin") {
+                $query->where('user_id', $currentUser->id);
             }
         }
     }
-    public function scopeBankDetails($query, $date, $rol, $user)
+    public function scopeBankDetails($query)
     {
-        if ($date != "" && trim($rol) != "") {
-            $query->select('bank_id')
-                ->selectRaw('SUM(total) as total')
-                ->WhereDate("created_at", $date)
-                ->Where("bank_id", "!=", 0)
-                ->groupBy('bank_id');
-
-            if (trim($user) != "") {
-                $user = $user * 1;
-                if (!$rol->rol && $user > 1) {
-                    $query->where('user_id', $user);
-                } else if ($rol->rol) {
-                    $query->where('user_id', $rol->id);
-                }
-            } else {
-                if ($rol->rol) {
-                    $query->where('user_id', $rol->id);
-                }
-            }
-        }
+        $query->select('bank_id')
+            ->selectRaw('SUM(total) as total')
+            ->Where("bank_id", "!=", 0)
+            ->groupBy('bank_id');
     }
     public function scopeDate($query, $search)
     {
