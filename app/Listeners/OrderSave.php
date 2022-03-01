@@ -53,10 +53,10 @@ class OrderSave
 
             if (!$total) {
                 Log::warning("La orden '$order->id' no genero venta: $total");
-                Messenger::create([
+                return Messenger::create([
                     "table" => "orders",
                     "idRow" => $order->id,
-                    "message" => `No se creo la venta! por total cero.`,
+                    "message" => "No se creo la venta! por total cero.",
                     "user_id" => 1
                 ]);
             }
@@ -105,7 +105,7 @@ class OrderSave
 
                 foreach ($items as $item) {
                     $itemData = StoreItem::where("id", $item['store_items_id'])->first();
-                    $branch = $item["branch_id"];
+                    $branch = isset($item["branch_id"]) ? $item["branch_id"] : null;
 
                     if ($itemData && $itemData->id) {
                         if ($itemData->branch_default) {
@@ -144,9 +144,10 @@ class OrderSave
             Messenger::create([
                 "table" => "orders",
                 "idRow" => $order->id,
-                "message" => `Se creo una orden sin articulos de venta`,
+                "message" => "Se creo una orden sin articulos de venta",
                 "user_id" => 1
             ]);
+            if ($order->session) SaleItem::where('session', $order->session)->delete();
         }
     }
 }

@@ -18,8 +18,6 @@ class OrderController extends Controller
     public function __construct(Order $order)
     {
         $this->order = $order;
-
-        dd(Request::all());
     }
     /**
      * @OA\Get(
@@ -109,7 +107,7 @@ class OrderController extends Controller
         $order = $this->order->create($request->all());
 
         if (isset($request->items)) {
-            $order['items'] = $this->getItemsRequest($request->items, $request['branch_id']);
+            $order['items'] = $this->getItemsRequest($request->items, $currentUser->branch_id);
             if (count($order['items'])) event(new OrderSave($order, false));
         }
 
@@ -140,18 +138,19 @@ class OrderController extends Controller
         $request['updated_id'] = $currentUser->id;
         $udStatus = $order->status != $request->status ? true : false;
         $rolUserAdmin = $currentUser->hasRole("admin");
+
         //Only admin can modify branches
         if (isset($request->branch_id) && !$rolUserAdmin) {
-            unset($request['branch_id']);
+            $request['branch_id'] = $currentUser->branch_id;
         }
 
         if ($order) {
             $order->update($request->all());
 
             if (isset($request->items)) {
-                $order['items'] = $this->getItemsRequest($request->items);
+                $order['items'] = $this->getItemsRequest($request->items, $currentUser->branch_id);
 
-                if (count($order['items'])) event(new OrderSave($order, $udStatus));
+                event(new OrderSave($order, $udStatus));
             }
         }
 
@@ -193,9 +192,7 @@ class OrderController extends Controller
             if (is_array($itemsArray)) {
                 if ($branch_id) {
                     foreach ($itemsArray as $key => $item) {
-                        if (!isset($item['branch_id'])) {
-                            $itemsArray[$key]['branch_id'] = $branch_id;
-                        }
+                        $itemsArray[$key]['branch_id'] = $branch_id;
                     }
                 }
 
