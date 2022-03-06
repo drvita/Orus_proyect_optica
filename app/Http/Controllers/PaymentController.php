@@ -57,6 +57,8 @@ class PaymentController extends Controller
      */
     public function index(Request $request)
     {
+        $currentUser = Auth::user();
+        $dates = $this->handleDates($request);
         $orderby = $request->orderby ? $request->orderby : "created_at";
         $order = $request->order === "desc" ? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
@@ -71,10 +73,11 @@ class PaymentController extends Controller
 
         $payment = $this->payment
             ->Sale($request->sale)
-            ->Date($request->date)
             ->orderBy($orderby, $order)
-            // TODO: protect get data if not admin
-            ->User(Auth::user(), $request->user)
+            ->protected($currentUser, $request->user)
+            ->dateStart($dates->start)
+            ->dateFinish($dates->end)
+            ->branchId($request->branch_id)
             ->publish()
             ->paginate($page);
 

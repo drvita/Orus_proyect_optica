@@ -107,7 +107,7 @@ class OrderController extends Controller
         $order = $this->order->create($request->all());
 
         if (isset($request->items)) {
-            $order['items'] = $this->getItemsRequest($request->items, $currentUser->branch_id);
+            $order['items'] = getItemsRequest($request->items, $currentUser->branch_id);
             if (count($order['items'])) event(new OrderSave($order, false));
         }
 
@@ -148,7 +148,7 @@ class OrderController extends Controller
             $order->update($request->all());
 
             if (isset($request->items)) {
-                $order['items'] = $this->getItemsRequest($request->items, $currentUser->branch_id);
+                $order['items'] = getItemsRequest($request->items, $currentUser->branch_id);
 
                 event(new OrderSave($order, $udStatus));
             }
@@ -182,24 +182,5 @@ class OrderController extends Controller
         }
 
         return response()->json(null, 204);
-    }
-
-    private function getItemsRequest($items, $branch_id = null)
-    {
-        if ($items) {
-            $itemsArray = is_string($items) ? json_decode($items, true) : $items;
-
-            if (is_array($itemsArray)) {
-                if ($branch_id) {
-                    foreach ($itemsArray as $key => $item) {
-                        $itemsArray[$key]['branch_id'] = $branch_id;
-                    }
-                }
-
-                return $itemsArray;
-            }
-        }
-
-        return [];
     }
 }

@@ -19,8 +19,10 @@ class SaleSave
     public function handle($event)
     {
         $sale = $event->sale;
-        $items = json_decode($sale->items ? $sale->items : "[]", true);
-        $payments = json_decode($sale->payments ? $sale->payments : "[]", true);
+        $items = $sale->items;
+        $payments = $sale->payments;
+
+        // dd($items, $payments);
 
         if (count($items)) {
             if ($sale->session) {
@@ -36,6 +38,7 @@ class SaleSave
                     $i_save['store_items_id'] = $item['store_items_id'];
                     $i_save['descripcion'] = isset($item['descripcion']) ? $item['descripcion'] : "";
                     $i_save['user_id'] = Auth::user()->id;
+                    $i_save['branch_id'] = $item["branch_id"];
 
                     SaleItem::create($i_save);
                 }
@@ -54,6 +57,7 @@ class SaleSave
                         "bank_id" => $payment['bank_id'],
                         "sale_id" => $sale->id,
                         "contact_id" => $sale->contact_id,
+                        "branch_id" => $payment["branch_id"],
                         "user_id" => Auth::user()->id,
                     ]
                 );

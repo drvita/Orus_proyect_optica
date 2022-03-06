@@ -1,6 +1,43 @@
 <?php
 
-function getShortNameCat($string){
+function getItemsRequest($items, $branch_id = null)
+{
+    if ($items) {
+        $itemsArray = is_string($items) ? json_decode($items, true) : $items;
+
+        if (is_array($itemsArray)) {
+            if ($branch_id) {
+                foreach ($itemsArray as $key => $item) {
+                    $itemsArray[$key]['branch_id'] = $branch_id;
+                }
+            }
+
+            return $itemsArray;
+        }
+    }
+
+    return [];
+}
+function getPaymentsRequest($payments, $branch_id = null)
+{
+    if ($payments) {
+        $paymentsArray = is_string($payments) ? json_decode($payments, true) : $payments;
+
+        if (is_array($paymentsArray)) {
+            if ($branch_id) {
+                foreach ($paymentsArray as $key => $item) {
+                    $paymentsArray[$key]['branch_id'] = $branch_id;
+                }
+            }
+
+            return $paymentsArray;
+        }
+    }
+
+    return [];
+}
+function getShortNameCat($string)
+{
     switch ($string) {
         case "monofocales":
             return [
@@ -8,7 +45,7 @@ function getShortNameCat($string){
                 "rangoInf" => -10,
                 "rangoSup" => 6,
                 "cil" => -6
-          ];
+            ];
         case "monofocal digital DriveSafe":
             return [
                 "code" => "MDSF",
@@ -185,5 +222,5 @@ function getShortNameCat($string){
                 "rangoSup" => 8,
                 "cil" => -6
             ];
-      }
+    }
 }
