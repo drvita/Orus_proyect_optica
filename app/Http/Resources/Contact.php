@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Resources;
+
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 use App\Http\Resources\ExamShort as ExamResource;
@@ -8,20 +9,22 @@ use App\Http\Resources\SaleInContact as SaleResource;
 use App\Http\Resources\BrandShort as BrandResource;
 use App\Http\Resources\OrderInExam as OrderResource;
 
-class Contact extends JsonResource {
+class Contact extends JsonResource
+{
 
-    public function toArray($request){
-        
+    public function toArray($request)
+    {
+
         $return = [];
         $perPage = 10;
 
-        if(isset($this->id)){
-            $edad = $this->birthday !== null ? $this->birthday->diffInYears( carbon::now() ) : 0;
-            $exams = $this->exams()->with('user')->paginate($perPage,['*'], 'exam_page');
-            $supplierOf = $this->supplier()->paginate($perPage,['*'], 'suppliers_page');
-            $brands = $this->brands()->paginate($perPage,['*'], 'brands_page');
-            $purchases = $this->buys()->paginate($perPage,['*'], 'purchases_page');
-            $orders = $this->orders()->paginate($perPage,['*'], 'orders_page');
+        if (isset($this->id)) {
+            $edad = $this->birthday !== null ? $this->birthday->diffInYears(carbon::now()) : 0;
+            $exams = $this->exams()->with('user')->paginate($perPage, ['*'], 'exam_page');
+            $supplierOf = $this->supplier()->paginate($perPage, ['*'], 'suppliers_page');
+            $brands = $this->brands()->paginate($perPage, ['*'], 'brands_page');
+            $purchases = $this->buys()->paginate($perPage, ['*'], 'purchases_page');
+            $orders = $this->orders()->paginate($perPage, ['*'], 'orders_page');
 
             $return['id'] = $this->id;
             $return['nombre'] = $this->name;
@@ -36,7 +39,7 @@ class Contact extends JsonResource {
 
             $return['compras'] = SaleResource::collection($purchases);
             $return['purchases_count'] = $purchases->total();
-            
+
             $return['marcas'] = BrandResource::collection($brands);
             $return['brands_count'] = $brands->total();
 
@@ -49,12 +52,13 @@ class Contact extends JsonResource {
             $return['orders'] = OrderResource::collection($orders);
             $return['orders_count'] = $orders->total();
 
-            $return['enUso'] = $return['purchases_count'] + 
-                                $return['brands_count'] + 
-                                $return['exams_count'] + 
-                                $return['suppliers_count'] + 
-                                $return['orders_count'];
+            $return['enUso'] = $return['purchases_count'] +
+                $return['brands_count'] +
+                $return['exams_count'] +
+                $return['suppliers_count'] +
+                $return['orders_count'];
 
+            $return["metadata"] = new Metas($this->metas[0]);
             $return['created'] = new UserInExam($this->user);
             $return['updated'] = new UserInExam($this->user_updated);
             $return['deleted_at'] = $this->deleted_at ? $this->deleted_at->format('Y-m-d H:i') : null;

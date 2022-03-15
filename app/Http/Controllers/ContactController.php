@@ -10,32 +10,35 @@ use App\Http\Requests\Contact as ContactRequests;
 use App\Models\Contact;
 use Carbon\Carbon;
 
-class ContactController extends Controller{
+class ContactController extends Controller
+{
     protected $contact;
 
-    public function __construct(Contact $contact){
+    public function __construct(Contact $contact)
+    {
         $this->contact = $contact;
     }
     /**
      * Muestra la lista de contactos
      * @return Json api rest
      */
-    public function index(Request $request){
-        $orderby = $request->orderby? $request->orderby : "created_at";
-        $order = $request->order=="desc"? "desc" : "asc";
+    public function index(Request $request)
+    {
+        $orderby = $request->orderby ? $request->orderby : "created_at";
+        $order = $request->order == "desc" ? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $contacts = $this->contact
-                ->withRelation()
-                ->orderBy($orderby, $order)
-                ->searchUser($request->search, $request->except)
-                ->name($request->name)
-                ->email($request->email)
-                ->type($request->type)
-                ->business($request->business)
-                ->publish()
-                ->paginate($page);
-            //dd($contacts->toArray());
+            ->withRelation()
+            ->orderBy($orderby, $order)
+            ->searchUser($request->search, $request->except)
+            ->name($request->name)
+            ->email($request->email)
+            ->type($request->type)
+            ->business($request->business)
+            ->publish()
+            ->paginate($page);
+        //dd($contacts->toArray());
         return ContactResourceList::collection($contacts);
     }
 
@@ -44,15 +47,17 @@ class ContactController extends Controller{
      * @param  $request a traves del body json
      * @return Json api rest
      */
-    public function store(ContactRequests $request){
-        $validated = $request->validate([
+    public function store(ContactRequests $request)
+    {
+        $request->validate([
             'name' => 'required|unique:contacts',
             'email' => 'unique:contacts',
         ]);
 
-        $request['user_id']= Auth::user()->id;
+        $request['user_id'] = Auth::user()->id;
         $contact = $this->contact->create($request->all());
-        return New ContactResource($contact);
+        $contact->saveMetas($request);
+        return new ContactResource($contact);
     }
 
     /**
@@ -60,12 +65,13 @@ class ContactController extends Controller{
      * @param  int  $id
      * @return Json api rest
      */
-    public function show($id){
-        $contact = $this->contact::where('contacts.id',$id)
-                    ->withRelation()
-                    ->first();
+    public function show($id)
+    {
+        $contact = $this->contact::where('contacts.id', $id)
+            ->withRelation()
+            ->first();
 
-        return New ContactResource($contact);
+        return new ContactResource($contact);
     }
 
     /**
@@ -74,11 +80,15 @@ class ContactController extends Controller{
      * @param  int  $id
      * @return Json api rest
      */
-    public function update(Request $request, Contact $contact){
-        $request['user_id']=$contact->user_id;
-        $request['updated_id'] = Auth::user()->id;
-        $contact->update( $request->all() );
-        return New ContactResource($contact);
+    public function update(Request $request, Contact $contact)
+    {
+        $currentUser = Auth::user();
+        $request['user_id'] = $contact->user_id;
+        $request['updated_id'] = $currentUser->id;
+        $contact->update($request->all());
+        $contact->saveMetas($request);
+
+        return new ContactResource($contact);
     }
 
     /**
@@ -86,14 +96,15 @@ class ContactController extends Controller{
      * @param  int  $id
      * @return Json api rest
      */
-    public function destroy($id){
+    public function destroy($id)
+    {
         $contact = $this->contact::where('id', $id)
-                    ->withRelation()
-                    ->first();
+            ->withRelation()
+            ->first();
 
         $enUso = count($contact->buys) + count($contact->orders) + count($contact->supplier) + count($contact->exams) + count($contact->brands);
 
-        if($enUso){
+        if ($enUso) {
             $contact->deleted_at = Carbon::now();
             $contact->updated_id = Auth::user()->id;
             $contact->save();

@@ -63,12 +63,15 @@ class StoreItemController extends Controller
      * @param "" $request
      * @return JsonResponse
      */
+
+
+
     public function index(Request $request)
     {
         $orderby = $request->orderby ? $request->orderby : "created_at";
         $order = $request->order == "asc" ? "asc" : "desc";
-        $page = $request->itemsPage ? $request->itemsPage : 50;
         $responseType = $request->responseType ? $request->responseType : "json";
+        $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $store = $this->store
             ->withoutRelations()
@@ -85,8 +88,6 @@ class StoreItemController extends Controller
 
         if ($responseType === "csv") {
             $fileName = 'storeItems.csv';
-            $items = $store->get();
-
             $headers = array(
                 "Content-type"        => "text/csv",
                 "Content-Disposition" => "attachment; filename=$fileName",
@@ -94,31 +95,11 @@ class StoreItemController extends Controller
                 "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
                 "Expires"             => "0"
             );
-
-            $columns = array('code', 'codebar', 'brand_id', 'name', 'category_id');
-
-            $callback = function () use ($items, $columns) {
-                $file = fopen('php://output', 'w');
-                fputcsv($file, $columns);
-
-                foreach ($items as $item) {
-                    $row['code']  = $item->code;
-                    $row['codebar']    = $item->codebar;
-                    $row['brand_id']    = $item->brand_id;
-                    $row['name']  = $item->name;
-                    $row['category_id']  = $item->category_id;
-
-                    fputcsv($file, array($row['code'], $row['codebar'], $row['brand_id'], $row['name'], $row['category_id']));
-                }
-
-                fclose($file);
-            };
+            $items = $store->limit(1000)->get();
+            $callback = $this->handleDonloadCSV($items);
 
             return response()->stream($callback, 201, $headers);
         }
-
-
-
 
         return StoreResources::collection($store->paginate($page));
     }
@@ -184,5 +165,49 @@ class StoreItemController extends Controller
         $store->save();
         //$store->delete();
         return response()->json(null, 204);
+    }
+
+    /**
+     * make a data to download
+     * @param class of item model
+     * @return bob
+     */
+    private function handleDonloadCSV($items)
+    {
+        $columns = array('code', 'codebar', 'supplier', 'brand', 'name', 'category', "cant", "price");
+
+        // foreach ($items as $item) {
+        //     $brand = $item->categoria;
+        //     dd($brand->toArray());
+        // }
+
+        $callback = function () use ($items, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($items as $item) {
+                $branches = $item->inBranch;
+
+                $row['code']  = $item->code;
+                $row['codebar']    = $item->codebar;
+                $row['supplier']    = $item->supplier ? $item->supplier->name : $item->contact_id;
+                $row['brand']    = $item->brand ? $item->brand->name : $item->brand_id;
+                $row['name']  = $item->name;
+                $row['category']  = $item->categoria ? $item->categoria->name : $item->category_id;
+                $row['cant'] = 0;
+                $row['price'] = 0;
+
+                foreach ($branches as $branch) {
+                    $row['cant']  += $branch->cant;
+                    $row['price']  = $branch->price;
+                }
+
+                fputcsv($file, array($row['code'], $row['codebar'], $row['supplier'], $row['brand'], $row['name'], $row['category'], $row['cant'], $row['price']));
+            }
+
+            fclose($file);
+        };
+
+        return $callback;
     }
 }

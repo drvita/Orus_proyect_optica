@@ -1,5 +1,4 @@
 <?php
-
 function getItemsRequest($items, $branch_id = null)
 {
     if ($items) {

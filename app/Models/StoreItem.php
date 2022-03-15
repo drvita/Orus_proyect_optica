@@ -139,6 +139,6 @@ class StoreItem extends Model
     }
     public function scopeWithRelation($query)
     {
-        $query->with('user', 'supplier', 'brand', 'inBranch');
+        $query->with('user', 'user_updated', 'categoria', 'supplier', 'brand', 'inBranch');
     }
 }

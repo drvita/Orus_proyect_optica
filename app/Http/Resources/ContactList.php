@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Resources;
+
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 use App\Http\Resources\ExamShort as ExamResource;
@@ -8,14 +9,16 @@ use App\Http\Resources\SaleInContact as SaleResource;
 use App\Http\Resources\BrandShort as BrandResource;
 use App\Http\Resources\OrderInExam as OrderResource;
 
-class ContactList extends JsonResource {
+class ContactList extends JsonResource
+{
 
-    public function toArray($request){
-        
+    public function toArray($request)
+    {
+
         $return = [];
 
-        if(isset($this->id)){
-            $edad = $this->birthday !== null ? $this->birthday->diffInYears( carbon::now() ) : 0;
+        if (isset($this->id)) {
+            $edad = $this->birthday !== null ? $this->birthday->diffInYears(carbon::now()) : 0;
 
             $return['id'] = $this->id;
             $return['nombre'] = $this->name;
@@ -26,12 +29,13 @@ class ContactList extends JsonResource {
             $return['edad'] = 1 < $edad && $edad < 120 ? $edad : 0;
             $return['lab'] = $this->business;
 
-            $return['enUso'] = count($this->buys) + 
-                                count($this->brands) + 
-                                count($this->exams) + 
-                                count($this->supplier) + 
-                                count($this->orders);
+            $return['enUso'] = count($this->buys) +
+                count($this->brands) +
+                count($this->exams) +
+                count($this->supplier) +
+                count($this->orders);
 
+            $return['metas'] = $this->metas;
             $return['created'] = new UserInExam($this->user);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
