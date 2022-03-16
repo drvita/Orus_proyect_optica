@@ -58,7 +58,8 @@ class Contact extends JsonResource
                 $return['suppliers_count'] +
                 $return['orders_count'];
 
-            $return["metadata"] = new Metas($this->metas[0]);
+
+            $return["metadata"] = $this->metas->count() ? new Metas($this->metas) : [];
             $return['created'] = new UserInExam($this->user);
             $return['updated'] = new UserInExam($this->user_updated);
             $return['deleted_at'] = $this->deleted_at ? $this->deleted_at->format('Y-m-d H:i') : null;
