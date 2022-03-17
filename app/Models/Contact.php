@@ -109,11 +109,23 @@ class Contact extends Model
     public function saveMetas($request)
     {
         $metadata = $this->metas()->where("key", "metadata")->first();
-        $birthday = new Carbon($request->birthday, "America/Mexico_City");
-        $data = [
-            "gender" => isset($request->gender) ? $request->gender : $metadata->value["gender"],
-            "birthday" => isset($request->birthday) ?  $birthday->toDateString() : $metadata->value["birthday"],
-        ];
+        $data = [];
+
+        if(isset($request->birthday)){
+            $birthday = new Carbon($request->birthday, "America/Mexico_City");
+            $data["birthday"] = $birthday->toDateString();
+        } else if($metadata) {
+            $data["birthday"] = $metadata->value["birthday"];
+        } else if($this->birthday){
+            $birthday = new Carbon($this->birthday, "America/Mexico_City");
+            $data["birthday"] = $birthday->toDateString();
+        }
+
+        if(isset($request->gender)){
+            $data["gender"] = $request->gender;
+        } else if($metadata){
+            $data["gender"] = $metadata->value["gender"];
+        }
 
         if ($metadata) {
             $metadata->value = $data;
