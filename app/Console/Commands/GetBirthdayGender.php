@@ -42,24 +42,23 @@ class GetBirthdayGender extends Command
         $start = (int) $this->argument('start');
 
         $this->info('Start with change metadata init: ' . $this->argument('start'));
-        $contacts = Contact::where("type", 0)->with("metas")->skip($start)->take(1000)->get();
+        $contacts = Contact::where("type", 0)->with("metas")->skip($start)->take(1000)->orderBy("created_at","DESC")->get();
 
         foreach ($contacts as $contact) {
-            // $this->info('[Orus] working with:'. $contact->name);
             $name = explode(" ", $contact->name);
-            $birthday = $contact->birthday->format("Y-m-d");
+            $birthday = $contact->birthday ? $contact->birthday->format("Y-m-d") : "0000-00-00";
             $response = Http::get("https://api.genderize.io/?name=" . urlencode($name[0]) . "&country_id=MX");
             $body = $response->status() >= 200 && $response->status() < 300 ? $response->json($key = null) : null;
             $metadata = $contact->metas()->where("key", "metadata")->first();
+
             $data = [
-                "gender" => "",
+                "gender" => $metadata ? $metadata->value["gender"] : "",
                 "birthday" => $birthday !== "-0001-11-30" ? $birthday : "0000-00-00",
             ];
 
             if ($body) {
                 $data["gender"] = $body["gender"];
             }
-            $this->info('[Orus] working with: ' . $contact->name . " - " . $data["gender"]);
 
             if ($metadata) {
                 $metadata->value = $data;
@@ -67,6 +66,11 @@ class GetBirthdayGender extends Command
             } else {
                 $contact->metas()->create(["key" => "metadata", "value" => $data]);
             }
+
+            $contact->name = strtolower($contact->name);
+            $contact->birthday = $data["birthday"];
+            $contact->save();
+            $this->info('[Orus] working with: ' . $contact->name . " - " . $data["gender"]);
         }
 
         return 0;

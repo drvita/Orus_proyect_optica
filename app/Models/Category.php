@@ -27,8 +27,7 @@ class Category extends Model{
     public function sons(){
         return $this->hasMany(Category::class,'category_id','id');
     }
-
-    //scopes
+    // scopes
     public function scopeCategoryId($query, $search){
         if(trim($search) != ""){
             if($search === "raiz"){
@@ -46,10 +45,25 @@ class Category extends Model{
             $query->Where("name", "like", "$search%");
         }
     }
-
-    //Acciones
+    // Other functions
     public function getCode(){
         //Return of helper
         return getShortNameCat($this->name);
+    }
+    // others functions
+    public function getMainCategory(){
+        $main = $this;
+
+        if($this->parent){
+            $main = $this->parent;
+            if($main->parent){
+                $main = $main->parent;
+                if($main->parent){
+                    $main = $main->parent;
+                }
+            }
+        }
+        
+        return $main;
     }
 }

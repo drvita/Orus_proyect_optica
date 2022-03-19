@@ -141,4 +141,5 @@ class StoreItem extends Model
     {
         $query->with('user', 'user_updated', 'categoria', 'supplier', 'brand', 'inBranch');
     }
+    
 }

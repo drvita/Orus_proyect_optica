@@ -39,6 +39,10 @@ class SaleItem extends Model
     {
         return $this->belongsTo(Sale::class, 'session', 'session');
     }
+    public function branch()
+    {
+        return $this->belongsTo(Config::class, 'branch_id');
+    }
     //Scopes
     public function scopeStock($query, $search)
     {
@@ -59,6 +63,10 @@ class SaleItem extends Model
                 ->WhereDate("created_at", $date)
                 ->groupBy('session');
         }
+    }
+    public function scopeWithRelation($query)
+    {
+        $query->with('user', 'item', 'order', 'saleDetails', 'branch');
     }
     // Other functions
     public function sendErrorNotification($sale, $item)
