@@ -14,7 +14,7 @@ class GetBirthdayGender extends Command
      *
      * @var string
      */
-    protected $signature = 'orus:changeMeta {start}';
+    protected $signature = 'orus:changeMeta {wait}';
 
     /**
      * The console command description.
@@ -40,32 +40,64 @@ class GetBirthdayGender extends Command
      */
     public function handle()
     {
-        $start = (int) $this->argument('start');
-
-        $this->info('Start with change metadata init: ' . $this->argument('start'));
-        $contacts = Contact::where("type", 0)->with("metas")->skip($start)->take(1000)->orderBy("created_at", "DESC")->get();
-        $count = 1;
+        $wait = (int) $this->argument('wait');
+        $contacts = Contact::where("type", 0)->with("metas")->get();
+        $this->info('Start change metadata with: ' . $contacts->count() . ' contacts to do');
+        $count = 0;
+        $countNull = 0;
+        $madeHttp = 0;
+        $badwords = ["venta", "banco", "colegio", "cementos", "consejo", "icono", "instituto", "maquinas", "mariscos", "municipio", "ofitec", "procesadora", "suprema", "sistema", "servicios", "", " "];
+        $newBadWords = [];
+        $okWords = [];
 
         foreach ($contacts as $contact) {
-            $name = explode(" ", $contact->name);
-            $response = Http::get("https://api.genderize.io/?name=" . urlencode($name[0]) . "&country_id=MX");
-            $body = $response->status() >= 200 && $response->status() < 300 ? $response->json($key = null) : null;
+            $count++;
             $metadata = $contact->metas()->where("key", "metadata")->first();
-
+            if ($metadata && $metadata->value["gender"]) {
+                continue;
+            }
             $data = [
-                "gender" => $metadata ? $metadata->value["gender"] : "",
-                "birthday" => $metadata ? $metadata->value["birthday"] : "",
+                "gender" => "",
+                "birthday" => "",
             ];
+            $body = null;
+            $nameArray = preg_split('/[\s\.]/i', $contact->name, 0, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            $name = strtolower(normaliza($nameArray[0]));
+            if (in_array($name, $badwords)) {
+                continue;
+            }
+
+            if (count($okWords)) {
+                if (array_key_exists($name, $okWords)) {
+                    $body = $okWords[$name];
+                }
+            }
+
+            if (!$body) {
+                $response = Http::get("https://api.genderize.io/?name=" . urlencode($name) . "&country_id=MX");
+                $body = $response->status() >= 200 && $response->status() < 300 ? $response->json($key = null) : null;
+                $madeHttp++;
+            }
 
             if ($contact->birthday) {
                 $data["birthday"] = $contact->birthday->format("Y-m-d");
             }
 
-            if ($body) {
-                $data["gender"] = $body["gender"];
+            if (!$body || !$body["gender"]) {
+                $countNull++;
+                if ($countNull > $wait) break;
+                $badwords[] = $name;
+                $newBadWords[] = $name;
+                $this->info('[Orus] (' . $count . ') Not work with: ' . $name . " / " . $countNull);
+                continue;
             }
+            $data["gender"] = $body["gender"];
+            $okWords[$name] = $body;
 
             if ($metadata) {
+                if ($metadata->value["birthday"] && $metadata->value["birthday"] != "0000-00-00") {
+                    $data["birthday"] =  $metadata->value["birthday"];
+                }
                 $metadata->value = $data;
                 $metadata->save();
             } else {
@@ -78,9 +110,21 @@ class GetBirthdayGender extends Command
             $contact->name = strtolower(normaliza($contact->name));
 
             $contact->save();
-            $this->info('[Orus] (' . $count . ') - working with: ' . $contact->name . " - " . $data["gender"]);
-            $count++;
+            $this->info('[Orus] (' . $count . ') - made: ' . $contact->name . " - " . $data["gender"]);
+            $countNull = 0;
+
+            if ($madeHttp > 1000) break;
         }
+
+        if (count($newBadWords)) {
+            $this->info("[Orus] We have new bad words");
+            $filename = storage_path('app/names_notwork.csv');
+            $file = fopen($filename, 'a');
+            foreach ($newBadWords as $row) {
+                fputcsv($file, [$row]);
+            }
+        }
+        $this->info("[Orus] ::: Job finish :::");
 
         return 0;
     }
