@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use App\Models\Contact;
+use Carbon\Carbon;
 
 class GetBirthdayGender extends Command
 {
@@ -42,19 +43,23 @@ class GetBirthdayGender extends Command
         $start = (int) $this->argument('start');
 
         $this->info('Start with change metadata init: ' . $this->argument('start'));
-        $contacts = Contact::where("type", 0)->with("metas")->skip($start)->take(1000)->orderBy("created_at","DESC")->get();
+        $contacts = Contact::where("type", 0)->with("metas")->skip($start)->take(1000)->orderBy("created_at", "DESC")->get();
+        $count = 1;
 
         foreach ($contacts as $contact) {
             $name = explode(" ", $contact->name);
-            $birthday = $contact->birthday ? $contact->birthday->format("Y-m-d") : "0000-00-00";
             $response = Http::get("https://api.genderize.io/?name=" . urlencode($name[0]) . "&country_id=MX");
             $body = $response->status() >= 200 && $response->status() < 300 ? $response->json($key = null) : null;
             $metadata = $contact->metas()->where("key", "metadata")->first();
 
             $data = [
                 "gender" => $metadata ? $metadata->value["gender"] : "",
-                "birthday" => $birthday !== "-0001-11-30" ? $birthday : "0000-00-00",
+                "birthday" => $metadata ? $metadata->value["birthday"] : "0000-00-00",
             ];
+
+            if ($contact->birthday) {
+                $data["birthday"] = $contact->birthday->format("Y-m-d");
+            }
 
             if ($body) {
                 $data["gender"] = $body["gender"];
@@ -70,7 +75,8 @@ class GetBirthdayGender extends Command
             $contact->name = strtolower($contact->name);
             $contact->birthday = $data["birthday"];
             $contact->save();
-            $this->info('[Orus] working with: ' . $contact->name . " - " . $data["gender"]);
+            $this->info('[Orus] (' . $count . ') - working with: ' . $contact->name . " - " . $data["gender"]);
+            $count++;
         }
 
         return 0;
