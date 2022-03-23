@@ -58,7 +58,10 @@ class GetBirthdayGender extends Command
             ];
 
             if ($contact->birthday) {
-                $data["birthday"] = $contact->birthday->format("Y-m-d");
+                $birthday = $contact->birthday->format("Y-m-d");
+                if ($birthday != "-0001-11-30 00:00:00") {
+                    $data["birthday"] = $contact->birthday->format("Y-m-d");
+                }
             }
 
             if ($body) {
