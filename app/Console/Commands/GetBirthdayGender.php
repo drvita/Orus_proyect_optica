@@ -54,14 +54,11 @@ class GetBirthdayGender extends Command
 
             $data = [
                 "gender" => $metadata ? $metadata->value["gender"] : "",
-                "birthday" => $metadata ? $metadata->value["birthday"] : "0000-00-00",
+                "birthday" => $metadata ? $metadata->value["birthday"] : "",
             ];
 
             if ($contact->birthday) {
-                $birthday = $contact->birthday->format("Y-m-d");
-                if ($birthday != "-0001-11-30 00:00:00") {
-                    $data["birthday"] = $contact->birthday->format("Y-m-d");
-                }
+                $data["birthday"] = $contact->birthday->format("Y-m-d");
             }
 
             if ($body) {
@@ -75,8 +72,11 @@ class GetBirthdayGender extends Command
                 $contact->metas()->create(["key" => "metadata", "value" => $data]);
             }
 
-            $contact->name = strtolower($contact->name);
-            $contact->birthday = $data["birthday"];
+            if ($data["birthday"] !== "0000-00-00" && $data["birthday"] !== "") {
+                $contact->birthday = $data["birthday"];
+            }
+            $contact->name = strtolower(normaliza($contact->name));
+
             $contact->save();
             $this->info('[Orus] (' . $count . ') - working with: ' . $contact->name . " - " . $data["gender"]);
             $count++;

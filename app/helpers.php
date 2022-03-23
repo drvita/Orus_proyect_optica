@@ -1,4 +1,14 @@
 <?php
+function normaliza($cadena)
+{
+    if (!$cadena) return;
+
+    $originales = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûýýþÿŔŕ';
+    $modificadas = 'aaaaaaaceeeeiiiidnoooooouuuuybsaaaaaaaceeeeiiiidnoooooouuuyybyRr';
+    $cadena = utf8_decode($cadena);
+    $cadena = strtr($cadena, utf8_decode($originales), $modificadas);
+    return utf8_encode($cadena);
+}
 function getItemsRequest($items, $branch_id = null)
 {
     if ($items) {
