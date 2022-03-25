@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\SaleItem;
+use App\models\Contact;
 use Carbon\Carbon;
 
 class Analytics extends Command
@@ -52,6 +53,7 @@ class Analytics extends Command
         }
 
         $this->analytic_sales($year);
+        $this->info("[Orus] ::: Job finish :::");
 
         return 0;
     }
@@ -74,7 +76,6 @@ class Analytics extends Command
             "gender",
             'employ',
             'date',
-            'month',
         );
 
         $file = fopen($filename, 'w');
@@ -136,7 +137,6 @@ class Analytics extends Command
                 (string) $gender,
                 (string) $st->user->name,
                 (string) $st->created_at->format("Y-m-d"),
-                (int) $st->created_at->format("m"),
             ));
             $bar->advance();
         }
@@ -153,4 +153,44 @@ class Analytics extends Command
 
         return true;
     }
+
+    // public function analytic_customers(){
+    //     $contacts = Contact::where("type", 0)->with("metas")->get();
+    //     $filename = storage_path('app/analytics_customers.csv');
+    //     $columns = array(
+    //         'session',
+    //         'code',
+    //         'product',
+    //         'cant',
+    //         'price',
+    //         "customer",
+    //         'employ',
+    //         'date',
+    //         'month',
+    //     );
+
+    //     $file = fopen($filename, 'w');
+    //     fputcsv($file, $columns);
+    //     $bar = $this->output->createProgressBar($contacts->count());
+    //     $bar->start();
+    //     $badwords = ["venta", "banco", "colegio", "cementos", "consejo", "icono", "instituto", "maquinas", "mariscos", "municipio", "ofitec", "procesadora", "suprema", "sistema", "servicios", "", " "];
+
+    //     foreach ($contacts as $st) {
+    //         fputcsv($file, array(
+    //             (string) $st->session,
+    //             (string) $st->item->code,
+    //             (string) $st->item->name,
+    //             (int) $st->cant,
+    //             (int) $st->price,
+    //             (string) $st->saleDetails->cliente->name,
+    //             (string) $st->user->name,
+    //             (string) $st->created_at->format("Y-m-d"),
+    //         ));
+    //         $bar->advance();
+    //     }
+
+    //     $bar->finish();
+    //     fclose($file);
+    //     $this->info("\n Create file successfully: " . $filename);
+    // }
 }
