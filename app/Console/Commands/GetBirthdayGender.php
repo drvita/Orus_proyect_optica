@@ -53,7 +53,7 @@ class GetBirthdayGender extends Command
         foreach ($contacts as $contact) {
             $count++;
             $metadata = $contact->metas()->where("key", "metadata")->first();
-            if ($metadata && $metadata->value["gender"]) {
+            if ($metadata && $metadata->value && isset($metadata->value['gender'])) {
                 continue;
             }
             $data = [
