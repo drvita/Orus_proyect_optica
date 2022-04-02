@@ -8,8 +8,8 @@ use App\Models\StoreBranch;
 use App\Notifications\ErrorStoreNotification;
 use App\User;
 use Illuminate\Support\Facades\Log;
-
-// use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class SaleItem extends Model
 {
@@ -72,37 +72,43 @@ class SaleItem extends Model
     public function sendErrorNotification($sale, $item)
     {
         User::where("id", "!=", 1)
-            ->where("rol", 0)
+            ->hasRole("admin")
             ->get()
             ->each(function (User $user) use ($sale, $item) {
                 $user->notify(new ErrorStoreNotification($sale, $item));
             });
     }
-    public function processInStorageItem($sale, $type = "created")
+    public function processInStoreItem($sale, $type = "created")
     {
         $item = StoreItem::where("id", $sale->store_items_id)->with('inBranch')->first();
+        $auth = Auth::user();
 
-        // Check is item exist
         if ($item) {
-            // Check if we have items in branches
             if ($item->inBranch && count($item->inBranch)) {
-                $branch_id = $item->branch_default ? $item->branch_default : $sale->branch_id;
                 foreach ($item->inBranch as $branch) {
-                    // If the same?
-                    if ($branch->branch_id === $branch_id) {
-                        // Only discount if we have cant
-
+                    if ($branch->branch_id === $sale->branch_id) {
                         if ($sale->cant) {
-                            $storeBranch = StoreBranch::where("id", $branch->id)->first();
+                            // $storeBranch = StoreBranch::where("id", $branch->id)->first();
                             if ($type === "created") {
-                                $storeBranch->cant -= $sale->cant;
+                                $branch->cant -= $sale->cant;
                             } else {
-                                $storeBranch->cant += $sale->cant;
+                                $branch->cant += $sale->cant;
                             }
-                            $storeBranch->save();
+
+                            if ($branch->cant < 0) {
+                                $branch->cant = 0;
+                            }
+
+                            $branch->updated_at = Carbon::now();
+                            $branch->user_id = $auth->id;
+                            $branch->save();
                         } else {
-                            Log::error("The sales $item->session with item $item->code not have cant to download");
+                            Log::error("The sales $item->session with item $item->code not have cant to rest");
                         }
+
+                        $item->updated_at = Carbon::now();
+                        $item->user_id = $auth->id;
+                        $item->save();
 
                         return [
                             "saleID" => $sale->id,
@@ -117,13 +123,13 @@ class SaleItem extends Model
                     }
                 }
 
-                Log::error("The item $item->code in sale $sale->id doesn't match with branches: $branch_id");
+                Log::error("The item $item->code in sale $sale->id doesn't match with branches: $sale->branch_id");
                 return [
                     "saleID" => $sale->id,
                     "itemId" => $item->id,
                     "name" => $item->name,
                     "code" => $item->code,
-                    "branch" => $branch_id,
+                    "branch" => $sale->branch_id,
                     "cant" => $sale->cant,
                     "status" => "failer",
                     "message" => "Item doesn't do match with branches"
@@ -162,15 +168,13 @@ class SaleItem extends Model
     //Listerner
     protected static function booted()
     {
+        parent::boot();
+
         static::created(function ($sale) {
-            $sale->processInStorageItem($sale, "created");
-            // $result = $sale->processInStorageItem($sale, "created");
-            // if ($result['status'] === "failer") {
-            //     dd($result, $sale);
-            // }
+            $sale->processInStoreItem($sale, "created");
         });
-        static::deleted(function ($sale) {
-            $sale->processInStorageItem($sale, "deleted");
+        static::deleting(function ($sale) {
+            $sale->processInStoreItem($sale, "deleted");
         });
     }
 }

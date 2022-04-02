@@ -60,7 +60,7 @@ class StoreItem extends JsonResource
             $return['precio'] = $price;
             $return['from'] = $from;
             $return['branch_default'] = $this->branch_default;
-            $return['proveedor'] = new Contact($this->supplier);
+            $return['proveedor'] = new ContactStore($this->supplier);
             $return['created'] = new UserInExam($this->user);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');

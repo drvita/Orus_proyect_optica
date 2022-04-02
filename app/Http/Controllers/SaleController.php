@@ -103,21 +103,18 @@ class SaleController extends Controller
     {
         $currentUser = Auth::user();
         $request['updated_id'] = $currentUser->id;
-        $rolUser = $this->getUserRol($currentUser);
+        $userIsAdmin = $this->isAdmin($currentUser);
 
         //Only admin can modify branches
-        if (!isset($request->branch_id) || $rolUser !== "admin") {
+        if (!isset($request->branch_id) || $userIsAdmin) {
             $request['branch_id'] = $currentUser->branch_id;
         }
 
-
         $sale->update($request->all());
-
         $sale['items'] = getItemsRequest($request->items, $currentUser->branch_id);
         $sale['payments'] = getPaymentsRequest($request->payments, $currentUser->branch_id);
         event(new SaleSave($sale));
         $sale = $sale::where('id', $sale->id)->relations()->first();
-
 
         return new SaleResources($sale);
     }
@@ -138,9 +135,9 @@ class SaleController extends Controller
         return response()->json(null, 204);
     }
 
-    function getUserRol($user)
+    function isAdmin($user)
     {
 
-        return $user->getRoleNames()[0];
+        return $user->hasRole("admin");
     }
 }

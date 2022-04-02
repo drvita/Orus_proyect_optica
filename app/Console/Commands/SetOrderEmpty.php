@@ -41,28 +41,29 @@ class SetOrderEmpty extends Command
     {
         try {
             $dateInto = $this->argument('date');
-            if(!$dateInto){
+            return;
+            if (!$dateInto) {
                 $dateInto = date('d/m/Y');
             }
 
             $date = Carbon::createFromFormat('d/m/Y', $dateInto);
-            $orders = Order::WhereDate("created_at","<=",$date)
-                        ->where('status',0)
-                        ->whereNull('deleted_at')
-                        ->get();
+            $orders = Order::WhereDate("created_at", "<=", $date)
+                ->where('status', 0)
+                ->whereNull('deleted_at')
+                ->get();
 
-            if(!count($orders)){
-                $this->info('No hay pedidos para procesar antes de esta fecha: '. $date->format('d M Y'));
+            if (!count($orders)) {
+                $this->info('No hay pedidos para procesar antes de esta fecha: ' . $date->format('d M Y'));
                 return 0;
             }
 
-            if (!$this->confirm('Se eliminaran ('. count($orders) .') pedidos antes de la fecha: '. $date->format('d M Y') .' :::: ¿Desea continuar?', true)) {
+            if (!$this->confirm('Se eliminaran (' . count($orders) . ') pedidos antes de la fecha: ' . $date->format('d M Y') . ' :::: ¿Desea continuar?', true)) {
                 $this->info('Operacion cancelada!');
                 return 0;
             }
             //$this->newLine();
 
-            if($orders){
+            if ($orders) {
                 $bar = $this->output->createProgressBar(count($orders));
                 $bar->start();
                 foreach ($orders as $order) {
@@ -78,10 +79,9 @@ class SetOrderEmpty extends Command
             //$this->newLine();
             $this->info(' ::: Proceso terminado con exito: ');
 
-           return false;
-
+            return false;
         } catch (\Throwable $th) {
-            $this->error('[ERROR] '. $th->getMessage());
+            $this->error('[ERROR] ' . $th->getMessage());
             //report($th);
             return false;
         }

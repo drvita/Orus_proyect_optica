@@ -22,11 +22,12 @@ class SaleSave
         $items = $sale->items;
         $payments = $sale->payments;
 
-        // dd($items, $payments);
-
         if (count($items)) {
             if ($sale->session) {
-                SaleItem::where('session', $sale->session)->delete();
+                SaleItem::where('session', $sale->session)->get()->each(function ($item) {
+                    $item->delete();
+                });
+
 
                 foreach ($items as $item) {
                     $i_save['cant'] = $item['cant'];
@@ -42,6 +43,8 @@ class SaleSave
 
                     SaleItem::create($i_save);
                 }
+
+                // dd(SaleItem::where('session', $sale->session)->get()->toArray());
             }
         }
         if (count($payments)) {

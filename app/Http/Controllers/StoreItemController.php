@@ -84,7 +84,8 @@ class StoreItemController extends Controller
             ->searchSupplier($request->supplier)
             ->publish()
             ->searchBrand($request->brand)
-            ->filterBranch($request->branch);
+            ->filterBranch($request->branch)
+            ->updateDate($request->update);
 
         if ($responseType === "csv") {
             $fileName = 'storeItems.csv';

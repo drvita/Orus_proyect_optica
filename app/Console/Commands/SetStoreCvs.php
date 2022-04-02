@@ -94,6 +94,7 @@ class SetStoreCvs extends Command
         $path = $this->argument('file');
         $branch = (int) $this->option('branch');
         $nocheck = $this->option('nocheck');
+        return;
 
         if (!$path) {
             $this->info('Operacion cancelada por NO introduccion el archivo CSV!');

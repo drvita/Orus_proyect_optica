@@ -68,7 +68,9 @@ class StoreItem extends Model
     public function scopeZero($query, $search)
     {
         if ($search == "true") {
-            $query->where("cant", "<=", 0);
+            $query->whereHas('inBranch', function ($query) {
+                $query->where('cant', "<=", 0);
+            });
         }
     }
     public function scopeCategory($query, $val)
@@ -129,7 +131,7 @@ class StoreItem extends Model
     {
         if (trim($search) != "") {
             $query->whereHas('inBranch', function ($query) use ($search) {
-                $query->where('branch_id', "==", (int) $search);
+                $query->where('branch_id', "=", (int) $search);
             });
         }
     }
@@ -141,5 +143,10 @@ class StoreItem extends Model
     {
         $query->with('user', 'user_updated', 'categoria', 'supplier', 'brand', 'inBranch');
     }
-    
+    public function scopeUpdateDate($query, $search)
+    {
+        if (trim($search) != "") {
+            $query->whereDate('updated_at', "=", $search);
+        }
+    }
 }

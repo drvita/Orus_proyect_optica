@@ -73,7 +73,7 @@ class OrderSave
                     Messenger::create([
                         "table" => "orders",
                         "idRow" => $order->id,
-                        "message" => $auth->name . " actualizo la orden.",
+                        "message" => $auth->name . " actualizo la venta.",
                         "user_id" => 1
                     ]);
                 }
@@ -92,22 +92,24 @@ class OrderSave
                 Messenger::create([
                     "table" => "orders",
                     "idRow" => $order->id,
-                    "message" => "Cree una orden de venta",
+                    "message" => "Cree una venta nueva",
                     "user_id" => 1
                 ]);
-                // Log::debug("$auth->username, created a sale");
             }
 
-            // only is the order is new or status zero
+
             if ($order->status === 0) {
-                // Delete items of session and create news
-                if ($order->session) SaleItem::where('session', $order->session)->delete();
+                if ($order->session) {
+                    SaleItem::where('session', $sale->session)->get()->each(function ($item) {
+                        $item->delete();
+                    });
+                }
 
                 foreach ($items as $item) {
                     $itemData = StoreItem::where("id", $item['store_items_id'])->first();
-                    $branch = isset($item["branch_id"]) ? $item["branch_id"] : null;
+                    $branch = isset($item["branch_id"]) ? $item["branch_id"] : $branchOrder;
 
-                    if ($itemData && $itemData->id) {
+                    if ($itemData) {
                         if ($itemData->branch_default) {
                             $branch = $itemData->branch_default;
                         }
@@ -129,11 +131,11 @@ class OrderSave
                         Log::debug("New item sale create $itemData->code in branch: $branch for $auth->username");
                     } else {
                         // send notification to admins because someone buy anything and this not exist
-                        Log::error("New item sale $itemData->code in branch: $branch for $auth->username not found in database");
+                        Log::error(`Product ({$item['code']}) not found in database`);
                         Messenger::create([
                             "table" => "orders",
                             "idRow" => $order->id,
-                            "message" => `Se intento vender {$item['cant']} productos del codigo: {$item['code']} y no puede agregarlos a la venta`,
+                            "message" => `Se intento vender el producto: {$item['code']} y no fue encontrado`,
                             "user_id" => 1
                         ]);
                     }
