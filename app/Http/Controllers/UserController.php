@@ -21,6 +21,7 @@ class UserController extends Controller
         $this->middleware('can:user.add')->only('store');
         $this->middleware('can:user.edit')->only('update');
         $this->middleware('can:user.delete')->only('destroy');
+        $this->middleware('can:auth.closeSession')->only('clearToken');
         $this->user = $user;
     }
     /**
@@ -32,11 +33,6 @@ class UserController extends Controller
         $orderby = $request->orderby ? $request->orderby : "created_at";
         $order = $request->order == "desc" ? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
-        $search = $request->search;
-        $userId = $request->userId;
-        $username = $request->username;
-        $email = $request->email;
-        $rol = $request->rol;
         $deleted = true;
 
         if (isset($request->deleted)) {
@@ -47,12 +43,12 @@ class UserController extends Controller
         $users = $this->user
             ->with('session', 'branch')
             ->orderBy($orderby, $order)
-            ->search($search)
-            ->userName($username, $userId)
-            ->userEmail($email, $userId)
-            ->rol($rol)
-            ->bot()
-            ->notDelete($deleted)
+            ->search($request->search)
+            ->userName($request->username, $request->userId)
+            ->userEmail($request->email, $request->userId)
+            ->role($request->role)
+            ->nobot()
+            ->publish($deleted)
             ->paginate($page);
 
         return UserResource::collection($users);
@@ -64,14 +60,30 @@ class UserController extends Controller
      */
     public function store(UserRequest $request)
     {
+        switch ($request->role) {
+            case 'ventas':
+                $request['rol'] = 1;
+                break;
+            case 'doctor':
+                $request['rol'] = 2;
+                break;
+            default:
+                $request['rol'] = 0;
+                break;
+        }
+        $request['password'] = Hash::make($request->password);
+
+        // dd($request->rol);
         $user = User::create([
-            'name' => $request->input('name'),
-            'username' => $request->input('username'),
-            'email' => $request->input('email'),
-            'rol' => $request->input('rol'),
-            'password' => Hash::make($request->input('password'))
+            'name' => strtolower($request->name),
+            'username' => strtolower($request->username),
+            'email' => strtolower($request->email),
+            'password' => $request->password,
+            'branch_id' => $request->branch_id,
+            'rol' => $request->rol,
         ]);
-        //$user->createToken('AppName')->accessToken;
+        $user->roles()->detach();
+        $user->assignRole($request->role);
         return new UserResource($user);
     }
     /**
@@ -81,7 +93,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return new UserResource($user);
+        return new UserResource($user->load("session")->load("branch"));
     }
     /**
      * Actualiza el registro de un susuario
@@ -91,23 +103,31 @@ class UserController extends Controller
      */
     public function update(UserRequest $request, User $user)
     {
-        $auth = Auth::user();
-        $currenUser = User::find($auth->id);
+        $currenUser = Auth::user();
+        $can_changeBranch = user_can($currenUser, "auth.changeBranch");
+        $can_changeRole = user_can($currenUser, "auth.changeRole");
 
-        if ($user->branch_id !== $request->branch_id) {
-            if (!$currenUser->can('auth.changeBranch')) {
-                return response()->json([
-                    "code" => "401",
-                    "status" => "No authorized",
-                    "message" => "This user has not permission to change branch"
-                ], 401);
+        if (isset($request["branch_id"])) {
+            if ($user->branch_id !== $request->branch_id) {
+                if (!$can_changeBranch) {
+                    return response()->json([
+                        "code" => "401",
+                        "status" => "No authorized",
+                        "message" => "This user has not permission to change branch"
+                    ], 401);
+                }
             }
         }
-        if ($request['password']) $request['password'] = Hash::make($request->input('password'));
 
-        if ($request->input('role')) {
-            if (!$user->hasRole($request->input('role'))) {
-                if (!$currenUser->can('auth.changeRole')) {
+        if (isset($request['password']) && $request->password) {
+            $request->password = Hash::make($request->password);
+        }
+
+        if (isset($request["role"])) {
+            $have_role = user_can($user, $request->role);
+
+            if (!$have_role) {
+                if (!$can_changeRole) {
                     return response()->json([
                         "code" => "401",
                         "status" => "No authorized",
@@ -117,7 +137,7 @@ class UserController extends Controller
                 }
 
                 $user->roles()->detach();
-                $user->assignRole($request->input('role'));
+                $user->assignRole($request->role);
                 unset($request['role']);
             }
         }
@@ -134,15 +154,6 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         try {
-            $auth = Auth::user();
-
-            if ($auth->rol) {
-                return response()->json([
-                    "data" => [],
-                    "message" => "No tiene permisos administrativos"
-                ], 401);
-            }
-
             $user->delete();
             return response()->json(null, 204);
         } catch (\Throwable $th) {
@@ -155,14 +166,11 @@ class UserController extends Controller
     /**
      * Limpia el token de un usuario
      */
-    public function clearToken($id)
+    public function clearToken(User $user)
     {
-        $user = $this->user::find($id);
-        $auth = Auth::user();
-
-        if ($user && !$auth->rol) {
-            $session = Session::where('session_id', $id);
-            $session->delete();
+        if ($user) {
+            $session = Session::where('session_id', $user->id);
+            if ($session) $session->delete();
             $user->api_token = null;
             $user->save();
 
@@ -173,6 +181,6 @@ class UserController extends Controller
 
         return response()->json([
             "success" => false,
-        ], 401);
+        ], 400);
     }
 }

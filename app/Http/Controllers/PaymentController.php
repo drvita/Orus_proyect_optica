@@ -17,6 +17,11 @@ class PaymentController extends Controller
 
     public function __construct(Payment $payment)
     {
+        $this->middleware('can:payment.list')->only('index');
+        $this->middleware('can:payment.show')->only('show');
+        $this->middleware('can:payment.add')->only('store');
+        $this->middleware('can:payment.edit')->only('update');
+        $this->middleware('can:payment.delete')->only('destroy');
         $this->payment = $payment;
     }
 

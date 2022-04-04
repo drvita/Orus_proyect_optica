@@ -18,6 +18,11 @@ class ExamController extends Controller
 
     public function __construct(Exam $exam)
     {
+        $this->middleware('can:exam.list')->only('index');
+        $this->middleware('can:exam.show')->only('show');
+        $this->middleware('can:exam.add')->only('store');
+        $this->middleware('can:exam.edit')->only('update');
+        $this->middleware('can:exam.delete')->only('destroy');
         $this->exam = $exam;
     }
     /**

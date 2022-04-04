@@ -52,15 +52,36 @@ class User extends Authenticatable
             });
         }
     }
-    public function scopeRol($query, $search)
+    public function scopeRole($query, $search)
     {
         if (trim($search) != "") {
-            $search = $search * 1;
-            if ($search >= 0 && $search <= 2) {
-                $query->where("rol", $search);
-            } else if ($search == 10) {
-                $query->where("rol", "<=", 1);
+            if ($search === "nodoctor") {
+                return $query->whereHas('roles', function ($q) {
+                    $q->where('roles.name', "admin")
+                        ->orWhere('roles.name', "ventas");
+                });
             }
+
+            if (str_contains($search, ',')) {
+                $roles = explode(",", $search);
+
+                if (!count($roles)) return;
+
+                return $query->whereHas('roles', function ($q) use ($roles) {
+                    foreach ($roles as $key => $role) {
+                        if (!$key) {
+                            $q->where('roles.name', $role);
+                            continue;
+                        }
+
+                        $q->orWhere('roles.name', $role);
+                    }
+                });
+            }
+
+            $query->whereHas('roles', function ($q) use ($search) {
+                $q->where('roles.name', $search);
+            });
         }
     }
     public function scopeUserName($query, $search, $userId = false)
@@ -77,14 +98,18 @@ class User extends Authenticatable
             if ($userId) $query->where("id", "!=", $userId);
         }
     }
-    public function scopeBot($query)
+    public function scopeNobot($query)
     {
         $query->where("id", "!=", 1);
     }
-    public function scopeNotDelete($query, $confirm = true)
+    public function scopePublish($query, $confirm = true)
     {
         if ($confirm) {
             $query->whereNull("deleted_at");
         }
+    }
+    public function scopeWithRelation($query)
+    {
+        $query->with('session', 'branch');
     }
 }

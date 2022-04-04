@@ -17,6 +17,11 @@ class StoreItemController extends Controller
 
     public function __construct(StoreItem $store)
     {
+        $this->middleware('can:store.list')->only('index');
+        $this->middleware('can:store.show')->only('show');
+        $this->middleware('can:store.add')->only('store');
+        $this->middleware('can:store.edit')->only('update');
+        $this->middleware('can:store.delete')->only('destroy');
         $this->store = $store;
     }
     /**

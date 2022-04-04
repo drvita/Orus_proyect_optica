@@ -5,27 +5,35 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Resources\Messenger as MessengerResource;
 use App\Http\Requests\Messenger as MessengerRequests;
-Use App\Models\Messenger;
+use App\Models\Messenger;
 use Illuminate\Support\Facades\Auth;
 
-class MessengerController extends Controller{
-    public function __construct(Messenger $messenger){
+class MessengerController extends Controller
+{
+    public function __construct(Messenger $messenger)
+    {
+        $this->middleware('can:messenger.list')->only('index');
+        $this->middleware('can:messenger.show')->only('show');
+        $this->middleware('can:messenger.add')->only('store');
+        $this->middleware('can:messenger.edit')->only('update');
+        $this->middleware('can:messenger.delete')->only('destroy');
         $this->messenger = $messenger;
     }
     /**
      * Muestra la lista de usuarios en sistema
      * @return Json api rest
      */
-    public function index(Request $request){
-        $orderby = $request->orderby? $request->orderby : "created_at";
-        $order = $request->order==="asc"? "asc" : "desc";
+    public function index(Request $request)
+    {
+        $orderby = $request->orderby ? $request->orderby : "created_at";
+        $order = $request->order === "asc" ? "asc" : "desc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $messenger = $this->messenger
-                ->orderBy($orderby, $order)
-                ->Table($request->table)
-                ->IdRow($request->idRow)
-                ->paginate(50);
+            ->orderBy($orderby, $order)
+            ->Table($request->table)
+            ->IdRow($request->idRow)
+            ->paginate(50);
         return MessengerResource::collection($messenger);
     }
     /**
@@ -33,18 +41,20 @@ class MessengerController extends Controller{
      * @param  $request que se traen de post body json
      * @return Json api rest
      */
-    public function store(MessengerRequests $request){
-        $request['user_id']= Auth::user()->id;
+    public function store(MessengerRequests $request)
+    {
+        $request['user_id'] = Auth::user()->id;
         $messenger = $this->messenger->create($request->all());
-        return New MessengerResource($messenger);
+        return new MessengerResource($messenger);
     }
     /**
      * Muestra unj usuario espesifico
      * @param  int  $id
      * @return Json api rest
      */
-    public function show(Messenger $messanger){
-        return New MessengerResource($messanger);
+    public function show(Messenger $messanger)
+    {
+        return new MessengerResource($messanger);
     }
     /**
      * Actualiza el registro de un susuario
@@ -52,17 +62,19 @@ class MessengerController extends Controller{
      * @param  int  $id
      * @return Json api rest
      */
-    public function update(MessengerRequests $request, Messenger $messanger){
-        $request['user_id']=$messanger->user_id;
-        $messanger->update( $request->all() );
-        return New MessengerResource($messanger);
+    public function update(MessengerRequests $request, Messenger $messanger)
+    {
+        $request['user_id'] = $messanger->user_id;
+        $messanger->update($request->all());
+        return new MessengerResource($messanger);
     }
     /**
      * Elimina un usuario en espesifico.
      * @param  int  $id
      * @return Json api rest
      */
-    public function destroy(Messenger $messanger){
+    public function destroy(Messenger $messanger)
+    {
         $messanger->delete();
         return response()->json(null, 204);
     }

@@ -16,6 +16,11 @@ class SaleController extends Controller
 
     public function __construct(Sale $sale)
     {
+        $this->middleware('can:sale.list')->only('index');
+        $this->middleware('can:sale.show')->only('show');
+        $this->middleware('can:sale.add')->only('store');
+        $this->middleware('can:sale.edit')->only('update');
+        $this->middleware('can:sale.delete')->only('destroy');
         $this->sale = $sale;
     }
     /**
@@ -103,7 +108,7 @@ class SaleController extends Controller
     {
         $currentUser = Auth::user();
         $request['updated_id'] = $currentUser->id;
-        $userIsAdmin = $this->isAdmin($currentUser);
+        $userIsAdmin = isAdmin($currentUser);
 
         //Only admin can modify branches
         if (!isset($request->branch_id) || $userIsAdmin) {
@@ -133,11 +138,5 @@ class SaleController extends Controller
         $sale->save();
         //$sale->delete();
         return response()->json(null, 204);
-    }
-
-    function isAdmin($user)
-    {
-
-        return $user->hasRole("admin");
     }
 }

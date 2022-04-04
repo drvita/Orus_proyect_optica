@@ -17,6 +17,11 @@ class OrderController extends Controller
 
     public function __construct(Order $order)
     {
+        $this->middleware('can:order.list')->only('index');
+        $this->middleware('can:order.show')->only('show');
+        $this->middleware('can:order.add')->only('store');
+        $this->middleware('can:order.edit')->only('update');
+        $this->middleware('can:order.delete')->only('destroy');
         $this->order = $order;
     }
     /**

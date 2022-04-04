@@ -9,40 +9,48 @@ use App\Http\Resources\StoreLot as StoreResources;
 use App\Http\Requests\StoreLot as StoreRequests;
 use Carbon\Carbon;
 
-class StoreLotController extends Controller{
+class StoreLotController extends Controller
+{
     protected $item;
 
-    public function __construct(StoreLot $item){
+    public function __construct(StoreLot $item)
+    {
+        $this->middleware('can:storeLot.list')->only('index');
+        $this->middleware('can:storeLot.show')->only('show');
+        $this->middleware('can:storeLot.add')->only('store');
+        $this->middleware('can:storeLot.edit')->only('update');
+        $this->middleware('can:storeLot.delete')->only('destroy');
         $this->item = $item;
     }
     /**
      * Muestra una lista de ingreso de lotes de producto
      * @return Json api
      */
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         $page = $request->itemsPage ? $request->itemsPage : 50;
         $rol = Auth::user()->rol;
-        
+
         //Validation for branchs to admins
-        if(!$rol){
-            if(!isset($request->branch)) $branch = Auth::user()->branch_id;
+        if (!$rol) {
+            if (!isset($request->branch)) $branch = Auth::user()->branch_id;
             else {
-                if($request->branch === "all") $branch = null;
+                if ($request->branch === "all") $branch = null;
                 else $branch = $request->branch;
             }
-        }else {
+        } else {
             $branch = Auth::user()->branch_id;
         }
 
-        if($request->store_items_id){
+        if ($request->store_items_id) {
             $items = $this->item
-                    ->where('store_items_id',$request->store_items_id)
-                    ->branch($branch)
-                    ->paginate($page);
+                ->where('store_items_id', $request->store_items_id)
+                ->branch($branch)
+                ->paginate($page);
         } else {
             $items = $this->item->branch($branch)->paginate($page);
         }
-        
+
         return StoreResources::collection($items);
     }
 
@@ -51,16 +59,17 @@ class StoreLotController extends Controller{
      * @param  $request campos del lote a traves del body en Json
      * @return Json api rest
      */
-    public function store(StoreRequests $request){
-        $request['user_id']= Auth::user()->id;
+    public function store(StoreRequests $request)
+    {
+        $request['user_id'] = Auth::user()->id;
         $rol = Auth::user()->rol;
         //Validation for branchs to admins
-        if(!$rol){
-            if(!isset($request['branch_id'])) $request['branch_id'] = Auth::user()->branch_id; 
-        }else {
-            $request['branch_id'] = Auth::user()->branch_id; 
+        if (!$rol) {
+            if (!isset($request['branch_id'])) $request['branch_id'] = Auth::user()->branch_id;
+        } else {
+            $request['branch_id'] = Auth::user()->branch_id;
         }
-        
+
         $item = $this->item->create($request->all());
         return new StoreResources($item);
     }
@@ -70,7 +79,8 @@ class StoreLotController extends Controller{
      * @param  $storeLot identificador del lote
      * @return Json api rest
      */
-    public function show(StoreLot $item){
+    public function show(StoreLot $item)
+    {
         return new StoreResources($item);
     }
 
@@ -80,10 +90,11 @@ class StoreLotController extends Controller{
      * @param  $storeLot identificador del lote
      * @return json api rest
      */
-    public function update(StoreRequests $request, StoreLot $item){
-        $request['user_id']=$item->user_id;
-        $item->update( $request->all() );
-        return New StoreResources($item);
+    public function update(StoreRequests $request, StoreLot $item)
+    {
+        $request['user_id'] = $item->user_id;
+        $item->update($request->all());
+        return new StoreResources($item);
     }
 
     /**
@@ -91,7 +102,8 @@ class StoreLotController extends Controller{
      * @param  $storeLot identificador del lote
      * @return null 204
      */
-    public function destroy(StoreLot $item){
+    public function destroy(StoreLot $item)
+    {
         $item->delete();
         return response()->json(null, 204);
     }

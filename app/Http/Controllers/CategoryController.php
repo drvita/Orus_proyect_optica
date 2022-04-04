@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Category as CategoryResource;
@@ -10,25 +11,32 @@ use App\Models\Category;
 class CategoryController extends Controller
 {
     protected $category;
-    
-    public function __construct(Category $category){
+
+    public function __construct(Category $category)
+    {
+        $this->middleware('can:category.list')->only('index');
+        $this->middleware('can:category.show')->only('show');
+        $this->middleware('can:category.add')->only('store');
+        $this->middleware('can:category.edit')->only('update');
+        $this->middleware('can:category.delete')->only('destroy');
         $this->category = $category;
     }
     /**
      * Muestra una lista de categorias
      * @return Json api rest
      */
-    public function index(Request $request){
-        $orderby = $request->orderby? $request->orderby : "category_id";
-        $order = $request->order=="desc"? "desc" : "asc";
+    public function index(Request $request)
+    {
+        $orderby = $request->orderby ? $request->orderby : "category_id";
+        $order = $request->order == "desc" ? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
 
         $categories = $this->category
-                ->withRelation()
-                ->orderBy($orderby, $order)
-                ->categoryId($request->categoryid)
-                ->search($request->search)
-                ->paginate($page);
+            ->withRelation()
+            ->orderBy($orderby, $order)
+            ->categoryId($request->categoryid)
+            ->search($request->search)
+            ->paginate($page);
 
         //return $categories;
         return CategoryResource::collection($categories);
@@ -39,14 +47,15 @@ class CategoryController extends Controller
      * @param  $request de body json
      * @return json api rest
      */
-    public function store(Request $request){
+    public function store(Request $request)
+    {
         $category = Category::create([
             'name' => $request->input('name'),
             'descripcion' => $request->input('descripcion'),
             'category_id' => $request->input('category_id'),
             'user_id' => Auth::user()->id
         ]);
-        return New CategoryResource($category);
+        return new CategoryResource($category);
     }
 
     /**
@@ -54,10 +63,11 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return Json api rest
      */
-    public function show($id){
+    public function show($id)
+    {
         $category = $this->category::where('id', $id)
-                    ->withRelation()
-                    ->first();
+            ->withRelation()
+            ->first();
 
         return new CategoryResource($category);
     }
@@ -68,13 +78,14 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return Json Api rest
      */
-    public function update(Request $request, Category $category){
+    public function update(Request $request, Category $category)
+    {
         $fill = array();
-        if($request->input('name')) $fill['name'] = $request->input('name');
-        if($request->input('descripcion')) $fill['descripcion'] = $request->input('descripcion');
-        if($request->input('category_id')) $fill['category_id'] = $request->input('category_id');
-        if($fill) $category->fill($fill)->save();
-        return New CategoryResource($category);
+        if ($request->input('name')) $fill['name'] = $request->input('name');
+        if ($request->input('descripcion')) $fill['descripcion'] = $request->input('descripcion');
+        if ($request->input('category_id')) $fill['category_id'] = $request->input('category_id');
+        if ($fill) $category->fill($fill)->save();
+        return new CategoryResource($category);
     }
 
     /**
@@ -82,7 +93,8 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return Json api rest
      */
-    public function destroy(Category $category){
+    public function destroy(Category $category)
+    {
         $category->delete();
         return response()->json(null, 204);
     }

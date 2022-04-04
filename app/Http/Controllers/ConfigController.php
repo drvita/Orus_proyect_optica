@@ -10,7 +10,13 @@ class ConfigController extends Controller
 {
     protected $config;
 
-    public function __construct(Config $config){
+    public function __construct(Config $config)
+    {
+        $this->middleware('can:config.list')->only('index');
+        $this->middleware('can:config.show')->only('show');
+        $this->middleware('can:config.add')->only('store');
+        $this->middleware('can:config.edit')->only('update');
+        $this->middleware('can:config.delete')->only('destroy');
         $this->config = $config;
     }
     /**
@@ -20,10 +26,10 @@ class ConfigController extends Controller
      */
     public function index(Request $request)
     {
-        $orderby = $request->orderby? $request->orderby : "value";
-        $order = $request->order=="desc"? "desc" : "asc";
+        $orderby = $request->orderby ? $request->orderby : "value";
+        $order = $request->order == "desc" ? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
-        
+
         $config = $this->config
             ->orderBy($orderby, $order)
             ->name($request->name)
@@ -39,7 +45,7 @@ class ConfigController extends Controller
      */
     public function store(Request $request)
     {
-        if(is_string($request->value)){
+        if (is_string($request->value)) {
             $value = $request->value;
         } else {
             $value = json_encode($request->value);
@@ -49,7 +55,7 @@ class ConfigController extends Controller
             'name' => $request->input('name'),
             'value' => $value,
         ]);
-        return New ResourcesConfig($category);
+        return new ResourcesConfig($category);
     }
 
     /**
@@ -60,7 +66,7 @@ class ConfigController extends Controller
      */
     public function show(Config $config)
     {
-        return New ResourcesConfig($config);
+        return new ResourcesConfig($config);
     }
 
     /**
@@ -74,13 +80,12 @@ class ConfigController extends Controller
     {
         $data = $request->all();
 
-        if(!is_string($data['value'])){
+        if (!is_string($data['value'])) {
             $data['value'] = json_encode($data['value']);
-            
         }
 
-        $config->update( $data );
-        return New ResourcesConfig($config);
+        $config->update($data);
+        return new ResourcesConfig($config);
     }
 
     /**

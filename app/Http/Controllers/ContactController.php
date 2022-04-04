@@ -16,6 +16,11 @@ class ContactController extends Controller
 
     public function __construct(Contact $contact)
     {
+        $this->middleware('can:contact.list')->only('index');
+        $this->middleware('can:contact.show')->only('show');
+        $this->middleware('can:contact.add')->only('store');
+        $this->middleware('can:contact.edit')->only('update');
+        $this->middleware('can:contact.delete')->only('destroy');
         $this->contact = $contact;
     }
     /**

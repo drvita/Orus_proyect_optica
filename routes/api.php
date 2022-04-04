@@ -19,7 +19,7 @@ Route::middleware('auth:api')->apiResource('users', 'UserController');
 Route::middleware('auth:api')->apiResource('branches', 'StoreBranchController')->except("index", "show", "destroy");
 
 // Rutas especiales
-Route::post('users/login', 'AuthController@login')->name('users.login');
+Route::post('user/login', 'AuthController@login')->name('users.login');
 Route::middleware('auth:api')->post('/users/clearToken/{id}', 'UserController@clearToken')->name('users.clearToken');
 Route::middleware('auth:api')->post('/user/logout', 'AuthController@logout')->name('users.logout');
 Route::middleware('auth:api')->get('/user', 'AuthController@userData')->name('users.data');

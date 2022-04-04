@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\StoreBranch;
 use App\Models\StoreItem;
 use Illuminate\Http\Request;
@@ -13,7 +14,10 @@ class StoreBranchController extends Controller
 {
     protected $branch;
 
-    public function __construct(StoreBranch $branch){
+    public function __construct(StoreBranch $branch)
+    {
+        $this->middleware('can:user.add')->only('store');
+        $this->middleware('can:user.edit')->only('update');
         $this->branch = $branch;
     }
 
@@ -22,18 +26,19 @@ class StoreBranchController extends Controller
      * @param  $request datos a almacenar a traves del body en formato json
      * @return Json api rest
      */
-    public function store(StoreRequests $request){
+    public function store(StoreRequests $request)
+    {
         $user_default = Auth::user();
-        $request['user_id']= $user_default->id;
+        $request['user_id'] = $user_default->id;
 
-        if(!$request->branch_id){
+        if (!$request->branch_id) {
             $request['branch_id'] = $user_default->branch_id;
         }
-        
+
         $item = StoreItem::find($request->store_item_id);
 
-        if($item){
-            if($item->branch_default){
+        if ($item) {
+            if ($item->branch_default) {
                 $request['branch_id'] = $item->branch_default;
             }
         } else {
@@ -44,12 +49,12 @@ class StoreBranchController extends Controller
         }
 
         $branch = $this->branch
-                    ->where("store_item_id", $request->store_item_id)
-                    ->where("branch_id", $request->branch_id)
-                    ->first();
+            ->where("store_item_id", $request->store_item_id)
+            ->where("branch_id", $request->branch_id)
+            ->first();
 
-        if($branch){
-            $branch->update( $request->all() );
+        if ($branch) {
+            $branch->update($request->all());
             return $branch;
         }
 
@@ -64,13 +69,14 @@ class StoreBranchController extends Controller
      * @param  $store identificador del producto a actualizar
      * @return Json api rest
      */
-    public function update(StoreRequests $request, StoreBranch $branch){
-        $request['updated_id']= Auth::user()->id;
+    public function update(StoreRequests $request, StoreBranch $branch)
+    {
+        $request['updated_id'] = Auth::user()->id;
 
-        if($branch){
-            $branch->update( $request->all() );
+        if ($branch) {
+            $branch->update($request->all());
         }
-        
+
         return $branch;
     }
 }
