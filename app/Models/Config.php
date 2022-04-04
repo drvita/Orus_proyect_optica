@@ -9,10 +9,12 @@ class Config extends Model
     protected $table = "config";
     public $timestamps = false;
     protected $fillable = [
-        "name","value"
+        "name", "value"
     ];
-    public function scopeName($query, $search){
-        if(trim($search) === "") $search="bank";
-        $query->where("name","LIKE",$search);
+    public function scopeName($query, $search)
+    {
+        if (trim($search) === "") {
+            $query->where("name", "LIKE", $search);
+        }
     }
 }
