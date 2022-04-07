@@ -100,7 +100,7 @@ class OrderSave
 
             if ($order->status === 0) {
                 if ($order->session) {
-                    SaleItem::where('session', $sale->session)->get()->each(function ($item) {
+                    SaleItem::where('session', $order->session)->get()->each(function ($item) {
                         $item->delete();
                     });
                 }
