@@ -27,26 +27,26 @@ class Contact extends JsonResource
             $orders = $this->orders()->paginate($perPage, ['*'], 'orders_page');
 
             $return['id'] = $this->id;
-            $return['nombre'] = $this->name;
+            $return['name'] = $this->name;
             $return['rfc'] = $this->rfc ?? '';
             $return['email'] = $this->email;
-            $return['tipo'] = $this->type;
-            $return['empresa'] = $this->business;
-            $return['telefonos'] =  is_string($this->telnumbers) ? json_decode($this->telnumbers) : $this->telnumbers;
-            $return['f_nacimiento'] = $this->birthday && intval($this->birthday->format('Y')) > 1900 ? $this->birthday->format('Y-m-d') : null;
-            $return['edad'] = 1 < $edad && $edad < 120 ? $edad : 0;
-            $return['domicilio'] = is_string($this->domicilio) ? json_decode($this->domicilio) : $this->domicilio;
+            $return['type'] = $this->type;
+            $return['business'] = $this->business;
+            $return['age'] = 1 < $edad && $edad < 120 ? $edad : 0;
 
-            $return['compras'] = SaleResource::collection($purchases);
+            $return['phones'] =  new ContactPhones($this->telnumbers);
+            $return['address'] = new ContactAddress($this->domicilio);
+
+            $return['purchases'] = SaleResource::collection($purchases);
             $return['purchases_count'] = $purchases->total();
 
-            $return['marcas'] = BrandResource::collection($brands);
+            $return['brands'] = BrandResource::collection($brands);
             $return['brands_count'] = $brands->total();
 
-            $return['examenes'] = ExamResource::collection($exams);
+            $return['exams'] = ExamResource::collection($exams);
             $return['exams_count'] = $exams->total();
 
-            $return['proveedor_de'] = OrderResource::collection($supplierOf);
+            $return['supplier_of'] = OrderResource::collection($supplierOf);
             $return['suppliers_count'] = $supplierOf->total();
 
             $return['orders'] = OrderResource::collection($orders);
@@ -58,7 +58,6 @@ class Contact extends JsonResource
                 $return['suppliers_count'] +
                 $return['orders_count'];
 
-
             $return["metadata"] = $this->metas->count() ? new Metas($this->metas[0]) : [];
             $return['created'] = new UserInExam($this->user);
             $return['updated'] = new UserInExam($this->user_updated);
@@ -66,6 +65,8 @@ class Contact extends JsonResource
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         }
+
+        // dd($return);
 
         return $return;
     }

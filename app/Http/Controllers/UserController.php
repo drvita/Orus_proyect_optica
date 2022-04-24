@@ -120,7 +120,7 @@ class UserController extends Controller
         }
 
         if (isset($request['password']) && $request->password) {
-            $request->password = Hash::make($request->password);
+            $request['password'] = Hash::make($request->password);
         }
 
         if (isset($request["role"])) {
@@ -141,7 +141,6 @@ class UserController extends Controller
                 unset($request['role']);
             }
         }
-
 
         $user->update($request->all());
         return new UserResource($user);

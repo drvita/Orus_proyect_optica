@@ -25,6 +25,12 @@ class Contact extends Model
         'deleted_at',
         'birthday'
     ];
+    protected $casts = [
+        'telnumbers' => 'array',
+        'domicilio' => 'array',
+    ];
+
+
     //Relations 
     public function user()
     {
@@ -59,30 +65,28 @@ class Contact extends Model
         return $this->morphMany(Meta::class, 'metable');
     }
     //Scopes
-    public function scopeSearchUser($query, $search, $id)
+    public function scopeSearchUser($query, $search)
     {
         if (trim($search) != "") {
-            $query->where(function ($q) use ($search, $id) {
-                $q->where('name', "LIKE", "%$search%")
-                    ->orWhere('email', "LIKE", "$search%")
-                    ->orWhere('rfc', "LIKE", "$search%")
-                    ->orWhere('id', $search);
-            });
-
-            if ($id) $query->where('id', '!=', $id);
-            //dd($query->toSql());
+            $query->where('name', "LIKE", "%$search%")
+                ->orWhere('email', "LIKE", "$search%")
+                ->orWhere('rfc', "LIKE", "$search%");
         }
     }
-    public function scopeName($query, $search)
+    public function scopeName($query, $search, $id)
     {
         if (trim($search) != "") {
             $query->where("name", "LIKE", "$search%");
+
+            if ($id) $query->where('id', '!=', $id);
         }
     }
-    public function scopeEmail($query, $search)
+    public function scopeEmail($query, $search, $id)
     {
         if (trim($search) != "") {
             $query->where("email", "LIKE", "$search%");
+
+            if ($id) $query->where('id', '!=', $id);
         }
     }
     public function scopeType($query, $search)
@@ -109,22 +113,27 @@ class Contact extends Model
     public function saveMetas($request)
     {
         $metadata = $this->metas()->where("key", "metadata")->first();
-        $data = [];
+        $data = [
+            "birthday" => "",
+            "gender" => "",
+        ];
 
-        if(isset($request->birthday)){
+        if (isset($request->birthday)) {
             $birthday = new Carbon($request->birthday, "America/Mexico_City");
             $data["birthday"] = $birthday->toDateString();
-        } else if($metadata) {
+        } else if ($metadata) {
             $data["birthday"] = $metadata->value["birthday"];
-        } else if($this->birthday){
+        } else if ($this->birthday) {
             $birthday = new Carbon($this->birthday, "America/Mexico_City");
             $data["birthday"] = $birthday->toDateString();
         }
 
-        if(isset($request->gender)){
+        if (isset($request->gender) && !empty($request->gender)) {
             $data["gender"] = $request->gender;
-        } else if($metadata){
-            $data["gender"] = $metadata->value["gender"];
+        } else if ($metadata) {
+            if (array_key_exists("gender", $metadata->value)) {
+                $data["gender"] = $metadata->value["gender"];
+            }
         }
 
         if ($metadata) {

@@ -15,12 +15,16 @@ class UserInExam extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
+            $role = $this->getRoleNames();
+            $role = $role ? $role : [];
+
             $return['id'] = $this->id;
             $return['username'] = $this->username;
             $return['name'] = $this->name;
             $return['email'] = $this->email;
-            $return['rol'] = $this->rol;
+            $return['role'] = count($role) ? $role[0] : "";
         }
+
         return $return;
     }
 }

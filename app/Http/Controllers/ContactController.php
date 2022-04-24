@@ -36,14 +36,14 @@ class ContactController extends Controller
         $contacts = $this->contact
             ->withRelation()
             ->orderBy($orderby, $order)
-            ->searchUser($request->search, $request->except)
-            ->name($request->name)
-            ->email($request->email)
+            ->searchUser($request->search)
+            ->name($request->name, $request->except)
+            ->email($request->email, $request->except)
             ->type($request->type)
             ->business($request->business)
             ->publish()
             ->paginate($page);
-        //dd($contacts->toArray());
+        // dd($request->all());
         return ContactResourceList::collection($contacts);
     }
 
@@ -54,10 +54,6 @@ class ContactController extends Controller
      */
     public function store(ContactRequests $request)
     {
-        $request->validate([
-            'name' => 'required|unique:contacts',
-            'email' => 'unique:contacts',
-        ]);
 
         $request['user_id'] = Auth::user()->id;
         $contact = $this->contact->create($request->all());
@@ -90,6 +86,7 @@ class ContactController extends Controller
         $currentUser = Auth::user();
         $request['user_id'] = $contact->user_id;
         $request['updated_id'] = $currentUser->id;
+        // unset($request["gender"]);
         $contact->update($request->all());
         $contact->saveMetas($request);
 
