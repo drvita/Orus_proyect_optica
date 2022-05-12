@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 use App\Http\Resources\ExamShort as ExamResource;
-use App\Http\Resources\SaleInContact as SaleResource;
 use App\Http\Resources\BrandShort as BrandResource;
 use App\Http\Resources\OrderInExam as OrderResource;
 
@@ -25,6 +24,23 @@ class Contact extends JsonResource
             $brands = $this->brands()->paginate($perPage, ['*'], 'brands_page');
             $purchases = $this->buys()->paginate($perPage, ['*'], 'purchases_page');
             $orders = $this->orders()->paginate($perPage, ['*'], 'orders_page');
+            $metadata = $this->metas()->where("key", "metadata")->get()[0];
+            $activity = $this->metas()->where("key", ["updated", "deleted", "created"])->get();
+
+            $obj = [
+                'id' => 0,
+                'key' => 'created',
+                'value' => json_encode([
+                    "datetime" => $this->created_at,
+                    "user_id" => $this->user->id
+                ])
+            ];
+            $obj = json_decode(json_encode($obj), false);
+            $obj->value = json_decode($obj->value, true);
+
+            $activity->prepend($obj);
+            // dd($activity, $obj->id);
+
 
             $return['id'] = $this->id;
             $return['name'] = $this->name;
@@ -37,7 +53,7 @@ class Contact extends JsonResource
             $return['phones'] =  new ContactPhones($this->telnumbers);
             $return['address'] = new ContactAddress($this->domicilio);
 
-            $return['purchases'] = SaleResource::collection($purchases);
+            $return['purchases'] = SaleInContact::collection($purchases);
             $return['purchases_count'] = $purchases->total();
 
             $return['brands'] = BrandResource::collection($brands);
@@ -52,15 +68,11 @@ class Contact extends JsonResource
             $return['orders'] = OrderResource::collection($orders);
             $return['orders_count'] = $orders->total();
 
-            $return['enUso'] = $return['purchases_count'] +
-                $return['brands_count'] +
-                $return['exams_count'] +
-                $return['suppliers_count'] +
-                $return['orders_count'];
+            $return["metadata"] = $this->metas->count() ? new Metas($metadata) : [];
+            $return["activity"] = MetasDetails::collection($activity);
+            $return['created'] = new UserSimple($this->user);
+            $return['updated'] = new UserSimple($this->user_updated);
 
-            $return["metadata"] = $this->metas->count() ? new Metas($this->metas[0]) : [];
-            $return['created'] = new UserInExam($this->user);
-            $return['updated'] = new UserInExam($this->user_updated);
             $return['deleted_at'] = $this->deleted_at ? $this->deleted_at->format('Y-m-d H:i') : null;
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');

@@ -6,10 +6,9 @@ use App\Models\StoreItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\StoreItem as StoreResources;
-use App\Http\Resources\StoreItemShow as StoreResourceShow;
+use App\Http\Resources\StoreItemActivity;
 use App\Http\Requests\StoreItem as StoreRequests;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class StoreItemController extends Controller
 {
@@ -120,7 +119,7 @@ class StoreItemController extends Controller
         $request['user_id'] = Auth::user()->id;
 
         $store = $this->store->create($request->all());
-        return new StoreResources($store);
+        return new StoreItemActivity($store);
     }
 
     public static function getEloquentSqlWithBindings($query)
@@ -143,7 +142,7 @@ class StoreItemController extends Controller
             ->with('lote', 'categoria.parent.parent', 'supplier', 'brand', 'inBranch')
             ->first();
 
-        return new StoreResourceShow($store);
+        return new StoreItemActivity($store);
     }
 
     /**
@@ -154,9 +153,15 @@ class StoreItemController extends Controller
      */
     public function update(StoreRequests $request, StoreItem $store)
     {
+        if (!count($request->all())) {
+            return new StoreItemActivity($store);
+        }
+
         $request['user_id'] = $store->user_id;
+        $request['updated_id'] = Auth::user()->id;
         $store->update($request->all());
-        return new StoreResources($store);
+
+        return new StoreItemActivity($store);
     }
 
     /**

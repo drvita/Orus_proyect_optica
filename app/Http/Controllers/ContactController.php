@@ -54,6 +54,9 @@ class ContactController extends Controller
      */
     public function store(ContactRequests $request)
     {
+        if (!count($request->all())) {
+            return new ContactResource($this->contact);
+        }
 
         $request['user_id'] = Auth::user()->id;
         $contact = $this->contact->create($request->all());
@@ -81,7 +84,7 @@ class ContactController extends Controller
      * @param  int  $id
      * @return Json api rest
      */
-    public function update(Request $request, Contact $contact)
+    public function update(ContactRequests $request, Contact $contact)
     {
         $currentUser = Auth::user();
         $request['user_id'] = $contact->user_id;

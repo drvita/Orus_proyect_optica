@@ -69,21 +69,16 @@ class SaleController extends Controller
         $currentUser = Auth::user();
         $request['user_id'] = $currentUser->id;
         $request['branch_id'] = $currentUser->branch_id;
-        $request['status'] = 0;
-        $rolUser = $currentUser->rol;
-
-        //Only admin can save in differents branches
-        if (!$rolUser) {
-            if (isset($request->branch_id)) $request['branch_id'] = $request->branch_id;
-        }
-
+        $request['descuento'] = $request->discount ?? 0;
 
         $sale = $this->sale->create($request->all());
         $sale['items'] = getItemsRequest($request->items, $currentUser->branch_id);
-        $sale['payments'] = getPaymentsRequest($request->payments, $currentUser->branch_id);
+        if (isset($request["payments"])) {
+            $sale->payment_status = true;
+            $sale['payments'] = getPaymentsRequest($request->payments, $currentUser->branch_id);
+        }
 
         event(new SaleSave($sale));
-        //Get sale with new data
         $sale = $sale::where('id', $sale->id)->relations()->first();
         return new SaleResources($sale);
     }
@@ -104,20 +99,30 @@ class SaleController extends Controller
      * @param  $sale identificador de la venta
      * @return Json api rest
      */
-    public function update(Request $request, Sale $sale)
+    public function update(SaleRequests $request, Sale $sale)
     {
         $currentUser = Auth::user();
         $request['updated_id'] = $currentUser->id;
-        $userIsAdmin = isAdmin($currentUser);
 
-        //Only admin can modify branches
-        if (!isset($request->branch_id) || $userIsAdmin) {
-            $request['branch_id'] = $currentUser->branch_id;
+        if (isset($request["discount"])) {
+            $request['descuento'] = $request->discount ?? 0;
+        }
+
+        if (isset($request['user_id'])) {
+            unset($request['user_id']);
+        }
+
+        if (isset($request['branch_id'])) {
+            unset($request['branch_id']);
         }
 
         $sale->update($request->all());
-        $sale['items'] = getItemsRequest($request->items, $currentUser->branch_id);
-        $sale['payments'] = getPaymentsRequest($request->payments, $currentUser->branch_id);
+        $sale->items = getItemsRequest($request->items, $sale->branch_id);
+        if (isset($request["payments"])) {
+            $sale->payment_status = true;
+            $sale->payments = getPaymentsRequest($request->payments, $request['branch_id']);
+        }
+
         event(new SaleSave($sale));
         $sale = $sale::where('id', $sale->id)->relations()->first();
 

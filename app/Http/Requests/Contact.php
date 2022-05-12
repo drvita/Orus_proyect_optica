@@ -26,8 +26,8 @@ class Contact extends FormRequest
     {
         $data = $this->request->all();
         $rules = [
-            "name" => "required|nullable",
-            "type" => "required|nullable",
+            "name" => "required",
+            "type" => "required",
         ];
 
         switch ($this->method()) {
@@ -40,24 +40,24 @@ class Contact extends FormRequest
                     $rules['birthday'] = "required|date";
                 }
                 if (array_key_exists("telnumbers", $data)) {
-                    $rules['telnumbers'] = "required|array|nullable";
+                    $rules['telnumbers'] = "required|array";
                 }
                 if (array_key_exists("domicilio", $data)) {
-                    $rules['domicilio'] = "required|array|nullable";
+                    $rules['domicilio'] = "required|array";
                 }
                 if (array_key_exists("gender", $data)) {
-                    $rules['gender'] = "required|string|nullable";
+                    $rules['gender'] = "required|string";
                 }
                 break;
             default:
                 $rules['email'] = "email|required|unique:contacts";
                 $rules['birthday'] = "required|date";
-                $rules['telnumbers'] = "required|array|nullable";
+                $rules['telnumbers'] = "required|array";
                 if (array_key_exists("domicilio", $data)) {
-                    $rules['domicilio'] = "required|array|nullable";
+                    $rules['domicilio'] = "required|array";
                 }
                 if (array_key_exists("gender", $data)) {
-                    $rules['gender'] = "required|string|nullable";
+                    $rules['gender'] = "required|string";
                 }
         }
         return $rules;

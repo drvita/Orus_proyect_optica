@@ -3,12 +3,8 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Order;
-use App\Http\Resources\ContactShort;
-use App\Http\Resources\SaleItemShort;
-//use App\Http\Resources\Payment;
 
-class SaleInContact extends JsonResource
+class PaymentSimple extends JsonResource
 {
 
     public function toArray($request)
@@ -17,11 +13,14 @@ class SaleInContact extends JsonResource
 
         if (isset($this->id)) {
             $return['id'] = $this->id;
-            $return['session'] = $this->session;
+            $return['metodopago'] = $this->metodopago;
+            $return['banco'] = $this->bankName;
+            $return['bank_id'] = $this->bankName ? $this->bankName->id : null;
+            $return['auth'] = $this->auth;
             $return['total'] = $this->total;
-            $return['pedido'] = $this->order_id;
+            $return['details'] = $this->details;
             $return['branch'] = new ConfigBranch($this->branch);
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at;
         }
 
         return $return;

@@ -46,6 +46,11 @@
       href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700"
       rel="stylesheet"
     />
+
+    <!-- Datapicker -->
+    <link rel="stylesheet" href="/css/main.css"/>
+    <link href="/static/css/2.d344b5ea.chunk.css" rel="stylesheet">
+
     <!-- Main -->
     <link rel="stylesheet" href="/css/main.css" />
     @if (is_dir($ruta))

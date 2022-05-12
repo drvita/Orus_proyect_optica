@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CategoryStore extends JsonResource
+class ConfigBranch extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,12 +17,10 @@ class CategoryStore extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
-            $codeCategories = $this->getParentCategories($this);
+            $value = json_decode($this->value);
 
             $return['id'] = $this->id;
-            $return['name'] = $this->name;
-            $return['code'] = $codeCategories['codeCategory'];
-            $return['codeName'] = $codeCategories['codeNameCategory'];
+            $return['name'] = $value->name;
         }
 
         return $return;

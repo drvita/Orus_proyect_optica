@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
 
-class StoreItem extends JsonResource
+class StoreItemActivity extends JsonResource
 {
 
     public function toArray($request)
@@ -56,9 +56,12 @@ class StoreItem extends JsonResource
             $return['und'] = $this->unit;
             $return['cant_total'] = $cantAll;
             $return['cant'] = $cantBranch;
+            $return['branch_select'] = $branchSelect;
             $return['price'] = $price;
             $return['from'] = $from;
-            $return['category'] = new CategorySimple($this->categoria);
+            $return['branch_default'] = $this->branch_default;
+            $return['activity'] = MetasDetails::collection($this->metas);
+            $return['category'] = new CategoryStore($this->categoria);
             $return['supplier'] = new ContactStore($this->supplier);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');

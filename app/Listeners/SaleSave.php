@@ -5,7 +5,9 @@ namespace App\Listeners;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Models\SaleItem;
+use App\Models\Sale;
 use App\Models\Payment;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class SaleSave
@@ -20,7 +22,6 @@ class SaleSave
     {
         $sale = $event->sale;
         $items = $sale->items;
-        $payments = $sale->payments;
 
         if (count($items)) {
             if ($sale->session) {
@@ -39,7 +40,7 @@ class SaleSave
                     $i_save['store_items_id'] = $item['store_items_id'];
                     $i_save['descripcion'] = isset($item['descripcion']) ? $item['descripcion'] : "";
                     $i_save['user_id'] = Auth::user()->id;
-                    $i_save['branch_id'] = $item["branch_id"];
+                    $i_save['branch_id'] = $sale->branch_id;
 
                     SaleItem::create($i_save);
                 }
@@ -47,7 +48,13 @@ class SaleSave
                 // dd(SaleItem::where('session', $sale->session)->get()->toArray());
             }
         }
-        if (count($payments)) {
+
+        if (isset($sale["payment_status"])) {
+            $payments = $sale->payments;
+            Payment::where('sale_id', $sale->id)->get()->each(function ($item) {
+                $item->deleted_at = Carbon::now();
+                $item->save();
+            });
 
             foreach ($payments as $payment) {
                 Payment::updateOrCreate(
@@ -60,11 +67,14 @@ class SaleSave
                         "bank_id" => $payment['bank_id'],
                         "sale_id" => $sale->id,
                         "contact_id" => $sale->contact_id,
-                        "branch_id" => $payment["branch_id"],
+                        "branch_id" => $sale->branch_id,
                         "user_id" => Auth::user()->id,
+                        "deleted_at" => null,
                     ]
                 );
             }
         }
+
+        //dd("SAle", Sale::find($sale->id)->relations()->get()->toArray());
     }
 }

@@ -14,12 +14,13 @@ class StoreItem extends Model
 {
     protected $table = "store_items";
     protected $fillable = [
-        "code", "codebar", "grad", "brand_id", "name", "unit", "cant", "price", "category_id", "contact_id", "user_id", "branch_default"
+        "code", "codebar", "grad", "brand_id", "name", "unit", "cant", "price", "category_id", "contact_id", "user_id", "branch_default", "updated_id"
     ];
     protected $hidden = [];
     protected $dates = [
         'updated_at',
-        'created_at'
+        'created_at',
+        'deleted_at'
     ];
     //RelationsShip
     public function user()
@@ -54,7 +55,12 @@ class StoreItem extends Model
     {
         return $this->hasMany(StoreBranch::class, 'store_item_id', 'id');
     }
-    //Scopes
+    public function metas()
+    {
+        return $this->morphMany(Meta::class, 'metable');
+    }
+
+    // Scopes
     public function scopeSearchItem($query, $search)
     {
         if (trim($search) != "") {
@@ -141,12 +147,33 @@ class StoreItem extends Model
     }
     public function scopeWithRelation($query)
     {
-        $query->with('user', 'user_updated', 'categoria', 'supplier', 'brand', 'inBranch');
+        $query->with('user', 'user_updated', 'categoria', 'supplier', 'brand', 'inBranch', 'metas');
     }
     public function scopeUpdateDate($query, $search)
     {
         if (trim($search) != "") {
             $query->whereDate('updated_at', "=", $search);
         }
+    }
+
+    // Listerning 
+    protected static function booted()
+    {
+        static::updated(function ($item) {
+            $type = "";
+            $dirty = $item->getDirty();
+            unset($dirty['updated_at']);
+            $data = ["user_id" => $item->updated_id, "inputs" => $dirty];
+
+            if (is_null($item->deleted_at)) {
+                $data['date'] = $item->updated_at;
+                $type = "updated";
+            } else {
+                $data['date'] = $item->deleted_at;
+                $type = "deleted";
+            }
+
+            $item->metas()->create(["key" => $type, "value" => $data]);
+        });
     }
 }

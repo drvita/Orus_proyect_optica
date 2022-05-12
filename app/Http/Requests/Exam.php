@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class Exam extends FormRequest
 {
@@ -23,9 +24,19 @@ class Exam extends FormRequest
      */
     public function rules()
     {
-        return [
-            "contact_id" => "required",
-            "edad" => "required"
+
+        $data = $this->request->all();
+        $rules = [
+            "contact_id" => ["required", "numeric", Rule::exists("contacts", "id")],
         ];
+
+        if (array_key_exists("category_id", $data)) {
+            $rules['category_id'] = ["required", "numeric", Rule::exists("categories", "id")];
+        }
+        if (array_key_exists("category_ii", $data)) {
+            $rules['category_ii'] = ["required", "numeric", Rule::exists("categories", "id")];
+        }
+
+        return $rules;
     }
 }

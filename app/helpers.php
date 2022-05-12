@@ -45,6 +45,34 @@ function getPaymentsRequest($payments, $branch_id = null)
 
     return [];
 }
+function getParentCategories($item)
+{
+    $codeCategory = "0|0|0|0";
+    $codeNameCategory = "|||";
+
+    if ($item->parent) {
+        if ($item->parent->parent) {
+            if ($item->parent->parent->parent) {
+                $codeCategory = $item->parent->parent->parent->id . "|" . $item->parent->parent->id . "|" . $item->parent->id . "|" . $item->id;
+                $codeNameCategory = $item->parent->parent->parent->name . "|" . $item->parent->parent->name . "|" . $item->parent->name . "|" . $item->name;
+            } else {
+                $codeCategory = $item->parent->parent->id . "|" . $item->parent->id . "|" . $item->id . "|0";
+                $codeNameCategory = $item->parent->parent->name . "|" . $item->parent->name . "|" . $item->name . "|";
+            }
+        } else {
+            $codeCategory = $item->parent->id . "|" . $item->id . "|0|0";
+            $codeNameCategory = $item->parent->name . "|" . $item->name . "||";
+        }
+    } else {
+        $codeCategory =  "$item->id|0|0|0";
+        $codeNameCategory = "$item->name|||";
+    }
+
+    return [
+        "codeCategory" => explode("|", $codeCategory),
+        "codeNameCategory" => explode("|", $codeNameCategory),
+    ];
+}
 function getShortNameCat($string)
 {
     switch ($string) {

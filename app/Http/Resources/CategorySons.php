@@ -16,17 +16,17 @@ class CategorySons extends JsonResource
     {
         $return = [];
 
-        if(isset($this->id)){
+        if (isset($this->id)) {
+            $codeCategories = $this->getParentCategories($this);
+
             $return['id'] = $this->id;
             $return['name'] = $this->name;
             $return['meta'] = $this->getCode();
+            $return['code'] = $codeCategories['codeCategory'];
+            $return['codeName'] = $codeCategories['codeNameCategory'];
             $return['sons'] = $this->sons ? CategorySons::collection($this->sons) : null;
-
-            //old
-            $return['categoria'] = $this->name;
-            $return['hijos'] = $this->sons ? CategorySons::collection($this->sons) : null;
         }
-            
+
         return $return;
     }
 }

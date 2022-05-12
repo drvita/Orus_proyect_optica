@@ -31,7 +31,9 @@ class ContactList extends JsonResource
                 count($this->orders);
 
             $return["metadata"] = $this->metas->count() ? new Metas($this->metas[0]) : [];
-            $return['created'] = new UserInExam($this->user);
+            $return['created'] = new UserSimple($this->user);
+            $return['updated'] = new UserSimple($this->user_updated);
+
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         }

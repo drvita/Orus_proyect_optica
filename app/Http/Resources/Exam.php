@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Resources;
+
 use App\Http\Resources\ContactInExam as ContactResource;
 use App\Http\Resources\UserInExam as UserResource;
 use App\Http\Resources\OrderInExam as OrderResource;
@@ -8,15 +9,17 @@ use App\Http\Resources\CategoryInExam as CategoryResource;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class Exam extends JsonResource{
+class Exam extends JsonResource
+{
 
-    public function toArray($request){
-        
+    public function toArray($request)
+    {
+
         $return = [];
 
-        if(isset($this->id)){
+        if (isset($this->id)) {
             $return['id'] = $this->id;
-            $return['edad'] = $this->edad? $this->edad : 0;
+            $return['age'] = $this->edad ? $this->edad : 0;
             $return['keratometriaoi'] = $this->keratometriaoi ? $this->keratometriaoi : '';
             $return['keratometriaod'] = $this->keratometriaod ? $this->keratometriaod : '';
             $return['pantalleooi'] = $this->pantalleooi ? $this->pantalleooi : '';
@@ -85,20 +88,19 @@ class Exam extends JsonResource{
             $return['d_fcloi'] = $this->d_fcloi ? true : false;
             $return['d_fclod_time'] = $this->d_fclod_time ? $this->d_fclod_time : "00:00";
             $return['d_fcloi_time'] = $this->d_fcloi_time ? $this->d_fcloi_time : "00:00";
-            $return['status'] = $this->status;
-            $return['estado'] = $this->status;
 
-            $return['category_primary'] = new CategoryResource($this->categoryPrimary);
-            $return['category_secondary'] = new CategoryResource($this->categorySecondary);
-            $return['paciente'] = new ContactResource($this->paciente);
+            $return['status'] = $this->status;
+            $return['category_id'] = new CategoryResource($this->categoryPrimary);
+            $return['category_ii'] = new CategoryResource($this->categorySecondary);
+            $return['customer'] = new ContactSimple($this->paciente);
             $return['orders'] = OrderResource::collection($this->orders);
-            $return['branch'] = new Config($this->branch);
+            $return['branch'] = new ConfigBranch($this->branch);
             $return['created'] = new UserResource($this->user);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         }
-        
-        
+
+
         return $return;
     }
 }

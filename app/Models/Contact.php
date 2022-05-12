@@ -143,4 +143,24 @@ class Contact extends Model
             $this->metas()->create(["key" => "metadata", "value" => $data]);
         }
     }
+    // Listerning 
+    protected static function booted()
+    {
+        static::updated(function (Contact $contact) {
+            $type = "";
+            $dirty = $contact->getDirty();
+            unset($dirty['updated_at']);
+            $data = ["user_id" => $contact->updated_id, "inputs" => $dirty];
+
+            if (is_null($contact->deleted_at)) {
+                $data['datetime'] = $contact->updated_at;
+                $type = "updated";
+            } else {
+                $data['datetime'] = $contact->deleted_at;
+                $type = "deleted";
+            }
+
+            $contact->metas()->create(["key" => $type, "value" => $data]);
+        });
+    }
 }

@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\ExamEvent;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Exam;
-use App\User;
 use Illuminate\Http\Request;
 use App\Http\Resources\Exam as ExamResources;
 use App\Http\Requests\Exam as ExamRequests;
-use App\Notifications\ExamNotification;
 use Carbon\Carbon;
 
 class ExamController extends Controller
@@ -74,17 +71,10 @@ class ExamController extends Controller
         $request['user_id'] = $currentUser->id;
         $request['branch_id'] = $currentUser->branch_id;
         $request['status'] = 0;
-        $rolUser = $currentUser->rol;
+        // $rolUser = $currentUser->rol;
 
-        //Only admin can save in differents branches
-        if (!$rolUser) {
-            if (isset($request->branch_id)) $request['branch_id'] = $request->branch_id;
-        }
-
-        //Create new exam
         $exam = $this->exam->create($request->all());
-        //If the user is employ send notify to doctor
-        if ($rolUser === 1) event(new ExamEvent($exam, $rolUser));
+        // if ($rolUser === 1) event(new ExamEvent($exam, $rolUser));
 
         return new ExamResources($exam);
     }
@@ -110,19 +100,16 @@ class ExamController extends Controller
      * @param  $exam identificador del examen
      * @return Json api rest
      */
-    public function update(Request $request, Exam $exam)
+    public function update(ExamRequests $request, Exam $exam)
     {
         $currentUser = Auth::user();
         $request['updated_id'] = $currentUser->id;
-        $rolUser = $currentUser->rol;
-        //Only admin can modify branches
-        if (isset($request->branch_id) && $rolUser) {
+
+        if (isset($request['branch_id'])) {
             unset($request['branch_id']);
         }
 
-        if ($exam) {
-            $exam->update($request->all());
-        }
+        $exam->update($request->all());
 
         return new ExamResources($exam);
     }
