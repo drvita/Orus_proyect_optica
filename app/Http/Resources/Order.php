@@ -18,18 +18,16 @@ class Order extends JsonResource
             $items = is_string($this->items) ? json_decode($this->items, true) : $this->items;
 
             $return['id'] = $this->id;
-            $return['paciente'] = new ContactShort($this->paciente);
-            // $return['exam'] = new ExamShort($this->examen);
+            $return['paciente'] = new ContactSimple($this->paciente);
             $return['session'] = $this->session;
-            // $return['items'] = SaleItemShort::collection($items);
             $return['ncaja'] = $this->ncaja;
             $return['npedidolab'] = $this->npedidolab;
-            $return['laboratorio'] = new ContactShort($this->laboratorio);
+            $return['lab'] = new ContactShort($this->laboratorio);
             $return['observaciones'] = $this->observaciones;
             $return['status'] = $this->status;
-            $return['nota'] = new SaleShort($this->nota);
-            // $return['created'] = new UserSimple($this->user);
+            $return['sale'] = new SaleShort($this->nota);
             $return['branch'] = new ConfigBranch($this->branch);
+
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         }

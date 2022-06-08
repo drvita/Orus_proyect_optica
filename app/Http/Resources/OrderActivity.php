@@ -37,12 +37,12 @@ class OrderActivity extends JsonResource
             $return['observaciones'] = $this->observaciones;
             $return['status'] = $this->status;
 
-            $return['paciente'] = new ContactShort($this->paciente);
+            $return['paciente'] = new ContactSimple($this->paciente);
             $return['exam'] = new ExamShort($this->examen);
             $return['items'] = SaleItemShort::collection($items);
-            $return['laboratorio'] = new ContactShort($this->laboratorio);
+            $return['lab'] = new ContactShort($this->laboratorio);
             $return['activity'] = MetasDetails::collection($activity);
-            $return['nota'] = new SaleShort($this->nota);
+            $return['sale'] = new SaleShort($this->nota);
             $return['branch'] = new ConfigBranch($this->branch);
 
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');

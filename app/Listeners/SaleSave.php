@@ -20,6 +20,7 @@ class SaleSave
      */
     public function handle($event)
     {
+        $auth = Auth::user();
         $sale = $event->sale;
         $items = $sale->items;
 
@@ -51,8 +52,10 @@ class SaleSave
 
         if (isset($sale["payment_status"])) {
             $payments = $sale->payments;
-            Payment::where('sale_id', $sale->id)->get()->each(function ($item) {
+
+            Payment::where('sale_id', $sale->id)->get()->each(function ($item) use ($auth) {
                 $item->deleted_at = Carbon::now();
+                $item->updated_id = $auth->id;
                 $item->save();
             });
 
@@ -67,7 +70,6 @@ class SaleSave
                     "auth" => $payment['auth'],
                     "total" => $payment['total'],
                     "bank_id" => $payment['bank_id'],
-                    // "sale_id" => $sale->id,
                     "contact_id" => $sale->contact_id,
                     "branch_id" => $sale->branch_id,
                     "user_id" => Auth::user()->id,

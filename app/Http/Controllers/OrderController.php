@@ -99,24 +99,24 @@ class OrderController extends Controller
      */
     public function store(OrderRequests $request)
     {
-        $auth = Auth::user();
-        $currentUser = User::find($auth->id);
+        $currentUser = Auth::user();
         $request['user_id'] = $currentUser->id;
         $request['status'] = 0;
-        $rolUserAdmin = $currentUser->role("admin");
-
-        //Only admin can save in differents branches
-        if (!$rolUserAdmin || !isset($request['branch_id'])) {
-            $request['branch_id'] = $currentUser->branch_id;
-        }
+        $request['branch_id'] = $currentUser->branch_id;
 
         $order = $this->order->create($request->all());
 
-        if (isset($request->items)) {
-            $order['items'] = getItemsRequest($request->items, $currentUser->branch_id);
-            if (count($order['items'])) event(new OrderSave($order, false));
+        if ($request->has("items")) {
+            $order->items = getItemsRequest($request->items, $currentUser->branch_id);
         }
 
+        if ($request->has("sale")) {
+            $order->sale = $request->sale;
+        }
+
+        if (count($order->items)) event(new OrderSave($order, false));
+
+        $order = $this->order->find($order->id);
         return new OrderActivity($order);
     }
 
@@ -137,28 +137,14 @@ class OrderController extends Controller
      * @param  $order identificador de la orden a actualizar
      * @return Json api rest
      */
-    public function update(Request $request, Order $order)
+    public function update(OrderRequests $request, Order $order)
     {
         $auth = Auth::user();
-        $currentUser = User::find($auth->id);
-        $request['updated_id'] = $currentUser->id;
-        $udStatus = $order->status != $request->status ? true : false;
-        $rolUserAdmin = $currentUser->role("admin");
+        $request['updated_id'] = $auth->id;
 
-        //Only admin can modify branches
-        if (isset($request->branch_id) && !$rolUserAdmin) {
-            $request['branch_id'] = $currentUser->branch_id;
-        }
+        unset($request['branch_id']);
 
-        if ($order) {
-            $order->update($request->all());
-
-            if (isset($request->items)) {
-                $order['items'] = getItemsRequest($request->items, $currentUser->branch_id);
-
-                event(new OrderSave($order, $udStatus));
-            }
-        }
+        $order->update($request->all());
 
         return new OrderActivity($order);
     }

@@ -8,14 +8,10 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Messenger;
 use App\Models\StoreItem;
-use App\Notifications\OrderNotification;
-use App\User;
-use Barryvdh\Debugbar\Facade as Debugbar;
+use App\Models\Payment;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Notification;
-use App\Mail\orderEmail;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class OrderSave
 {
@@ -37,119 +33,103 @@ class OrderSave
      */
     public function handle($event)
     {
-        $order = $event->order;
-        $udStatus = $event->udStatus;
-        $items = $order->items;
         $auth = Auth::user();
-        $branchOrder = $order->branch_id ? $order->branch_id : $auth->branch_id;
+        $order = $event->order;
+        $updateStatus = $event->udStatus;
+        $session = $order->session;
+        $items = $order->items;
+        $branch_id = $order->branch_id ? $order->branch_id : $auth->branch_id;
+        $sale = $order->sale ? $order->sale : new \stdClass;
+        $discount = $sale["discount"] ? $sale["discount"] : 0;
+        $payments = $sale["payments"] ? $sale["payments"] : [];
+        $subtotal = 0;
 
-        // Updated the sale if the order is created or updated
-        if (is_array($items) && count($items)) {
-            $total = 0;
-            // Create total of sale
-            foreach ($items as $item) {
-                $total += $item['subtotal'];
-            }
+        SaleItem::where('session', $session)->get()->each(function ($item) {
+            $item->delete();
+        });
 
-            if (!$total) {
-                Log::warning("La orden '$order->id' no genero venta: $total");
-                return Messenger::create([
-                    "table" => "orders",
-                    "idRow" => $order->id,
-                    "message" => "No se creo la venta! por total cero.",
-                    "user_id" => 1
-                ]);
-            }
-
-            $sale = Sale::where('order_id', $order->id)->first();
-            // The sales exist for this order?
-            if ($sale && $sale->id) {
-                $sale->session = $order->session;
-                $sale->subtotal = $total;
-                $sale->total = $total;
-                $sale->updated_at = $order->updated_at;
-                $sale->save();
-                if ($udStatus) {
-                    Messenger::create([
-                        "table" => "orders",
-                        "idRow" => $order->id,
-                        "message" => $auth->name . " actualizo la venta.",
-                        "user_id" => 1
-                    ]);
-                }
-            } else {
-                // Create sales new
-                $A_sale['subtotal'] = $total;
-                $A_sale['total'] = $total;
-                $A_sale['session'] = $order->session;
-                $A_sale['contact_id'] = $order->contact_id;
-                $A_sale['order_id'] = $order->id;
-                $A_sale['user_id'] = $auth->id;
-                $A_sale['branch_id'] = $branchOrder;
-                $A_sale['created_at'] = $order->created_at;
-                $A_sale['updated_at'] = $order->updated_at;
-                Sale::create($A_sale);
-                Messenger::create([
-                    "table" => "orders",
-                    "idRow" => $order->id,
-                    "message" => "Cree una venta nueva",
-                    "user_id" => 1
-                ]);
-            }
+        foreach ($items as $item) {
+            $tempSubTotal = $item["cant"] * $item["price"];
+            $subtotal += $tempSubTotal;
+            $branch = $branch_id;
+            $itemData = StoreItem::where("id", $item['store_items_id'])->first();
 
 
-            if ($order->status === 0) {
-                if ($order->session) {
-                    SaleItem::where('session', $order->session)->get()->each(function ($item) {
-                        $item->delete();
-                    });
+            if ($itemData && $tempSubTotal) {
+                if ($itemData->branch_default) {
+                    $branch = $itemData->branch_default;
                 }
 
-                foreach ($items as $item) {
-                    $itemData = StoreItem::where("id", $item['store_items_id'])->first();
-                    $branch = isset($item["branch_id"]) ? $item["branch_id"] : $branchOrder;
+                $i_save['cant'] = $item['cant'];
+                $i_save['price'] = $item['price'];
+                $i_save['subtotal'] = $tempSubTotal;
+                $i_save['session'] = $session;
+                $i_save['store_items_id'] = $item['store_items_id'];
+                $i_save['descripcion'] = isset($item['descripcion']) ? $item['descripcion'] : null;
+                $i_save['branch_id'] = $branch;
+                $i_save['user_id'] = $auth->id;
 
-                    if ($itemData) {
-                        if ($itemData->branch_default) {
-                            $branch = $itemData->branch_default;
-                        }
-
-                        $i_save['cant'] = $item['cant'];
-                        $i_save['price'] = $item['price'];
-                        $i_save['subtotal'] = $item['subtotal'];
-                        $i_save['inStorage'] = $item['inStorage'];
-                        $i_save['out'] = isset($item['out']) ? $item['out'] : 0;
-                        $i_save['session'] = $order->session;
-                        $i_save['store_items_id'] = $item['store_items_id'];
-                        $i_save['descripcion'] = isset($item['descripcion']) ? $item['descripcion'] : null;
-                        $i_save['branch_id'] = $branch;
-                        $i_save['user_id'] = $auth->id;
-                        $i_save['created_at'] = $order->created_at;
-                        $i_save['updated_at'] = $order->updated_at;
-
-                        SaleItem::create($i_save);
-                        Log::debug("New item sale create $itemData->code in branch: $branch for $auth->username");
-                    } else {
-                        // send notification to admins because someone buy anything and this not exist
-                        Log::error(`Product ({$item['code']}) not found in database`);
-                        Messenger::create([
-                            "table" => "orders",
-                            "idRow" => $order->id,
-                            "message" => `Se intento vender el producto: {$item['code']} y no fue encontrado`,
-                            "user_id" => 1
-                        ]);
-                    }
-                }
+                SaleItem::create($i_save);
             }
-        } else {
-            Log::warning("$auth->username create order but without items");
+        }
+
+        if (!$subtotal) {
+            Log::warning("La orden '$order->id' no genero venta.");
+            return Messenger::create([
+                "table" => "orders",
+                "idRow" => $order->id,
+                "message" => "No se creo la venta! por total cero.",
+                "user_id" => 1
+            ]);
+        }
+
+        if (!$updateStatus) {
+            $sale = [];
+
+            $sale['session'] = $order->session;
+            $sale['subtotal'] = $subtotal;
+            $sale['descuento'] = $discount;
+            $sale['total'] = $subtotal - $discount;
+            $sale['contact_id'] = $order->contact_id;
+            $sale['order_id'] = $order->id;
+            $sale['user_id'] = $auth->id;
+            $sale['branch_id'] = $branch_id;
+            $sale = Sale::create($sale);
+
             Messenger::create([
                 "table" => "orders",
                 "idRow" => $order->id,
-                "message" => "Se creo una orden sin articulos de venta",
+                "message" => "Cree una nueva venta",
                 "user_id" => 1
             ]);
-            if ($order->session) SaleItem::where('session', $order->session)->delete();
+
+            if ($sale && count($payments)) {
+                $amount = 0;
+
+                Payment::where('sale_id', $sale->id)->get()->each(function ($item) use ($auth) {
+                    $item->deleted_at = Carbon::now();
+                    $item->updated_id = $auth->id;
+                    $item->save();
+                });
+
+                foreach ($payments as $payment) {
+                    $amount += $payment['total'];
+
+                    $sale->payments()->create([
+                        "metodopago" => $payment['metodopago'],
+                        "details" => $payment['details'],
+                        "auth" => $payment['auth'],
+                        "total" => $payment['total'],
+                        "bank_id" => $payment['bank_id'],
+                        "contact_id" => $sale->contact_id,
+                        "branch_id" => $branch_id,
+                        "user_id" => $auth->id,
+                    ]);
+                }
+
+                $sale->pagado = $amount;
+                $sale->save();
+            }
         }
     }
 }

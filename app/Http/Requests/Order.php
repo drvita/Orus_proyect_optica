@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class Order extends FormRequest
 {
@@ -23,9 +24,67 @@ class Order extends FormRequest
      */
     public function rules()
     {
+        $data = $this->request->all();
+        $rules = [];
+
+        if ($this->method() === "POST") {
+            $rules['session'] = "required|unique:orders";
+            $rules['contact_id'] = "required|exists:contacts,id";
+            $rules['exam_id'] = "required|numeric|exists:exams,id";
+
+            $rules['items'] = "required|array";
+            $rules['items.*.store_items_id'] = ["required", "numeric", Rule::exists("store_items", "id")->whereNull('deleted_at')];
+            $rules['items.*.cant'] = "required|numeric|min:1";
+            $rules['items.*.price'] = "required|numeric|min:1";
+
+            if ($this->request->has('sale')) {
+                $rules['sale.discount'] = "required|numeric";
+
+                if (array_key_exists("payments", $data['sale'])) {
+                    $rules['sale.payments'] = "required|array";
+
+                    $rules['sale.payments.*.metodopago'] = "required|numeric|between:0,6";
+                    $rules['sale.payments.*.total'] = "required|numeric|min:1";
+
+                    $rules['sale.payments.*.bank_id'] = "required_unless:sale.payments.*.metodopago,1";
+                    $rules['sale.payments.*.auth'] = "required_unless:sale.payments.*.metodopago,1";
+                }
+            }
+        } else if ($this->method() === "PUT") {
+            $rules['session'] = ["sometimes", Rule::unique("orders")->ignore($this->order)];
+            $rules['contact_id'] = "sometimes|exists:contacts,id";
+            $rules['exam_id'] = "sometimes|numeric|exists:exams,id";
+            $rules['ncaja'] = "sometimes|numeric|min:1";
+            $rules['npedidolab'] = "sometimes|string|between:1,100";
+            $rules['status'] = "sometimes|numeric|between:0,5";
+            $rules['lab_id'] = ["sometimes", "numeric", Rule::exists("contacts", "id")->whereNull('deleted_at')->where('type', 1)->where('business', 1)];
+        }
+
+
+
+        return $rules;
+    }
+    public function attributes()
+    {
         return [
-            "contact_id" => "required",
-            "items" => "required"
+            "items" => "productos",
+            "session" => "session",
+            "contact_id" => "ID del paciente",
+            "sale" => "datos de la venta",
+            "sale.payments" => "datos de los abonos",
+            "sale.payments.*.metodopago" => "metodo de pago",
+            "sale.payments.*.total" => "total del abono",
+            "sale.payments.*.bank_id" => "ID del banco",
+            "sale.payments.*.auth" => "numero de autorización",
+        ];
+    }
+    public function messages()
+    {
+        return [
+            "items.array" => "Los campos de productos no es valido",
+            "items.required" => "El campo de productos 'items' es requerido",
+            "session.required" => "El campo session es un valor requerido",
+            "session.unique" => "La session ya se encuentra registrada"
         ];
     }
 }

@@ -101,29 +101,30 @@ class SaleItem extends Model
                                 $typeSale = "deleted item";
                             }
 
-                            $dataSale["inputs"] = [
-                                "cant" => $saleitem->cant,
-                                "branch_id" => $saleitem->branch_id,
-                                "name" => $item->name,
-                            ];
+                            if ($sale) {
+                                $dataSale["inputs"] = [
+                                    "cant" => $saleitem->cant,
+                                    "branch_id" => $saleitem->branch_id,
+                                    "name" => $item->name,
+                                ];
 
+                                $sale->metas()->create(["key" => $typeSale, "value" => $dataSale]);
+                            }
 
                             if ($branch->cant < 0) {
                                 $branch->cant = 0;
                             }
 
-                            $sale->metas()->create(["key" => $typeSale, "value" => $dataSale]);
-
                             $branch->updated_at = Carbon::now();
                             $branch->updated_id = $auth->id;
                             $branch->save();
+
+                            // $item->updated_at = Carbon::now();
+                            // $item->user_id = $auth->id;
+                            // $item->save();
                         } else {
                             Log::error("The sales $item->session with item $item->code not have cant to rest");
                         }
-
-                        $item->updated_at = Carbon::now();
-                        $item->user_id = $auth->id;
-                        $item->save();
 
                         return [
                             "saleID" => $saleitem->id,
