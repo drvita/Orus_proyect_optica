@@ -26,6 +26,6 @@ Route::middleware('auth:api')->get('/user', 'AuthController@userData')->name('us
 Route::middleware('auth:api')->post('/user/readAllNotifications', 'AuthController@userReadNotify')->name('users.readNotify');
 Route::middleware('auth:api')->get('/user/subscriptionNotify', 'AuthController@userSubscriptionNotify')->name('users.subscribtionNotify');
 
-// DELETE in the future
-// Route::middleware('auth:api')->get('saleday', 'PaymentController@byMethod')->name('payments.byMethod');
-// Route::middleware('auth:api')->get('bankdetails', 'PaymentController@bankdetails')->name('payments.bankdetails');
+Route::middleware('auth:api')->post('/categories/setprice/{category}', 'CategoryController@setPriceByCategory');
+
+Route::middleware('auth:api')->post('/store/bylist', 'StoreItemController@storeList');

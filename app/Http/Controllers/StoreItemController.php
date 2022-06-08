@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\StoreItem as StoreResources;
 use App\Http\Resources\StoreItemActivity;
 use App\Http\Requests\StoreItem as StoreRequests;
+use App\Http\Requests\StoreItemByList;
 use Carbon\Carbon;
 
 class StoreItemController extends Controller
@@ -17,6 +18,7 @@ class StoreItemController extends Controller
     public function __construct(StoreItem $store)
     {
         $this->middleware('can:store.list')->only('index');
+        $this->middleware('can:store.list')->only('handleDonloadCSV');
         $this->middleware('can:store.show')->only('show');
         $this->middleware('can:store.add')->only('store');
         $this->middleware('can:store.edit')->only('update');
@@ -81,7 +83,7 @@ class StoreItemController extends Controller
             ->withoutRelations()
             ->orderBy($orderby, $order)
             ->searchItem((string) $request->search)
-            ->searchCode((string) $request->code)
+            ->searchCode((string) $request->code, $request->id ?? 0)
             ->searchCodeBar((string) $request->codebar)
             ->zero($request->zero)
             ->category(intval($request->cat))
@@ -117,6 +119,11 @@ class StoreItemController extends Controller
     public function store(StoreRequests $request)
     {
         $request['user_id'] = Auth::user()->id;
+
+        if (isset($request['supplier_id'])) {
+            $request['contact_id'] = $request->supplier_id;
+            unset($request['supplier_id']);
+        }
 
         $store = $this->store->create($request->all());
         return new StoreItemActivity($store);
@@ -157,6 +164,11 @@ class StoreItemController extends Controller
             return new StoreItemActivity($store);
         }
 
+        if (isset($request['supplier_id'])) {
+            $request['contact_id'] = $request->supplier_id;
+            unset($request['supplier_id']);
+        }
+
         $request['user_id'] = $store->user_id;
         $request['updated_id'] = Auth::user()->id;
         $store->update($request->all());
@@ -176,6 +188,29 @@ class StoreItemController extends Controller
         $store->save();
         //$store->delete();
         return response()->json(null, 204);
+    }
+
+    public function storeList(StoreItemByList $request)
+    {
+        foreach ($request->items as $row) {
+            $item = StoreItem::find($row['id']);
+            $branch_id = $item->branch_default ? $item->branch_default : $row['branch_id'];
+            $branch = $item->inBranch()->where("branch_id", $branch_id)->first();
+
+            if ($branch->cant < 0) {
+                $branch->cant = 0;
+            }
+
+            if (isset($row['price'])) {
+                $branch->price = (float) $row['price'];
+            }
+
+            $branch->cant += (int) $row['cant'];
+            $branch->updated_id = Auth::user()->id;
+            $branch->save();
+        }
+
+        return ["status" => "ok"];
     }
 
     /**

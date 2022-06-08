@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\StoreItem;
-use App\Models\StoreBranch;
 use App\Notifications\ErrorStoreNotification;
 use App\User;
 use Illuminate\Support\Facades\Log;
@@ -72,35 +71,51 @@ class SaleItem extends Model
     public function sendErrorNotification($sale, $item)
     {
         User::where("id", "!=", 1)
-            ->hasRole("admin")
+            ->role("admin")
             ->get()
             ->each(function (User $user) use ($sale, $item) {
                 $user->notify(new ErrorStoreNotification($sale, $item));
             });
     }
-    public function processInStoreItem($sale, $type = "created")
+    public function processInStoreItem($saleitem, $type = "created")
     {
-        $item = StoreItem::where("id", $sale->store_items_id)->with('inBranch')->first();
+        $item = StoreItem::where("id", $saleitem->store_items_id)->with('inBranch')->first();
         $auth = Auth::user();
 
         if ($item) {
             if ($item->inBranch && count($item->inBranch)) {
+
                 foreach ($item->inBranch as $branch) {
-                    if ($branch->branch_id === $sale->branch_id) {
-                        if ($sale->cant) {
-                            // $storeBranch = StoreBranch::where("id", $branch->id)->first();
+                    if ($branch->branch_id === $saleitem->branch_id) {
+                        if ($saleitem->cant) {
+
+                            $sale = Sale::where("session", $saleitem->session)->with('metas')->first();
+                            $dataSale = ["user_id" => $auth->id, "datetime" => Carbon::now()];
+                            $typeSale = "";
+
                             if ($type === "created") {
-                                $branch->cant -= $sale->cant;
+                                $branch->cant -= $saleitem->cant;
+                                $typeSale = "created item";
                             } else {
-                                $branch->cant += $sale->cant;
+                                $branch->cant += $saleitem->cant;
+                                $typeSale = "deleted item";
                             }
+
+                            $dataSale["inputs"] = [
+                                "cant" => $saleitem->cant,
+                                "branch_id" => $saleitem->branch_id,
+                                "name" => $item->name,
+                            ];
+
 
                             if ($branch->cant < 0) {
                                 $branch->cant = 0;
                             }
 
+                            $sale->metas()->create(["key" => $typeSale, "value" => $dataSale]);
+
                             $branch->updated_at = Carbon::now();
-                            $branch->user_id = $auth->id;
+                            $branch->updated_id = $auth->id;
                             $branch->save();
                         } else {
                             Log::error("The sales $item->session with item $item->code not have cant to rest");
@@ -111,55 +126,68 @@ class SaleItem extends Model
                         $item->save();
 
                         return [
-                            "saleID" => $sale->id,
+                            "saleID" => $saleitem->id,
                             "itemId" => $item->id,
                             "name" => $item->name,
                             "code" => $item->code,
                             "branch" => $branch->branch_id,
-                            "cant" => $sale->cant,
-                            "status" => $sale->cant ? "OK" : "failer",
-                            "message" => $sale->cant ? "" : "Cant no found o zero"
+                            "cant" => $saleitem->cant,
+                            "status" => $saleitem->cant ? "OK" : "failer",
+                            "message" => $saleitem->cant ? "" : "Cant no found o zero"
                         ];
                     }
                 }
 
-                Log::error("The item $item->code in sale $sale->id doesn't match with branches: $sale->branch_id");
+                Log::error("The item $item->code in sale $saleitem->id doesn't match with branches: $saleitem->branch_id");
+                $item->inBranch()->create([
+                    "branch_id" => $saleitem->branch_id,
+                    "cant" => 0,
+                    "price" => 1,
+                    "user_id" => 1,
+                ]);
+
                 return [
-                    "saleID" => $sale->id,
+                    "saleID" => $saleitem->id,
                     "itemId" => $item->id,
                     "name" => $item->name,
                     "code" => $item->code,
-                    "branch" => $sale->branch_id,
-                    "cant" => $sale->cant,
+                    "branch" => $saleitem->branch_id,
+                    "cant" => $saleitem->cant,
                     "status" => "failer",
                     "message" => "Item doesn't do match with branches"
                 ];
             } else {
-                // send notification because no exit in branch
                 Log::error("The item $item->code doesn't have branches");
-                $sale->sendErrorNotification($sale, $item);
+                // $this->sendErrorNotification($saleitem, $item);
+                $item->inBranch()->create([
+                    "branch_id" => $saleitem->branch_id,
+                    "cant" => 0,
+                    "price" => 1,
+                    "user_id" => 1,
+                ]);
+
                 return [
-                    "saleID" => $sale->id,
+                    "saleID" => $saleitem->id,
                     "itemId" => $item->id,
                     "name" => $item->name,
                     "code" => $item->code,
-                    "branch" => $sale->branch_id,
-                    "cant" => $sale->cant,
+                    "branch" => $saleitem->branch_id,
+                    "cant" => $saleitem->cant,
                     "status" => "failer",
                     "message" => "Item not have branches"
                 ];
             }
         } else {
             // send notification because no exit item
-            Log::error("The item $sale->store_item_id not found");
-            $sale->sendErrorNotification($sale);
+            Log::error("The item $saleitem->store_item_id not found");
+            $this->sendErrorNotification($saleitem, new \stdClass);
             return [
-                "saleID" => $sale->id,
-                "itemId" => $sale->store_item_id,
+                "saleID" => $saleitem->id,
+                "itemId" => $saleitem->store_item_id,
                 "name" => "",
                 "code" => "",
-                "branch" => $sale->branch_id,
-                "cant" => $sale->cant,
+                "branch" => $saleitem->branch_id,
+                "cant" => $saleitem->cant,
                 "status" => "failer",
                 "message" => "Item not found in store"
             ];
@@ -170,11 +198,11 @@ class SaleItem extends Model
     {
         parent::boot();
 
-        static::created(function ($sale) {
-            $sale->processInStoreItem($sale, "created");
+        static::created(function (Saleitem $saleitem) {
+            $saleitem->processInStoreItem($saleitem, "created");
         });
-        static::deleting(function ($sale) {
-            $sale->processInStoreItem($sale, "deleted");
+        static::deleted(function (Saleitem $saleitem) {
+            $saleitem->processInStoreItem($saleitem, "deleted");
         });
     }
 }

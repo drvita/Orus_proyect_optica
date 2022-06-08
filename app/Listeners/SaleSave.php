@@ -31,10 +31,10 @@ class SaleSave
 
 
                 foreach ($items as $item) {
-                    $i_save['cant'] = $item['cant'];
-                    $i_save['price'] = $item['price'];
-                    $i_save['subtotal'] = $item['subtotal'];
-                    $i_save['inStorage'] = $item['inStorage'];
+                    $i_save['cant'] = $item['cant'] ?? 0;
+                    $i_save['price'] = $item['price'] ?? 0;
+                    $i_save['subtotal'] = $item['subtotal'] ?? 0;
+                    $i_save['inStorage'] = $item['inStorage'] ?? 0;
                     $i_save['out'] = isset($item['out']) ? $item['out'] : 0;
                     $i_save['session'] = $sale->session;
                     $i_save['store_items_id'] = $item['store_items_id'];
@@ -56,25 +56,30 @@ class SaleSave
                 $item->save();
             });
 
+            $amount = 0;
+
             foreach ($payments as $payment) {
-                Payment::updateOrCreate(
-                    ['id' => $payment['id']],
-                    [
-                        "metodopago" => $payment['metodopago'],
-                        "details" => $payment['details'],
-                        "auth" => $payment['auth'],
-                        "total" => $payment['total'],
-                        "bank_id" => $payment['bank_id'],
-                        "sale_id" => $sale->id,
-                        "contact_id" => $sale->contact_id,
-                        "branch_id" => $sale->branch_id,
-                        "user_id" => Auth::user()->id,
-                        "deleted_at" => null,
-                    ]
-                );
+                $amount += $payment['total'];
+
+                $sale->payments()->create([
+                    "metodopago" => $payment['metodopago'],
+                    "details" => $payment['details'],
+                    "auth" => $payment['auth'],
+                    "total" => $payment['total'],
+                    "bank_id" => $payment['bank_id'],
+                    // "sale_id" => $sale->id,
+                    "contact_id" => $sale->contact_id,
+                    "branch_id" => $sale->branch_id,
+                    "user_id" => Auth::user()->id,
+                ]);
+            }
+
+            if ($amount !== $sale->pagado) {
+                $sale = Sale::find($sale->id);
+
+                $sale->pagado = $amount;
+                $sale->save();
             }
         }
-
-        //dd("SAle", Sale::find($sale->id)->relations()->get()->toArray());
     }
 }

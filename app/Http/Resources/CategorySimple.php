@@ -21,6 +21,7 @@ class CategorySimple extends JsonResource
 
             $return['id'] = $this->id;
             $return['name'] = $this->name;
+            $return['code'] = $codeCategories;
         }
 
         return $return;

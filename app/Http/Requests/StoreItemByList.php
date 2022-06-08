@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreBranch extends FormRequest
+class StoreItemByList extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,10 +25,11 @@ class StoreBranch extends FormRequest
     public function rules()
     {
         return [
-            "cant" => "required|numeric",
-            "price" => "required|numeric",
-            "store_item_id" => "required|numeric|exists:store_items,id",
-            "branch_id" => ["required", "numeric", Rule::exists("config", "id")->where("name", "branches")]
+            "items" => "required|array",
+            "items.*.id" => ["required", "numeric", Rule::exists("store_items", "id")->whereNull('deleted_at')],
+            "items.*.cant" => "required|numeric|min:1",
+            "items.*.price" => "nullable|numeric|min:1",
+            "items.*.branch_id" => ["required", "numeric", Rule::exists("config", "id")->where("name", "branches")],
         ];
     }
 }

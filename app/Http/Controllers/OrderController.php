@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Order as OrderResources;
 use App\Http\Requests\Order as OrderRequests;
 use App\Events\OrderSave;
+use App\Http\Resources\OrderActivity;
 use Carbon\Carbon;
 
 class OrderController extends Controller
@@ -102,7 +103,7 @@ class OrderController extends Controller
         $currentUser = User::find($auth->id);
         $request['user_id'] = $currentUser->id;
         $request['status'] = 0;
-        $rolUserAdmin = $currentUser->hasRole("admin");
+        $rolUserAdmin = $currentUser->role("admin");
 
         //Only admin can save in differents branches
         if (!$rolUserAdmin || !isset($request['branch_id'])) {
@@ -116,7 +117,7 @@ class OrderController extends Controller
             if (count($order['items'])) event(new OrderSave($order, false));
         }
 
-        return new OrderResources($order);
+        return new OrderActivity($order);
     }
 
     /**
@@ -127,7 +128,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $order->withRelation();
-        return new OrderResources($order);
+        return new OrderActivity($order);
     }
 
     /**
@@ -142,7 +143,7 @@ class OrderController extends Controller
         $currentUser = User::find($auth->id);
         $request['updated_id'] = $currentUser->id;
         $udStatus = $order->status != $request->status ? true : false;
-        $rolUserAdmin = $currentUser->hasRole("admin");
+        $rolUserAdmin = $currentUser->role("admin");
 
         //Only admin can modify branches
         if (isset($request->branch_id) && !$rolUserAdmin) {
@@ -159,7 +160,7 @@ class OrderController extends Controller
             }
         }
 
-        return new OrderResources($order);
+        return new OrderActivity($order);
     }
 
     /**

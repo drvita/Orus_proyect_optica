@@ -24,7 +24,7 @@ class Contact extends JsonResource
             $brands = $this->brands()->paginate($perPage, ['*'], 'brands_page');
             $purchases = $this->buys()->paginate($perPage, ['*'], 'purchases_page');
             $orders = $this->orders()->paginate($perPage, ['*'], 'orders_page');
-            $metadata = $this->metas()->where("key", "metadata")->get()[0];
+            $metadata = $this->metas()->where("key", "metadata")->get();
             $activity = $this->metas()->where("key", ["updated", "deleted", "created"])->get();
 
             $obj = [
@@ -37,10 +37,7 @@ class Contact extends JsonResource
             ];
             $obj = json_decode(json_encode($obj), false);
             $obj->value = json_decode($obj->value, true);
-
             $activity->prepend($obj);
-            // dd($activity, $obj->id);
-
 
             $return['id'] = $this->id;
             $return['name'] = $this->name;
@@ -68,7 +65,7 @@ class Contact extends JsonResource
             $return['orders'] = OrderResource::collection($orders);
             $return['orders_count'] = $orders->total();
 
-            $return["metadata"] = $this->metas->count() ? new Metas($metadata) : [];
+            $return["metadata"] = $metadata->count() ? new Metas($metadata[0]) : new \stdClass;
             $return["activity"] = MetasDetails::collection($activity);
             $return['created'] = new UserSimple($this->user);
             $return['updated'] = new UserSimple($this->user_updated);

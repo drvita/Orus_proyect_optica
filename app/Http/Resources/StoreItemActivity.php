@@ -19,6 +19,19 @@ class StoreItemActivity extends JsonResource
             $price = 0;
             $from = 0;
             $branchSelect = null;
+            $activity = $this->metas()->whereIn("key", ["updated", "deleted", "created", "created branch"])->get();
+
+            $obj = [
+                'id' => 0,
+                'key' => 'created',
+                'value' => json_encode([
+                    "datetime" => $this->created_at,
+                    "user_id" => $this->user->id
+                ])
+            ];
+            $obj = json_decode(json_encode($obj), false);
+            $obj->value = json_decode($obj->value, true);
+            $activity->prepend($obj);
 
 
             if ($this->inBranch) {
@@ -52,7 +65,6 @@ class StoreItemActivity extends JsonResource
             $return['code'] = $this->code ? $this->code : "";
             $return['barcode'] = $this->codebar ? $this->codebar : "";
             $return['grad'] = $this->grad ? $this->grad : "+000000";
-            $return['brand'] = new BrandShort($this->brand);
             $return['und'] = $this->unit;
             $return['cant_total'] = $cantAll;
             $return['cant'] = $cantBranch;
@@ -60,9 +72,13 @@ class StoreItemActivity extends JsonResource
             $return['price'] = $price;
             $return['from'] = $from;
             $return['branch_default'] = $this->branch_default;
-            $return['activity'] = MetasDetails::collection($this->metas);
+
+            $return['brand'] = new BrandShort($this->brand);
+            $return['branches'] = StoreBranch::collection($this->inBranch);
+            $return['activity'] = MetasDetails::collection($activity);
             $return['category'] = new CategoryStore($this->categoria);
             $return['supplier'] = new ContactStore($this->supplier);
+
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         }

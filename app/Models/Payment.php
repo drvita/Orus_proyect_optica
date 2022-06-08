@@ -8,17 +8,19 @@ use App\Models\Messenger;
 use App\Models\Config;
 use App\User;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class Payment extends Model
 {
     protected $table = "payments";
     protected $fillable = [
-        "metodopago", "details", "bank_id", "auth", "total", "sale_id", "contact_id", "user_id", "branch_id"
+        "metodopago", "details", "bank_id", "auth", "total", "sale_id", "contact_id", "user_id", "branch_id", "updated_id"
     ];
     protected $hidden = [];
     protected $dates = [
         'updated_at',
-        'created_at'
+        'created_at',
+        'deleted_at'
     ];
     //Relations
     public function user()
@@ -40,6 +42,10 @@ class Payment extends Model
     public function branch()
     {
         return $this->belongsTo(Config::class, 'branch_id', 'id');
+    }
+    public function metas()
+    {
+        return $this->morphMany(Meta::class, 'metable');
     }
     //Scopes
     public function scopeSale($query, $search)
@@ -120,30 +126,41 @@ class Payment extends Model
             $query->where("branch_id", $search);
         }
     }
-    //Statics functions
+    //Other functions
+    public function setMessage($table, $messegeId, $message)
+    {
+        Messenger::create([
+            "table" => $table,
+            "idRow" => $messegeId,
+            "message" => $message,
+            "user_id" => 1
+        ]);
+    }
     protected static function booted()
     {
-        static::created(function ($pay) {
-            $updateSale = Sale::find($pay->sale_id);
+        parent::boot();
 
-            if ($updateSale->order_id) {
-                $messegeId = $updateSale->order_id;
+        static::created(function (Payment $pay) {
+            $sale = Sale::find($pay->sale_id);
+            $auth = Auth::user();
+
+            if ($sale->order_id) {
+                $messegeId = $sale->order_id;
                 $table = "orders";
             } else {
                 $messegeId = $pay->sale_id;
                 $table = "sales";
             }
 
-            $updateSale->pagado += $pay->total;
-            $updateSale->save();
-            Messenger::create([
-                "table" => $table,
-                "idRow" => $messegeId,
-                "message" => Auth::user()->name . " abono a la cuenta ($ " . $pay->total . ")",
-                "user_id" => 1
-            ]);
+            $dataPay = [
+                "total" => $pay->total,
+                "method" => $pay->metodopago
+            ];
+            $data = ["user_id" => $auth->id, "inputs" => $dataPay];
+            $sale->metas()->create(["key" => "created payment", "value" => $data, "datetime" => Carbon::now()]);
+            $pay->setMessage($table, $messegeId, Auth::user()->name . " abono a la cuenta ($ " . $pay->total . ")");
         });
-        static::deleted(function ($pay) {
+        static::deleted(function (Payment $pay) {
             $updateSale = Sale::find($pay->sale_id);
 
             if ($updateSale->order_id) {
@@ -156,12 +173,38 @@ class Payment extends Model
 
             $updateSale->pagado -= $pay->total;
             $updateSale->save();
-            Messenger::create([
-                "table" => $table,
-                "idRow" => $messegeId,
-                "message" => Auth::user()->name . " elimino un abono ($ " . $pay->total . ")",
-                "user_id" => 1
-            ]);
+            $pay->setMessage($table, $messegeId, Auth::user()->name . " elimino un abono ($ " . $pay->total . ")");
+        });
+        static::updated(function (Payment $pay) {
+            $type = "";
+            $auth = Auth::user();
+            $dataPay = [
+                "total" => $pay->total,
+                "method" => $pay->metodopago
+            ];
+            $data = ["user_id" => $auth->id, "inputs" => $dataPay];
+            $sale = Sale::find($pay->sale_id);
+
+            if (is_null($pay->deleted_at)) {
+                $data['datetime'] = Carbon::now();
+                $type = "updated payment";
+            } else {
+                $data['datetime'] = Carbon::now();
+                $type = "deleted payment";
+
+                if ($sale->order_id) {
+                    $messegeId = $sale->order_id;
+                    $table = "orders";
+                } else {
+                    $messegeId = $pay->sale_id;
+                    $table = "sales";
+                }
+
+                $pay->setMessage($table, $messegeId, Auth::user()->name . " elimino un abono ($ " . $pay->total . ")");
+            }
+
+            $sale->metas()->create(["key" => $type, "value" => $data]);
+            // dd(["key" => $type, "value" => $data]);
         });
     }
 }

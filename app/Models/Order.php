@@ -9,18 +9,20 @@ use App\Models\Contact;
 use App\User;
 use App\Models\Sale;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class Order extends Model
 {
     protected $table = "orders";
     protected $fillable = [
         "contact_id", "exam_id", "ncaja", "npedidolab", "lab_id", "user_id",
-        "observaciones", "session", "status", "branch_id"
+        "observaciones", "session", "status", "branch_id", "updated_id"
     ];
     protected $hidden = [];
     protected $dates = [
         'updated_at',
-        'created_at'
+        'created_at',
+        'deleted_at'
     ];
     //Relationships
     public function examen()
@@ -54,6 +56,10 @@ class Order extends Model
     public function branch()
     {
         return $this->belongsTo(Config::class, 'branch_id', 'id');
+    }
+    public function metas()
+    {
+        return $this->morphMany(Meta::class, 'metable');
     }
     //Scopes
     public function scopePaciente($query, $name)
@@ -93,5 +99,33 @@ class Order extends Model
         if (trim($search) != "") {
             $query->where("branch_id", $search);
         }
+    }
+
+    // Listerning 
+    protected static function booted()
+    {
+        parent::boot();
+
+        static::updated(function ($item) {
+            $type = "";
+            $auth = Auth::user();
+            $dirty = $item->getDirty();
+            unset($dirty['updated_at']);
+            unset($dirty['updated_id']);
+            unset($dirty['user_id']);
+            $data = ["user_id" => $auth->id, "inputs" => $dirty];
+
+            if (!$dirty || !count($dirty)) return;
+
+            if (is_null($item->deleted_at)) {
+                $data['datetime'] = Carbon::now();
+                $type = "updated";
+            } else {
+                $data['datetime'] = Carbon::now();
+                $type = "deleted";
+            }
+
+            $item->metas()->create(["key" => $type, "value" => $data]);
+        });
     }
 }

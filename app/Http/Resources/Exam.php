@@ -18,6 +18,20 @@ class Exam extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
+            $activity = $this->metas()->where("key", ["updated", "deleted", "created"])->get();
+
+            $obj = [
+                'id' => 0,
+                'key' => 'created',
+                'value' => json_encode([
+                    "datetime" => $this->created_at,
+                    "user_id" => $this->user->id
+                ])
+            ];
+            $obj = json_decode(json_encode($obj), false);
+            $obj->value = json_decode($obj->value, true);
+            $activity->prepend($obj);
+
             $return['id'] = $this->id;
             $return['age'] = $this->edad ? $this->edad : 0;
             $return['keratometriaoi'] = $this->keratometriaoi ? $this->keratometriaoi : '';
@@ -95,7 +109,8 @@ class Exam extends JsonResource
             $return['customer'] = new ContactSimple($this->paciente);
             $return['orders'] = OrderResource::collection($this->orders);
             $return['branch'] = new ConfigBranch($this->branch);
-            $return['created'] = new UserResource($this->user);
+            $return["activity"] = MetasDetails::collection($activity);
+
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
             $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
         }

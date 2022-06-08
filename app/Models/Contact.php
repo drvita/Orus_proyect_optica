@@ -18,7 +18,7 @@ class Contact extends Model
     protected $fillable = [
         "name", "rfc", "email", "type", "telnumbers", "birthday", "domicilio", "user_id", "business", "updated_id"
     ];
-    protected $hidden = [];
+    protected $hidden = ["updated_id", "user_id"];
     protected $dates = [
         'updated_at',
         'created_at',
@@ -146,10 +146,13 @@ class Contact extends Model
     // Listerning 
     protected static function booted()
     {
+        parent::boot();
+
         static::updated(function (Contact $contact) {
             $type = "";
             $dirty = $contact->getDirty();
             unset($dirty['updated_at']);
+            unset($dirty['updated_id']);
             $data = ["user_id" => $contact->updated_id, "inputs" => $dirty];
 
             if (is_null($contact->deleted_at)) {

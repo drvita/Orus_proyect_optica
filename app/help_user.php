@@ -2,7 +2,7 @@
 function isAdmin($user)
 {
 
-    return $user->hasRole("admin");
+    return $user->role("admin");
 }
 
 function user_can($user, $can)
@@ -12,5 +12,5 @@ function user_can($user, $can)
 
 function user_hasRole($user, $role)
 {
-    return $user->hasRole($role);
+    return $user->role($role);
 }

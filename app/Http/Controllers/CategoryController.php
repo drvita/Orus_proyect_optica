@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\CategorySetPrice;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Category as CategoryResource;
-//use App\Http\Resources\CategoryInExam as CategoryResource;
 use App\Models\Category;
+use App\Models\StoreItem;
 
 class CategoryController extends Controller
 {
@@ -19,6 +20,7 @@ class CategoryController extends Controller
         $this->middleware('can:category.add')->only('store');
         $this->middleware('can:category.edit')->only('update');
         $this->middleware('can:category.delete')->only('destroy');
+        $this->middleware('can:store.edit')->only('setPriceByCategory');
         $this->category = $category;
     }
     /**
@@ -97,5 +99,42 @@ class CategoryController extends Controller
     {
         $category->delete();
         return response()->json(null, 204);
+    }
+
+    /**
+     * Set price all items of category
+     * @param $id of category
+     */
+    public function setPriceByCategory(CategorySetPrice $request, Category $category)
+    {
+        $items = $category->items()->get();
+
+
+        $items->each(function (StoreItem $item) use ($request) {
+            $branch_id = $request->branch_id;
+
+            if ($item->branch_default) {
+                $branch_id = $item->branch_default;
+            }
+
+            if ($branch_id) {
+                $branch = $item->inBranch()->where("branch_id", $branch_id)->first();
+                $branch->price = $request->price;
+                $branch->updated_id = Auth::user()->id;
+                $branch->save();
+            } else {
+                $branches = $item->inBranch()->get();
+                $branches->each(function ($branch) use ($request) {
+                    $branch->price = $request->price;
+                    $branch->updated_id = Auth::user()->id;
+                    $branch->save();
+                });
+            }
+        });
+
+        return [
+            "category" => $category,
+            "request" => $request->all()
+        ];
     }
 }

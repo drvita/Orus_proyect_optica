@@ -18,7 +18,6 @@ class StoreItem extends JsonResource
             $cantBranch = 0;
             $price = 0;
             $from = 0;
-            $branchSelect = null;
 
 
             if ($this->inBranch) {
@@ -33,7 +32,6 @@ class StoreItem extends JsonResource
                             $from = $this->branch_default;
                         }
                     }
-                    $branchSelect = $this->branch_default;
                 } else {
                     foreach ($branches as $item) {
                         $cantAll += $item['cant'];
@@ -43,7 +41,6 @@ class StoreItem extends JsonResource
                             $from = $user->branch_id;
                         }
                     }
-                    $branchSelect = $user->branch_id;
                 }
             }
 
@@ -52,12 +49,14 @@ class StoreItem extends JsonResource
             $return['code'] = $this->code ? $this->code : "";
             $return['barcode'] = $this->codebar ? $this->codebar : "";
             $return['grad'] = $this->grad ? $this->grad : "+000000";
-            $return['brand'] = new BrandShort($this->brand);
             $return['und'] = $this->unit;
             $return['cant_total'] = $cantAll;
             $return['cant'] = $cantBranch;
             $return['price'] = $price;
             $return['from'] = $from;
+            $return['branch_default'] = $this->branch_default;
+            $return['brand'] = new BrandShort($this->brand);
+            $return['branches'] = StoreBranch::collection($this->inBranch);
             $return['category'] = new CategorySimple($this->categoria);
             $return['supplier'] = new ContactStore($this->supplier);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');

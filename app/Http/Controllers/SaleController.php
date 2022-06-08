@@ -102,18 +102,12 @@ class SaleController extends Controller
     public function update(SaleRequests $request, Sale $sale)
     {
         $currentUser = Auth::user();
+        $request['user_id'] = $sale->user_id;
         $request['updated_id'] = $currentUser->id;
+        $request['branch_id'] = $sale->branch_id;
 
         if (isset($request["discount"])) {
             $request['descuento'] = $request->discount ?? 0;
-        }
-
-        if (isset($request['user_id'])) {
-            unset($request['user_id']);
-        }
-
-        if (isset($request['branch_id'])) {
-            unset($request['branch_id']);
         }
 
         $sale->update($request->all());

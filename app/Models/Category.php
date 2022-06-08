@@ -33,6 +33,10 @@ class Category extends Model
     {
         return $this->hasMany(Category::class, 'category_id', 'id');
     }
+    public function items()
+    {
+        return $this->hasMany(StoreItem::class, 'category_id', 'id');
+    }
     // scopes
     public function scopeCategoryId($query, $search)
     {

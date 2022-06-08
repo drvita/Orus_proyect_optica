@@ -25,23 +25,32 @@ class StoreItem extends FormRequest
     public function rules()
     {
         $data = $this->request->all();
-        $ruleCodeBar = ["max:100"];
+        $rules = [
+            "unit" => "required|nullable|max:4",
+            "category_id" => "required|nullable|numeric|exists:categories,id",
+        ];
 
-        if ($data['codebar']) {
-            $ruleCodeBar = Rule::unique('store_items')->ignore($this->route('store'));
+        if ($this->method() === "PUT") {
+            $rules["name"] = ["required", "nullable", "max:150", Rule::unique('store_items')->ignore($this->route('store'))];
+            $rules["code"] = ["required", "nullable", "max:18", Rule::unique('store_items')->ignore($this->route('store'))];
+
+            if (array_key_exists("codebar", $data)) {
+                $rules["codebar"] = ["nullable", "max:100", Rule::unique('store_items')->ignore($this->route('store'))];
+            }
+        } else {
+            $rules["name"] = "required|nullable|max:150|unique:store_items";
+            $rules["code"] = "required|nullable|max:18|unique:store_items";
+
+            if (array_key_exists("codebar", $data)) {
+                $rules["codebar"] = "nullable|max:100|unique:store_items";
+            }
         }
 
-        // dd($ruleCodeBar);
-        return [
-            "code" => [
-                "required", "max:18",
-                Rule::unique('store_items')->ignore($this->route('store'))
-            ],
-            "codebar" => $ruleCodeBar,
-            "name" => ["required", "max:150", Rule::unique('store_items')->ignore($this->route('store'))],
-            "unit" => "required|max:4",
-            "category_id" => "required"
-        ];
+        if (array_key_exists("supplier_id", $data)) {
+            $rules["supplier_id"] = "nullable|numeric|exists:contacts,id";
+        }
+
+        return $rules;
     }
 
     public function attributes()
@@ -51,7 +60,8 @@ class StoreItem extends FormRequest
             "codebar" => "codigo de barras",
             "name" => "nombre del producto",
             "unit" => "unidad de presentación",
-            "category_id" => "categoria del producto"
+            "category_id" => "categoria del producto",
+            "supplier_id" => "proveedor"
         ];
     }
     public function messages()

@@ -9,6 +9,8 @@ use App\Models\Contact;
 use App\Models\StoreLot;
 use App\Models\Brand;
 use App\Models\StoreBranch;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class StoreItem extends Model
 {
@@ -16,7 +18,7 @@ class StoreItem extends Model
     protected $fillable = [
         "code", "codebar", "grad", "brand_id", "name", "unit", "cant", "price", "category_id", "contact_id", "user_id", "branch_default", "updated_id"
     ];
-    protected $hidden = [];
+    protected $hidden = ["updated_id", "user_id"];
     protected $dates = [
         'updated_at',
         'created_at',
@@ -85,10 +87,12 @@ class StoreItem extends Model
             $query->where("category_id", $val);
         }
     }
-    public function scopeSearchCode($query, $search)
+    public function scopeSearchCode($query, $search, $id = 0)
     {
         if (trim($search) != "") {
             $query->where("code", "LIKE", $search);
+
+            if ($id) $query->where("id", "!=", $id);
         }
     }
     public function scopeSearchCodeBar($query, $search)
@@ -159,17 +163,24 @@ class StoreItem extends Model
     // Listerning 
     protected static function booted()
     {
+        parent::boot();
+
         static::updated(function ($item) {
             $type = "";
+            $auth = Auth::user();
             $dirty = $item->getDirty();
             unset($dirty['updated_at']);
-            $data = ["user_id" => $item->updated_id, "inputs" => $dirty];
+            unset($dirty['updated_id']);
+            unset($dirty['user_id']);
+            $data = ["user_id" => $auth->id, "inputs" => $dirty];
+
+            if (!$dirty || !count($dirty)) return;
 
             if (is_null($item->deleted_at)) {
-                $data['date'] = $item->updated_at;
+                $data['datetime'] = Carbon::now();
                 $type = "updated";
             } else {
-                $data['date'] = $item->deleted_at;
+                $data['datetime'] = Carbon::now();
                 $type = "deleted";
             }
 

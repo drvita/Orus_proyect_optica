@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\StoreBranch;
 use App\Models\StoreItem;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreBranch as StoreRequests;
-use Carbon\Carbon;
 use App\Http\Resources\StoreBranch as BranchResource;
 
 class StoreBranchController extends Controller
@@ -29,12 +27,6 @@ class StoreBranchController extends Controller
     public function store(StoreRequests $request)
     {
         $user_default = Auth::user();
-        $request['user_id'] = $user_default->id;
-
-        if (!$request->branch_id) {
-            $request['branch_id'] = $user_default->branch_id;
-        }
-
         $item = StoreItem::find($request->store_item_id);
 
         if ($item) {
@@ -54,11 +46,14 @@ class StoreBranchController extends Controller
             ->first();
 
         if ($branch) {
+            $request['updated_id'] = $user_default->id;
             $branch->update($request->all());
-            return $branch;
+            return new BranchResource($branch);
         }
 
+        $request['user_id'] = $user_default->id;
         $branch = $this->branch->create($request->all());
+
         return new BranchResource($branch);
     }
 

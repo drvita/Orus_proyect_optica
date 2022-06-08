@@ -18,15 +18,14 @@ class MetasDetails extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
-            // dd($this->value['user_id']);
-            $user = User::find($this->value['user_id']);
+            $user = $this->value['user_id'] ? User::find($this->value['user_id']) : new \stdClass;
 
             $return["type"] = $this->key;
             $return["data"] = [
                 "datetime" => $this->value['datetime'] ?? "",
                 "user" => [
-                    "id" => $user->id,
-                    "name" => $user->name,
+                    "id" => $user->id ?? "",
+                    "name" => $user->name ?? "",
                 ],
                 "inputs" => $this->value['inputs'] ?? new \stdClass,
             ];
