@@ -111,24 +111,13 @@ class CategoryController extends Controller
 
 
         $items->each(function (StoreItem $item) use ($request) {
-            $branch_id = $request->branch_id;
-
-            if ($item->branch_default) {
-                $branch_id = $item->branch_default;
-            }
+            $branch_id = $item->branch_default;
 
             if ($branch_id) {
                 $branch = $item->inBranch()->where("branch_id", $branch_id)->first();
                 $branch->price = $request->price;
                 $branch->updated_id = Auth::user()->id;
                 $branch->save();
-            } else {
-                $branches = $item->inBranch()->get();
-                $branches->each(function ($branch) use ($request) {
-                    $branch->price = $request->price;
-                    $branch->updated_id = Auth::user()->id;
-                    $branch->save();
-                });
             }
         });
 

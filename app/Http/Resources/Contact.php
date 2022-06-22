@@ -25,7 +25,7 @@ class Contact extends JsonResource
             $purchases = $this->buys()->paginate($perPage, ['*'], 'purchases_page');
             $orders = $this->orders()->paginate($perPage, ['*'], 'orders_page');
             $metadata = $this->metas()->where("key", "metadata")->get();
-            $activity = $this->metas()->where("key", ["updated", "deleted", "created"])->get();
+            $activity = $this->metas()->where("key", ["updated", "deleted", "created"])->orderBy("id", "desc")->get();
 
             $obj = [
                 'id' => 0,
@@ -37,7 +37,7 @@ class Contact extends JsonResource
             ];
             $obj = json_decode(json_encode($obj), false);
             $obj->value = json_decode($obj->value, true);
-            $activity->prepend($obj);
+            $activity->push($obj);
 
             $return['id'] = $this->id;
             $return['name'] = $this->name;

@@ -27,5 +27,5 @@ Route::middleware('auth:api')->post('/user/readAllNotifications', 'AuthControlle
 Route::middleware('auth:api')->get('/user/subscriptionNotify', 'AuthController@userSubscriptionNotify')->name('users.subscribtionNotify');
 
 Route::middleware('auth:api')->post('/categories/setprice/{category}', 'CategoryController@setPriceByCategory');
-
 Route::middleware('auth:api')->post('/store/bylist', 'StoreItemController@storeList');
+Route::middleware('auth:api')->post('/store/setcant/{item}', 'StoreItemController@setCantItem');

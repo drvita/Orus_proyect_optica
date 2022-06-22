@@ -2,12 +2,12 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
+// use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-
-
+use Carbon\Carbon;
+use App\Models\Meta;
 
 class User extends Authenticatable
 {
@@ -40,6 +40,10 @@ class User extends Authenticatable
     public function branch()
     {
         return $this->belongsTo('App\Models\Config', 'branch_id', 'id');
+    }
+    public function metas()
+    {
+        return $this->morphMany(Meta::class, 'metable');
     }
     //Scopes
     public function scopeSearch($query, $search)
@@ -111,5 +115,32 @@ class User extends Authenticatable
     public function scopeWithRelation($query)
     {
         $query->with('session', 'branch');
+    }
+    // Listerning 
+    protected static function booted()
+    {
+        static::updated(function (User $user) {
+            $type = "";
+            $dirty = $user->getDirty();
+            unset($dirty['updated_at']);
+            unset($dirty['updated_id']);
+
+
+            if (isset($dirty['api_token']) || !count($dirty)) {
+                return null;
+            }
+
+            $data = ["user_id" => 1, "inputs" => $dirty];
+
+            if (is_null($user->deleted_at)) {
+                $data['datetime'] = Carbon::now();
+                $type = "updated";
+            } else {
+                $data['datetime'] = Carbon::now();
+                $type = "deleted";
+            }
+
+            $user->metas()->create(["key" => $type, "value" => $data]);
+        });
     }
 }

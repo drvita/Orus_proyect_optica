@@ -9,6 +9,7 @@ use App\Http\Resources\StoreItem as StoreResources;
 use App\Http\Resources\StoreItemActivity;
 use App\Http\Requests\StoreItem as StoreRequests;
 use App\Http\Requests\StoreItemByList;
+use App\Http\Requests\StoreItemSetCant;
 use Carbon\Carbon;
 
 class StoreItemController extends Controller
@@ -189,7 +190,37 @@ class StoreItemController extends Controller
         //$store->delete();
         return response()->json(null, 204);
     }
+    /**
+     * 
+     */
+    public function setCantItem(StoreItem $item, StoreItemSetCant $request)
+    {
+        if (!$item->branch_default) {
+            return ["status" => "failer", "message" => "The item is not item valid to set cant by default branch"];
+        }
 
+        $item->inBranch()->get()->each(function ($i) use ($item, $request) {
+            if ($item->branch_default === $i->branch_id) {
+                $i->cant = $request->cant;
+                $i->save();
+            } else {
+                // $i->deleted_at = carbon::now();
+                $i->delete();
+            }
+        });
+
+        $item->cant = $request->cant;
+
+        return [
+            "status" => "ok",
+            "data" => $item,
+        ];
+    }
+    /**
+     * Save items by array
+     * @param $request into items
+     * @return result about operation
+     */
     public function storeList(StoreItemByList $request)
     {
         foreach ($request->items as $row) {
@@ -208,6 +239,8 @@ class StoreItemController extends Controller
             $branch->cant += (int) $row['cant'];
             $branch->updated_id = Auth::user()->id;
             $branch->save();
+
+            //TODO: save in Store lot
         }
 
         return ["status" => "ok"];

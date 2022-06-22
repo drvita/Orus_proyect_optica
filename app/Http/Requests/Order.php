@@ -46,21 +46,22 @@ class Order extends FormRequest
                     $rules['sale.payments.*.metodopago'] = "required|numeric|between:0,6";
                     $rules['sale.payments.*.total'] = "required|numeric|min:1";
 
-                    $rules['sale.payments.*.bank_id'] = "required_unless:sale.payments.*.metodopago,1";
+                    $rules['sale.payments.*.bank_id'] = "required_unless:sale.payments.*.metodopago, 1,4";
                     $rules['sale.payments.*.auth'] = "required_unless:sale.payments.*.metodopago,1";
                 }
             }
         } else if ($this->method() === "PUT") {
-            $rules['session'] = ["sometimes", Rule::unique("orders")->ignore($this->order)];
-            $rules['contact_id'] = "sometimes|exists:contacts,id";
-            $rules['exam_id'] = "sometimes|numeric|exists:exams,id";
-            $rules['ncaja'] = "sometimes|numeric|min:1";
-            $rules['npedidolab'] = "sometimes|string|between:1,100";
-            $rules['status'] = "sometimes|numeric|between:0,5";
-            $rules['lab_id'] = ["sometimes", "numeric", Rule::exists("contacts", "id")->whereNull('deleted_at')->where('type', 1)->where('business', 1)];
+            $rules['status'] = "required|numeric|between:0,4";
+            // $rules['exam_id'] = "required|numeric|exists:exams,id";
+
+            if ($data['status'] == 1) {
+                $rules['lab_id'] = ["sometimes", "numeric", Rule::exists("contacts", "id")->whereNull('deleted_at')->where('type', 1)->where('business', 1)];
+                $rules['lab_order'] = "required|string|between:1,100";
+            } else if ($data['status'] == 2) {
+                $rules['bi_box'] = "sometimes|numeric|min:1";
+                $rules['bi_details'] = "sometimes|string";
+            }
         }
-
-
 
         return $rules;
     }
@@ -74,7 +75,7 @@ class Order extends FormRequest
             "sale.payments" => "datos de los abonos",
             "sale.payments.*.metodopago" => "metodo de pago",
             "sale.payments.*.total" => "total del abono",
-            "sale.payments.*.bank_id" => "ID del banco",
+            // "sale.payments.*.bank_id" => "ID del banco",
             "sale.payments.*.auth" => "numero de autorización",
         ];
     }

@@ -3,9 +3,6 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Order;
-use App\Http\Resources\ContactShort;
-use App\Http\Resources\SaleItemShort;
 //use App\Http\Resources\Payment;
 
 class SaleShort extends JsonResource
@@ -16,12 +13,19 @@ class SaleShort extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
+            $payments = 0;
+            $discount = $this->descuento ? $this->descuento : 0;
+
+            foreach ($this->payments as $pay) {
+                $payments += $pay->total;
+            }
+
             $return['id'] = $this->id;
             $return['session'] = $this->session;
             $return['subtotal'] = $this->subtotal;
-            $return['descuento'] = $this->descuento ? $this->descuento : 0;
-            $return['total'] = $this->total;
-            // $return['pedido'] = $this->pedido;
+            $return['descuento'] = $discount;
+            $return['total'] = $this->subtotal - $discount;
+            $return['payments'] = $payments;
         }
 
         return $return;

@@ -16,6 +16,7 @@ class SaleItemShort extends JsonResource
             $return['name'] = $this->item->name;
             $return['cant'] = $this->cant;
             $return['price'] = $this->price;
+            $return['subtotal'] = $this->cant * $this->price;
             $return['description'] = $this->descripcion;
         }
         return $return;

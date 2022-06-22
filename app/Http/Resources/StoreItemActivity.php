@@ -19,7 +19,7 @@ class StoreItemActivity extends JsonResource
             $price = 0;
             $from = 0;
             $branchSelect = null;
-            $activity = $this->metas()->whereIn("key", ["updated", "deleted", "created", "created branch"])->get();
+            $activity = $this->metas()->whereIn("key", ["updated", "deleted", "created", "created branch"])->orderBy("id", "desc")->get();
 
             $obj = [
                 'id' => 0,
@@ -31,7 +31,7 @@ class StoreItemActivity extends JsonResource
             ];
             $obj = json_decode(json_encode($obj), false);
             $obj->value = json_decode($obj->value, true);
-            $activity->prepend($obj);
+            $activity->push($obj);
 
 
             if ($this->inBranch) {

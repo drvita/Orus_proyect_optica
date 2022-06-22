@@ -10,7 +10,7 @@ class Sale extends JsonResource
     public function toArray($request)
     {
         $return = [];
-        $activity = $this->metas()->whereIn("key", ["updated", "deleted", "created", "created item", "deleted item", "deleted payment", "created payment"])->get();
+        $activity = $this->metas()->whereIn("key", ["updated", "deleted", "created", "created item", "deleted item", "deleted payment", "created payment"])->orderBy("id", "desc")->get();
 
         $obj = [
             'id' => 0,
@@ -22,7 +22,7 @@ class Sale extends JsonResource
         ];
         $obj = json_decode(json_encode($obj), false);
         $obj->value = json_decode($obj->value, true);
-        $activity->prepend($obj);
+        $activity->push($obj);
 
         // dd($activity);
 

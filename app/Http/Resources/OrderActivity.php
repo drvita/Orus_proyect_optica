@@ -16,7 +16,7 @@ class OrderActivity extends JsonResource
 
         if ($this->id) {
             $items = is_string($this->items) ? json_decode($this->items, true) : $this->items;
-            $activity = $this->metas()->whereIn("key", ["updated", "deleted", "created", "created branch"])->get();
+            $activity = $this->metas()->whereIn("key", ["updated", "deleted", "created", "created branch"])->orderBy("id", "desc")->get();
 
             $obj = [
                 'id' => 0,
@@ -28,13 +28,13 @@ class OrderActivity extends JsonResource
             ];
             $obj = json_decode(json_encode($obj), false);
             $obj->value = json_decode($obj->value, true);
-            $activity->prepend($obj);
+            $activity->push($obj);
 
             $return['id'] = $this->id;
             $return['session'] = $this->session;
-            $return['ncaja'] = $this->ncaja;
-            $return['npedidolab'] = $this->npedidolab;
-            $return['observaciones'] = $this->observaciones;
+            $return['bi_box'] = $this->ncaja;
+            $return['lab_order'] = $this->npedidolab;
+            $return['bi_details'] = $this->observaciones;
             $return['status'] = $this->status;
 
             $return['paciente'] = new ContactSimple($this->paciente);

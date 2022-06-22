@@ -18,7 +18,7 @@ class Exam extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
-            $activity = $this->metas()->where("key", ["updated", "deleted", "created"])->get();
+            $activity = $this->metas()->where("key", ["updated", "deleted", "created"])->orderBy("id", "desc")->get();
 
             $obj = [
                 'id' => 0,
@@ -30,7 +30,7 @@ class Exam extends JsonResource
             ];
             $obj = json_decode(json_encode($obj), false);
             $obj->value = json_decode($obj->value, true);
-            $activity->prepend($obj);
+            $activity->push($obj);
 
             $return['id'] = $this->id;
             $return['age'] = $this->edad ? $this->edad : 0;

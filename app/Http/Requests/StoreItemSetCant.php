@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class CategorySetPrice extends FormRequest
+class StoreItemSetCant extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,10 +23,8 @@ class CategorySetPrice extends FormRequest
      */
     public function rules()
     {
-        $rules = [
-            "price" => "required|numeric|min:1"
+        return [
+            "cant" => "required|numeric|min:1"
         ];
-
-        return $rules;
     }
 }

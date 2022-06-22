@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Contact;
 use App\User;
 use App\Models\Order;
-use Illuminate\Http\Request;
 
 class Exam extends Model
 {

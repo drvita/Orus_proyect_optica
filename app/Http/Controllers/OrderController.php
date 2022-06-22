@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Order as OrderResources;
@@ -141,10 +140,17 @@ class OrderController extends Controller
     {
         $auth = Auth::user();
         $request['updated_id'] = $auth->id;
+        $data = ["status" => $request->status];
 
-        unset($request['branch_id']);
+        if ($request->status == 1) {
+            $data["lab_id"] = $request->lab_id;
+            $data["npedidolab"] = $request->lab_order;
+        } else if ($request->status == 2) {
+            $data["ncaja"] = $request->bi_box;
+            $data["observaciones"] = $request->bi_details;
+        }
 
-        $order->update($request->all());
+        $order->update($data);
 
         return new OrderActivity($order);
     }
@@ -154,23 +160,14 @@ class OrderController extends Controller
      * @param  $order identificador de la orden
      * @return null 404
      */
-    public function destroy($id)
+    public function destroy(Order $order)
     {
-        $order = $this->order::where('id', $id)
-            ->with('nota')
-            ->first();
-        $enUso = 0;
-
-        if ($order) {
-            $enUso = count($order->nota ?? []);
-
-            if ($enUso) {
-                $order->deleted_at = Carbon::now();
-                $order->updated_id = Auth::user()->id;
-                $order->save();
-            } else {
-                $order->delete();
-            }
+        if ($order->nota()) {
+            $order->deleted_at = Carbon::now();
+            $order->updated_id = Auth::user()->id;
+            $order->save();
+        } else {
+            $order->delete();
         }
 
         return response()->json(null, 204);
