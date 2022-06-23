@@ -25,7 +25,8 @@ class SaleShort extends JsonResource
             $return['subtotal'] = $this->subtotal;
             $return['descuento'] = $discount;
             $return['total'] = $this->subtotal - $discount;
-            $return['payments'] = $payments;
+            $return['payments'] = PaymentSimple::collection($this->payments);
+            $return['paid'] = $payments;
         }
 
         return $return;

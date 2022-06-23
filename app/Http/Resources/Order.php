@@ -3,8 +3,6 @@
 namespace App\Http\Resources;
 
 use App\Http\Resources\ContactShort;
-use App\Http\Resources\ExamShort;
-use App\Http\Resources\SaleItemShort;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class Order extends JsonResource
@@ -15,7 +13,6 @@ class Order extends JsonResource
         $return = [];
 
         if ($this->id) {
-            $items = is_string($this->items) ? json_decode($this->items, true) : $this->items;
 
             $return['id'] = $this->id;
             $return['paciente'] = new ContactSimple($this->paciente);
