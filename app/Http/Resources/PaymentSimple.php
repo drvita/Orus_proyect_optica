@@ -13,6 +13,7 @@ class PaymentSimple extends JsonResource
 
         if (isset($this->id)) {
             $return['id'] = $this->id;
+            $return['metodoname'] = getPaymentName($this->metodopago);
             $return['metodopago'] = $this->metodopago;
             $return['banco'] = $this->bankName;
             $return['bank_id'] = $this->bankName ? $this->bankName->id : null;

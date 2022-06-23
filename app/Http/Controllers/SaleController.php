@@ -56,6 +56,7 @@ class SaleController extends Controller
             ->publish()
             ->branch($branch)
             ->paginate($page);
+
         return SaleResources::collection($sale);
     }
 

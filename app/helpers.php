@@ -73,6 +73,25 @@ function getParentCategories($item)
         "codeNameCategory" => explode("|", $codeNameCategory),
     ];
 }
+function getPaymentName($id)
+{
+    switch ($id) {
+        case 1:
+            return "efectivo";
+        case 2:
+            return "tarjeta debito";
+        case 3:
+            return "tarjeta de credito";
+        case 4:
+            return "la marina";
+        case 5:
+            return "cheque";
+        case 6:
+            return "transferencia";
+        default:
+            return "otro";
+    }
+}
 function getShortNameCat($string)
 {
     switch ($string) {
