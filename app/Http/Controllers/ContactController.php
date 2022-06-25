@@ -59,6 +59,8 @@ class ContactController extends Controller
         }
 
         $request['user_id'] = Auth::user()->id;
+        $request['telnumbers'] = $request->phones;
+
         $contact = $this->contact->create($request->all());
         $contact->saveMetas($request);
         return new ContactResource($contact);
@@ -89,7 +91,8 @@ class ContactController extends Controller
         $currentUser = Auth::user();
         $request['user_id'] = $contact->user_id;
         $request['updated_id'] = $currentUser->id;
-        // unset($request["gender"]);
+        $request['telnumbers'] = $request->phones;
+
         $contact->update($request->all());
         $contact->saveMetas($request);
 

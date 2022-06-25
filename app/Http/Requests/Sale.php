@@ -29,7 +29,6 @@ class Sale extends FormRequest
             "subtotal" => "required|numeric",
             "total" => "required|numeric",
             "contact_id" => ["required", "numeric", Rule::exists("contacts", "id")],
-            // "branch_id" => ["required", "numeric", Rule::exists("config", "id")->where("name", "branches")]
         ];
 
         if ($this->method() === "PUT") {

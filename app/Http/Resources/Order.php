@@ -15,6 +15,8 @@ class Order extends JsonResource
         if ($this->id) {
 
             $return['id'] = $this->id;
+
+            $return['exam'] = new ExamOrder($this->examen);
             $return['paciente'] = new ContactSimple($this->paciente);
             $return['session'] = $this->session;
             $return['ncaja'] = $this->ncaja;
