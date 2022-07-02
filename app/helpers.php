@@ -18,6 +18,7 @@ function getItemsRequest($items, $branch_id = null)
             if ($branch_id) {
                 foreach ($itemsArray as $key => $item) {
                     $itemsArray[$key]['branch_id'] = $branch_id;
+                    $itemsArray[$key]['total'] = $item['cant'] * $item['price'];
                 }
             }
 

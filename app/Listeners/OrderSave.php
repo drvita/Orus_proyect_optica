@@ -49,20 +49,19 @@ class OrderSave
         });
 
         foreach ($items as $item) {
-            $tempSubTotal = $item["cant"] * $item["price"];
-            $subtotal += $tempSubTotal;
+            $subtotal += $item["total"];
             $branch = $branch_id;
             $itemData = StoreItem::where("id", $item['store_items_id'])->first();
 
 
-            if ($itemData && $tempSubTotal) {
+            if ($itemData && $item["total"]) {
                 if ($itemData->branch_default) {
                     $branch = $itemData->branch_default;
                 }
 
                 $i_save['cant'] = $item['cant'];
                 $i_save['price'] = $item['price'];
-                $i_save['subtotal'] = $tempSubTotal;
+                $i_save['subtotal'] = $item["total"];
                 $i_save['session'] = $session;
                 $i_save['store_items_id'] = $item['store_items_id'];
                 $i_save['descripcion'] = isset($item['descripcion']) ? $item['descripcion'] : null;

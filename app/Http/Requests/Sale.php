@@ -26,25 +26,41 @@ class Sale extends FormRequest
     {
         $data = $this->request->all();
         $rules = [
-            "subtotal" => "required|numeric",
-            "total" => "required|numeric",
-            "contact_id" => ["required", "numeric", Rule::exists("contacts", "id")],
+            "contact_id" => ["required", "numeric", Rule::exists("contacts", "id")->whereNull('deleted_at')],
+            "discount" => "sometimes|numeric",
         ];
 
         if ($this->method() === "PUT") {
-            $rules['session'] = ["required", "string", Rule::unique('sales')->ignore($this->sale['id'])];
+            if (isset($data["session"])) {
+                $rules['session'] = ["required", "string", Rule::unique('sales')->ignore($this->sale['id'])];
+            }
+
+            if (isset($data["items"])) {
+                $rules['items'] = "array";
+
+                if (count($data['items'])) {
+                    $rules['items.*.cant'] = "required|numeric";
+                    $rules['items.*.price'] = "required|numeric|min:1";
+                    $rules['items.*.store_items_id'] = ["required", "numeric", Rule::exists("store_items", "id")->whereNull('deleted_at')];
+                }
+            }
         } else {
             $rules['session'] = ["required", "string", Rule::unique('sales')];
-        }
-
-        if (array_key_exists("payments", $data)) {
-            $rules['payments'] = "required|array";
-        }
-        if (array_key_exists("items", $data)) {
             $rules['items'] = "required|array";
-        }
-        if (array_key_exists("discount", $data)) {
-            $rules['discount'] = "required|numeric";
+            $rules['items.*.cant'] = "required|numeric";
+            $rules['items.*.price'] = "required|numeric|min:1";
+            $rules['items.*.store_items_id'] = ["required", "numeric", Rule::exists("store_items", "id")->whereNull('deleted_at')];
+
+            if (isset($data["payments"])) {
+                $rules['payments'] = "array";
+
+                if (count($data['items'])) {
+                    $rules['payments.*.metodopago'] = "required|numeric|between:0,6";
+                    $rules['payments.*.total'] = "required|numeric|min:1";
+                    $rules['payments.*.bank_id'] = "required_unless:payments.*.metodopago, 1,4";
+                    $rules['payments.*.auth'] = "required_unless:payments.*.metodopago,1";
+                }
+            }
         }
 
         return $rules;

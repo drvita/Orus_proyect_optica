@@ -70,14 +70,23 @@ class SaleController extends Controller
         $currentUser = Auth::user();
         $request['user_id'] = $currentUser->id;
         $request['branch_id'] = $currentUser->branch_id;
+        $request['subtotal'] = 0;
         $request['descuento'] = $request->discount ?? 0;
 
-        $sale = $this->sale->create($request->all());
-        $sale['items'] = getItemsRequest($request->items, $currentUser->branch_id);
-        if (isset($request["payments"])) {
-            $sale->payment_status = true;
-            $sale['payments'] = getPaymentsRequest($request->payments, $currentUser->branch_id);
+        foreach ($request['items'] as $item) {
+            $request['subtotal'] += $item['cant'] * $item['price'];
         }
+
+        $request['total'] = $request['subtotal'] - $request['descuento'];
+
+        $sale = $this->sale->create($request->all());
+        $sale->items = getItemsRequest($request->items, $sale->branch_id);
+        $sale->addPayments = false;
+        if (isset($request["payments"])) {
+            $sale->paymentsRequest = getPaymentsRequest($request->payments, $request['branch_id']);
+            $sale->addPayments = true;
+        }
+        $sale->method = "create";
 
         event(new SaleSave($sale));
         $sale = $sale::where('id', $sale->id)->relations()->first();
@@ -106,17 +115,25 @@ class SaleController extends Controller
         $request['user_id'] = $sale->user_id;
         $request['updated_id'] = $currentUser->id;
         $request['branch_id'] = $sale->branch_id;
+        $request['descuento'] = $request->discount ?? 0;
 
-        if (isset($request["discount"])) {
-            $request['descuento'] = $request->discount ?? 0;
+        if (isset($request['items'])) {
+            $request['subtotal'] = 0;
+            foreach ($request['items'] as $item) {
+                $request['subtotal'] += $item['cant'] * $item['price'];
+            }
+
+            $request['total'] = $request['subtotal'] - $request['descuento'];
         }
 
         $sale->update($request->all());
         $sale->items = getItemsRequest($request->items, $sale->branch_id);
+        $sale->addPayments = false;
         if (isset($request["payments"])) {
-            $sale->payment_status = true;
-            $sale->payments = getPaymentsRequest($request->payments, $request['branch_id']);
+            $sale->paymentsRequest = getPaymentsRequest($request->payments, $request['branch_id']);
+            $sale->addPayments = true;
         }
+        $sale->method = "update";
 
         event(new SaleSave($sale));
         $sale = $sale::where('id', $sale->id)->relations()->first();

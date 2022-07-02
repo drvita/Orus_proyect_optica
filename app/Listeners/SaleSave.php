@@ -5,10 +5,12 @@ namespace App\Listeners;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Models\SaleItem;
-use App\Models\Sale;
+use App\Models\Messenger;
+use App\Models\StoreItem;
 use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SaleSave
 {
@@ -23,35 +25,53 @@ class SaleSave
         $auth = Auth::user();
         $sale = $event->sale;
         $items = $sale->items;
+        $branch_id = $sale->branch_id ? $sale->branch_id : $auth->branch_id;
+        $session = $sale->session;
+        $payments = isset($sale["paymentsRequest"]) ? $sale["paymentsRequest"] : [];
+        $subtotal = 0;
 
         if (count($items)) {
-            if ($sale->session) {
-                SaleItem::where('session', $sale->session)->get()->each(function ($item) {
-                    $item->delete();
-                });
+            SaleItem::where('session', $session)->get()->each(function ($item) {
+                $item->delete();
+            });
+
+            foreach ($items as $item) {
+                $subtotal += $item["total"];
+                $branch = $branch_id;
+                $itemData = StoreItem::where("id", $item['store_items_id'])->first();
 
 
-                foreach ($items as $item) {
-                    $i_save['cant'] = $item['cant'] ?? 0;
-                    $i_save['price'] = $item['price'] ?? 0;
-                    $i_save['subtotal'] = $item['subtotal'] ?? 0;
-                    $i_save['inStorage'] = $item['inStorage'] ?? 0;
-                    $i_save['out'] = isset($item['out']) ? $item['out'] : 0;
-                    $i_save['session'] = $sale->session;
+                if ($itemData && $item["total"]) {
+                    if ($itemData->branch_default) {
+                        $branch = $itemData->branch_default;
+                    }
+
+                    $i_save['cant'] = $item['cant'];
+                    $i_save['price'] = $item['price'];
+                    $i_save['subtotal'] = $item["total"];
+                    $i_save['session'] = $session;
                     $i_save['store_items_id'] = $item['store_items_id'];
-                    $i_save['descripcion'] = isset($item['descripcion']) ? $item['descripcion'] : "";
-                    $i_save['user_id'] = Auth::user()->id;
-                    $i_save['branch_id'] = $sale->branch_id;
+                    $i_save['descripcion'] = isset($item['descripcion']) ? $item['descripcion'] : null;
+                    $i_save['branch_id'] = $branch;
+                    $i_save['user_id'] = $auth->id;
 
                     SaleItem::create($i_save);
                 }
+            }
 
-                // dd(SaleItem::where('session', $sale->session)->get()->toArray());
+            if (!$subtotal) {
+                Log::warning("La venta '$sale->id' no genero venta.");
+                return Messenger::create([
+                    "table" => "orders",
+                    "idRow" => $sale->id,
+                    "message" => "No se creo la venta! por total cero.",
+                    "user_id" => 1
+                ]);
             }
         }
 
-        if (isset($sale["payment_status"])) {
-            $payments = $sale->payments;
+        if (count($payments)) {
+            $amount = 0;
 
             Payment::where('sale_id', $sale->id)->get()->each(function ($item) use ($auth) {
                 $item->deleted_at = Carbon::now();
@@ -59,29 +79,34 @@ class SaleSave
                 $item->save();
             });
 
-            $amount = 0;
-
             foreach ($payments as $payment) {
                 $amount += $payment['total'];
 
                 $sale->payments()->create([
                     "metodopago" => $payment['metodopago'],
-                    "details" => $payment['details'],
-                    "auth" => $payment['auth'],
+                    "details" => $payment['details'] ?? "",
+                    "auth" => $payment['auth'] ?? "",
                     "total" => $payment['total'],
-                    "bank_id" => $payment['bank_id'],
+                    "bank_id" => $payment['bank_id'] ?? null,
                     "contact_id" => $sale->contact_id,
-                    "branch_id" => $sale->branch_id,
-                    "user_id" => Auth::user()->id,
+                    "branch_id" => $branch_id,
+                    "user_id" => $auth->id,
                 ]);
             }
 
-            if ($amount !== $sale->pagado) {
-                $sale = Sale::find($sale->id);
-
-                $sale->pagado = $amount;
-                $sale->save();
-            }
+            unset($sale["items"]);
+            unset($sale["payments"]);
+            unset($sale["addPayments"]);
+            unset($sale["method"]);
+            unset($sale["paymentsRequest"]);
+            $sale->pagado = $amount;
+            $sale->save();
+        } else if ($sale->method === "update" && $sale->addPayments) {
+            $sale->payments()->get()->each(function ($item) use ($auth) {
+                $item->deleted_at = Carbon::now();
+                $item->updated_id = $auth->id;
+                $item->save();
+            });
         }
     }
 }

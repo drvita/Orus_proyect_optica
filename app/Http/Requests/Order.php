@@ -42,10 +42,8 @@ class Order extends FormRequest
 
                 if (array_key_exists("payments", $data['sale'])) {
                     $rules['sale.payments'] = "required|array";
-
                     $rules['sale.payments.*.metodopago'] = "required|numeric|between:0,6";
                     $rules['sale.payments.*.total'] = "required|numeric|min:1";
-
                     $rules['sale.payments.*.bank_id'] = "required_unless:sale.payments.*.metodopago, 1,4";
                     $rules['sale.payments.*.auth'] = "required_unless:sale.payments.*.metodopago,1";
                 }

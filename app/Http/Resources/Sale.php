@@ -24,8 +24,6 @@ class Sale extends JsonResource
         $obj->value = json_decode($obj->value, true);
         $activity->push($obj);
 
-        // dd($activity);
-
         if (isset($this->id)) {
             $return['id'] = $this->id;
             $return['session'] = $this->session;

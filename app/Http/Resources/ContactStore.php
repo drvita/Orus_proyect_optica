@@ -15,6 +15,7 @@ class ContactStore extends JsonResource
         if (isset($this->id)) {
             $return['id'] = $this->id;
             $return['name'] = $this->name;
+            $return['phones'] =  new ContactPhones($this->telnumbers);
         }
 
 

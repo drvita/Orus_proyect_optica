@@ -24,7 +24,7 @@ class ContactSimple extends JsonResource
             $return['type'] = $this->type;
             $return['birthday'] = $this->birthday && intval($this->birthday->format('Y')) > 1900 ? $this->birthday->format('Y-m-d') : null;
             $return['age'] = $this->edad;
-            $return['phones'] = $this->telnumbers;
+            $return['phones'] =  new ContactPhones($this->telnumbers);
             $return['created_at'] = $this->created_at->format('Y-m-d H:i');
         }
 
