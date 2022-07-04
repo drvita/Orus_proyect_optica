@@ -30,8 +30,6 @@ class UserRequest extends FormRequest
 
         switch ($this->method()) {
             case 'PUT':
-                $rules['name'] = "required";
-                $rules['username'] = "required";
                 if (array_key_exists("email", $data)) {
                     $rules['email'] = [Rule::unique('users')->ignore($this->route('user')), "email"];
                 }
@@ -50,7 +48,6 @@ class UserRequest extends FormRequest
                 $rules['username'] = "required";
                 $rules['email'] = "email|required|unique:users";
                 $rules['password'] = "required|min:8";
-                $rules['branch_id'] = ["required", "numeric", Rule::exists("config", "id")->where("name", "branches")];
                 $rules['role'] = "required|exists:roles,name";
         }
 

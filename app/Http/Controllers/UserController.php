@@ -60,30 +60,21 @@ class UserController extends Controller
      */
     public function store(UserRequest $request)
     {
-        switch ($request->role) {
-            case 'ventas':
-                $request['rol'] = 1;
-                break;
-            case 'doctor':
-                $request['rol'] = 2;
-                break;
-            default:
-                $request['rol'] = 0;
-                break;
-        }
+        $currentUser = $request->user();
         $request['password'] = Hash::make($request->password);
+        $request['branch_id'] = $currentUser->branch_id;
 
-        // dd($request->rol);
         $user = User::create([
             'name' => strtolower($request->name),
             'username' => strtolower($request->username),
             'email' => strtolower($request->email),
             'password' => $request->password,
             'branch_id' => $request->branch_id,
-            'rol' => $request->rol,
+            'rol' => 0,
         ]);
         $user->roles()->detach();
         $user->assignRole($request->role);
+
         return new UserResource($user);
     }
     /**
