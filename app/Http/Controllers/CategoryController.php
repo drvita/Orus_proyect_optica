@@ -16,7 +16,7 @@ class CategoryController extends Controller
     public function __construct(Category $category)
     {
         $this->middleware('can:category.list')->only('index');
-        $this->middleware('can:category.show')->only('show');
+        // $this->middleware('can:category.show')->only('show');
         $this->middleware('can:category.add')->only('store');
         $this->middleware('can:category.edit')->only('update');
         $this->middleware('can:category.delete')->only('destroy');
