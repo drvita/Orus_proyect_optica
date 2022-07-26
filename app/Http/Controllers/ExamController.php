@@ -71,7 +71,9 @@ class ExamController extends Controller
         $request['user_id'] = $currentUser->id;
         $request['branch_id'] = $currentUser->branch_id;
         $request['status'] = 0;
-        // $rolUser = $currentUser->rol;
+        if (isset($request['age'])) {
+            $request["edad"] = $request['age'];
+        }
 
         $exam = $this->exam->create($request->all());
         // if ($rolUser === 1) event(new ExamEvent($exam, $rolUser));
@@ -107,6 +109,9 @@ class ExamController extends Controller
 
         if (isset($request['branch_id'])) {
             unset($request['branch_id']);
+        }
+        if (isset($request['age'])) {
+            $request["edad"] = $request['age'];
         }
 
         $exam->update($request->all());

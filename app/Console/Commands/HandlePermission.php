@@ -70,7 +70,8 @@ class HandlePermission extends Command
 
             $role->syncPermissions($itemsPermission);
             // TODO: Finished
-            dd($role->permissions->toArray());
+            $this->info('Completed!');
+            // dd($role->permissions->toArray());
         }
 
 

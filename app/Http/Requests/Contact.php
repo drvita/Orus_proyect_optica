@@ -65,14 +65,14 @@ class Contact extends FormRequest
                 $rules['phones.office'] = "sometimes|nullable|numeric";
                 $rules['gender'] = "required|string";
 
-                if (array_key_exists("domicilio", $data)) {
-                    $rules['domicilio'] = "required|array";
-                    $rules['domicilio.street'] = "sometimes|required";
-                    $rules['domicilio.neighborhood'] = "sometimes|required";
-                    $rules['domicilio.location'] = "sometimes|required";
-                    $rules['domicilio.state'] = "sometimes|required";
-                    $rules['domicilio.zip'] = "sometimes|required";
-                }
+                // if (array_key_exists("domicilio", $data)) {
+                //     $rules['domicilio'] = "required|array";
+                //     $rules['domicilio.street'] = "sometimes|required";
+                //     $rules['domicilio.neighborhood'] = "sometimes|required";
+                //     $rules['domicilio.location'] = "sometimes|required";
+                //     $rules['domicilio.state'] = "sometimes|required";
+                //     $rules['domicilio.zip'] = "sometimes|required";
+                // }
         }
         return $rules;
     }

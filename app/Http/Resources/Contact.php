@@ -18,6 +18,14 @@ class Contact extends JsonResource
         $perPage = 10;
 
         if (isset($this->id)) {
+            if ($this->metas && $this->metas->count()) {
+                foreach ($this->metas as $meta) {
+                    if ($meta->key === "metadata" && isset($meta->value["birthday"])) {
+                        $this->birthday = new Carbon($meta->value["birthday"]);
+                    }
+                }
+            }
+
             $edad = $this->birthday !== null ? $this->birthday->diffInYears(carbon::now()) : 0;
             $exams = $this->exams()->with('user')->paginate($perPage, ['*'], 'exam_page');
             $supplierOf = $this->supplier()->paginate($perPage, ['*'], 'suppliers_page');
