@@ -47,6 +47,7 @@ class UserController extends Controller
             ->userName($request->username, $request->userId)
             ->userEmail($request->email, $request->userId)
             ->role($request->role)
+            ->branchId($request->branch_id)
             ->nobot()
             ->publish($deleted)
             ->paginate($page);

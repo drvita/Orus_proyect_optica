@@ -95,6 +95,12 @@ class User extends Authenticatable
             if ($userId) $query->where("id", "!=", $userId);
         }
     }
+    public function scopeBranchId($query, $search)
+    {
+        if (trim($search) != "") {
+            $query->where("branch_id", "=", $search);
+        }
+    }
     public function scopeUserEmail($query, $search, $userId = false)
     {
         if (trim($search) != "") {
