@@ -98,12 +98,12 @@ class User extends Authenticatable
     }
     public function scopeBranchId($query, $search)
     {
-        $user_id = trim($search);
-        if (is_numeric($user_id)) $user_id = (int) $user_id;
-        else $user_id = 0;
+        $branch_id = trim($search);
+        if (is_numeric($branch_id)) $branch_id = (int) $branch_id;
+        else $branch_id = 0;
 
-        if ((bool) $user_id) {
-            $query->where("branch_id", "=", $search);
+        if ((bool) $branch_id) {
+            $query->where("branch_id", "=", $branch_id);
         }
     }
     public function scopeUserEmail($query, $search, $userId = false)

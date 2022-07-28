@@ -83,6 +83,7 @@ class PaymentController extends Controller
             ->dateStart($dates->start)
             ->dateFinish($dates->end)
             ->branchId($request->branch_id)
+            ->user($request->user_id)
             ->publish()
             ->paginate($page);
 
@@ -170,6 +171,7 @@ class PaymentController extends Controller
             ->dateStart($dates->start)
             ->dateFinish($dates->end)
             ->branchId($request->branch_id)
+            ->user($request->user_id)
             ->publish();
 
         return PaymentMethods::collection($payment->get());
@@ -187,6 +189,7 @@ class PaymentController extends Controller
             ->dateStart($dates->start)
             ->dateFinish($dates->end)
             ->branchId($request->branch_id)
+            ->user($request->user_id)
             ->with("bankName")
             ->publish();
 

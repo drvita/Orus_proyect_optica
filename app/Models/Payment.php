@@ -54,11 +54,14 @@ class Payment extends Model
             $query->where("sale_id", $search);
         }
     }
-    public function scopeUser($query, $rol, $user)
+    public function scopeUser($query, $search)
     {
-        if (trim($user) != "") {
-            $user = intval($user);
-            if ($user) $query->where('user_id', $user);
+        $user_id = trim($search);
+        if (is_numeric($user_id)) $user_id = (int) $user_id;
+        else $user_id = 0;
+
+        if ((bool) $user_id) {
+            $query->where('user_id', $user_id);
         }
     }
     public function scopeDateStart($query, $search)
