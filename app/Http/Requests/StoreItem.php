@@ -27,27 +27,31 @@ class StoreItem extends FormRequest
         $data = $this->request->all();
         $rules = [
             "unit" => "required|nullable|max:4",
-            "category_id" => "required|nullable|numeric|exists:categories,id",
+            "category_id" => "required|numeric|min:1,exists:categories,id",
         ];
 
         if ($this->method() === "PUT") {
             $rules["name"] = ["required", "nullable", "max:150", Rule::unique('store_items')->ignore($this->route('store'))];
             $rules["code"] = ["required", "nullable", "max:18", Rule::unique('store_items')->ignore($this->route('store'))];
 
-            if (array_key_exists("codebar", $data)) {
+            if (isset($data['codebar'])) {
                 $rules["codebar"] = ["nullable", "max:100", Rule::unique('store_items')->ignore($this->route('store'))];
             }
         } else {
             $rules["name"] = "required|nullable|max:150|unique:store_items";
             $rules["code"] = "required|nullable|max:18|unique:store_items";
 
-            if (array_key_exists("codebar", $data)) {
+            if (isset($data['codebar'])) {
                 $rules["codebar"] = "nullable|max:100|unique:store_items";
             }
         }
 
-        if (array_key_exists("supplier_id", $data)) {
-            $rules["supplier_id"] = "nullable|numeric|exists:contacts,id";
+        if (isset($data['supplier_id'])) {
+            $rules["supplier_id"] = "nullable|numeric|min:1|exists:contacts,id";
+        }
+
+        if (isset($data['brand_id'])) {
+            $rules["brand_id"] = "nullable|numeric|min:1,exists:brands,id";
         }
 
         return $rules;
