@@ -42,7 +42,7 @@ class Contact extends FormRequest
                     $rules['phones.notices'] = "sometimes|nullable|numeric";
                     $rules['phones.office'] = "sometimes|nullable|numeric";
                 }
-                if (array_key_exists("domicilio", $data)) {
+                if (isset($data['domicilio']) && $data['domicilio'] && count($data['domicilio'])) {
                     $rules['domicilio'] = "required|array";
                     $rules['domicilio.street'] = "sometimes|required";
                     $rules['domicilio.neighborhood'] = "sometimes|required";
