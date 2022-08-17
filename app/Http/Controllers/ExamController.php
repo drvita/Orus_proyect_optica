@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use App\Models\Exam;
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use App\Http\Resources\Exam as ExamResources;
 use App\Http\Requests\Exam as ExamRequests;
@@ -73,6 +74,8 @@ class ExamController extends Controller
         $request['status'] = 0;
         if (isset($request['age'])) {
             $request["edad"] = $request['age'];
+        } else {
+            $request["edad"] = $this->handleRequestToAge($request);
         }
 
         $exam = $this->exam->create($request->all());
@@ -105,17 +108,21 @@ class ExamController extends Controller
     public function update(ExamRequests $request, Exam $exam)
     {
         $currentUser = Auth::user();
-        $request['updated_id'] = $currentUser->id;
+        $request->updated_id = $currentUser->id;
 
         if (isset($request['branch_id'])) {
             unset($request['branch_id']);
         }
-        if (isset($request['age'])) {
+
+        if (isset($request['age']) && $request->age) {
             $request["edad"] = $request['age'];
+        } else {
+            if (!$exam->edad) {
+                $request["edad"] = $this->handleRequestToAge($request);
+            }
         }
 
         $exam->update($request->all());
-
         return new ExamResources($exam);
     }
 
@@ -141,5 +148,27 @@ class ExamController extends Controller
         }
 
         return response()->json(null, 204);
+    }
+
+    public function handleRequestToAge($request)
+    {
+        $patient = Contact::find($request->contact_id);
+        if ($patient) {
+            $metas = $patient->metas;
+
+            if ($metas) {
+                $birthday = null;
+                foreach ($patient->metas as $meta) {
+                    if ($meta->key === "metadata" && isset($meta->value["birthday"])) {
+                        $birthday = new Carbon($meta->value["birthday"]);
+                    }
+                }
+                if ($birthday) {
+                    $request->age = $birthday->diffInYears(carbon::now());
+                }
+            }
+        }
+
+        return $request->age;
     }
 }

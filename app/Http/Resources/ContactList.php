@@ -30,7 +30,7 @@ class ContactList extends JsonResource
             $return['email'] = $this->email;
             $return['type'] = $this->type;
             $return['phones'] =  new ContactPhones($this->telnumbers);
-            $return['age'] = 1 < $edad && $edad < 120 ? $edad : 0;
+            $return['age'] = $edad > 0 && $edad < 120 ? $edad : 0;
             $return['business'] = $this->business;
 
             $return['enUso'] = count($this->buys) +
