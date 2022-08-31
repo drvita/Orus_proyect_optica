@@ -12,6 +12,7 @@ class SaleItemShort extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
+            $return['id'] = $this->id;
             $return['store_items_id'] = $this->item->id;
             $return['name'] = $this->item->name;
             $return['cant'] = $this->cant;

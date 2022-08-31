@@ -119,6 +119,11 @@ class Sale extends Model
         static::updated(function (Sale $sale) {
             $type = "";
             $auth = Auth::user();
+            //delete
+            if (!$auth) {
+                $auth = User::where("id", 2)->first();
+            }
+
             $dirty = $sale->getDirty();
             unset($dirty['updated_at']);
             unset($dirty['updated_id']);

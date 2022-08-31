@@ -147,6 +147,11 @@ class Payment extends Model
             $sale = Sale::find($pay->sale_id);
             $auth = Auth::user();
 
+            //delete
+            if (!$auth) {
+                $auth = User::where("id", 2)->first();
+            }
+
             if ($sale->order_id) {
                 $messegeId = $sale->order_id;
                 $table = "orders";
@@ -159,9 +164,9 @@ class Payment extends Model
                 "total" => $pay->total,
                 "method" => $pay->metodopago
             ];
-            $data = ["user_id" => $auth->id, "inputs" => $dataPay];
+            $data = ["user_id" => $auth->id ? $auth->id : 1, "inputs" => $dataPay];
             $sale->metas()->create(["key" => "created payment", "value" => $data, "datetime" => Carbon::now()]);
-            $pay->setMessage($table, $messegeId, Auth::user()->name . " abono a la cuenta ($ " . $pay->total . ")");
+            $pay->setMessage($table, $messegeId, $auth->name . " abono a la cuenta ($ " . $pay->total . ")");
         });
         static::deleted(function (Payment $pay) {
             $updateSale = Sale::find($pay->sale_id);
@@ -181,6 +186,10 @@ class Payment extends Model
         static::updated(function (Payment $pay) {
             $type = "";
             $auth = Auth::user();
+            //delete
+            if (!$auth) {
+                $auth = User::where("id", 2)->first();
+            }
             $dataPay = [
                 "total" => $pay->total,
                 "method" => $pay->metodopago
@@ -203,7 +212,7 @@ class Payment extends Model
                     $table = "sales";
                 }
 
-                $pay->setMessage($table, $messegeId, Auth::user()->name . " elimino un abono ($ " . $pay->total . ")");
+                $pay->setMessage($table, $messegeId, $auth->name . " elimino un abono ($ " . $pay->total . ")");
             }
 
             $sale->metas()->create(["key" => $type, "value" => $data]);

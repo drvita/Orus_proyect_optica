@@ -55,6 +55,7 @@ class Sale extends FormRequest
                 $rules['payments'] = "array";
 
                 if (count($data['items'])) {
+                    $rules['payments.*.id'] = "required";
                     $rules['payments.*.metodopago'] = "required|numeric|between:0,6";
                     $rules['payments.*.total'] = "required|numeric|min:1";
                     $rules['payments.*.bank_id'] = "required_unless:payments.*.metodopago, 1,4";
