@@ -104,7 +104,7 @@ class StoreItemController extends Controller
                 "Expires"             => "0"
             );
             $items = $store->limit(1000)->get();
-            $callback = $this->handleDonloadCSV($items);
+            $callback = $this->handleDonloadCSV($items, $request->zero);
 
             return response()->stream($callback, 201, $headers);
         }
@@ -251,19 +251,12 @@ class StoreItemController extends Controller
      * @param class of item model
      * @return bob
      */
-    private function handleDonloadCSV($items)
+    private function handleDonloadCSV($items, $zero)
     {
         $columns = array('code', 'codebar', 'supplier', 'brand', 'name', 'category', "cant", "price");
-
-        // foreach ($items as $item) {
-        //     $brand = $item->categoria;
-        //     dd($brand->toArray());
-        // }
-
-        $callback = function () use ($items, $columns) {
+        $callback = function () use ($items, $columns, $zero) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
-
             foreach ($items as $item) {
                 $branches = $item->inBranch;
 
@@ -279,6 +272,10 @@ class StoreItemController extends Controller
                 foreach ($branches as $branch) {
                     $row['cant']  += $branch->cant;
                     $row['price']  = $branch->price;
+                }
+
+                if (!$row['cant'] && $zero == "false") {
+                    continue;
                 }
 
                 fputcsv($file, array($row['code'], $row['codebar'], $row['supplier'], $row['brand'], $row['name'], $row['category'], $row['cant'], $row['price']));
