@@ -37,6 +37,23 @@ class SaleSave
         }
 
         if (count($items)) {
+            $itemsFound = SaleItem::where("session", $sale->session)
+                ->get()
+                ->filter(function ($item) use ($items) {
+                    foreach ($items as $i) {
+                        if ($i['id'] == $item->id) return true;
+                    }
+
+                    return false;
+                })->pluck('id');
+
+            SaleItem::where("session", $sale->session)
+                ->whereNotIn("id", $itemsFound)
+                ->get()
+                ->each(function ($item) {
+                    $item->delete();
+                });
+
             foreach ($items as $item) {
                 $subtotal += $item["total"];
                 $branch = $branch_id;
@@ -87,12 +104,6 @@ class SaleSave
             $paymentsDb = Payment::where('sale_id', $sale->id)->get()->filter(function ($pay) use ($payments) {
                 foreach ($payments as $payment) {
                     if (isset($payment["id"]) && $payment["id"] == $pay->id) {
-                        // $pay->metodopago = $payment['metodopago'];
-                        // $pay->details = isset($payment['details']) ?  $payment['details'] : "";
-                        // $pay->auth = isset($payment['auth']) ? $payment['auth'] : "";
-                        // $pay->total = $payment['total'];
-                        // $pay->bank_id = isset($payment['bank_id']) ? $payment['bank_id'] : null;
-                        // $pay->save();
                         return true;
                     }
                 }
