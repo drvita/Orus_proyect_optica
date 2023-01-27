@@ -193,7 +193,7 @@ class StoreItemController extends Controller
     /**
      * 
      */
-    public function setCantItem(StoreItem $item, StoreItemSetCant $request)
+    public function setCantItem(StoreItemSetCant $request, StoreItem $item)
     {
         if (!$item->branch_default) {
             return ["status" => "failer", "message" => "The item is not item valid to set cant by default branch"];
@@ -204,7 +204,6 @@ class StoreItemController extends Controller
                 $i->cant = $request->cant;
                 $i->save();
             } else {
-                // $i->deleted_at = carbon::now();
                 $i->delete();
             }
         });
@@ -223,6 +222,8 @@ class StoreItemController extends Controller
      */
     public function storeList(StoreItemByList $request)
     {
+        $currentUser = $request->user();
+
         foreach ($request->items as $row) {
             $item = StoreItem::find($row['id']);
             $branch_id = $item->branch_default ? $item->branch_default : $row['branch_id'];
@@ -241,6 +242,22 @@ class StoreItemController extends Controller
             $branch->save();
 
             //TODO: save in Store lot
+            $lot = $branch->lots()->where("num_invoice", $row['invoice'])->first();
+            $row['cost'] = isset($row['cost']) ? $row['cost'] : 0;
+            if (!$lot) {
+                $lot = $branch->lots()->create([
+                    "user_id" => $currentUser->id,
+                    "store_items_id" => $item->id,
+                    "store_branch_id" => $branch->id,
+                    "cost" => $row['cost'],
+                    "price" => $row['price'],
+                    "num_invoice" => $row['invoice'],
+                    "cant" => (int) $row['cant'],
+                ]);
+            } else {
+                $lot->cant = (int) $row['cant'];
+                $lot->save();
+            }
         }
 
         return ["status" => "ok"];
