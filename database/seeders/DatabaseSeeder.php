@@ -1,11 +1,8 @@
 <?php
 
-use Illuminate\Database\Seeder;
+namespace Database\Seeders;
 
-use Database\Seeders\RoleSeeder;
-use Database\Seeders\UserSeeder;
-use Database\Seeders\CategorySeeder;
-use Database\Seeders\BankSeeder;
+use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,9 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call(RoleSeeder::class);
         $this->call(UserSeeder::class);
+        $this->call(RoleSeeder::class);
         $this->call(CategorySeeder::class);
         $this->call(BankSeeder::class);
     }
 }
+
