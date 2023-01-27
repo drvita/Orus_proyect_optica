@@ -24,6 +24,10 @@ class StoreBranch extends Model
     {
         return $this->belongsTo(Config::class, 'branch_id', 'id');
     }
+    public function lots()
+    {
+        return $this->hasMany(StoreLot::class, 'store_branch_id', 'id')->where("cant", ">", 0);
+    }
     //Scopes
     public function scopePublish($query)
     {
