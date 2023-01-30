@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Config;
+use App\Models\Contact;
 use App\Models\StoreItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -38,6 +40,33 @@ class StoreItemTest extends TestCase
                 ],
             ]
         ]);
+        dd($res->decodeResponseJson());
+        $res->assertStatus(200);
+    }
+    public function test_create_order()
+    {
+        // $this->withoutExceptionHandling();
+        $user = User::role('admin')->inRandomOrder()->first();
+        $item = StoreItem::has("inBranch")->inRandomOrder()->first();
+        $branchItem = $item->inBranch()->first();
+        $contact = Contact::has("exams")->inRandomOrder()->first();
+        $exam = $contact->exams()->first();
+
+        $data = [
+            "session" => Str::random(36),
+            "contact_id" => $contact->id,
+            "exam_id" => $exam->id,
+            "items" => [
+                [
+                    "store_items_id" => $item->id,
+                    "cant" => 1,
+                    "price" => $branchItem->price,
+                ]
+            ],
+        ];
+
+        $this->actingAs($user);
+        $res = $this->json('POST', 'api/orders', $data);
         dd($res->decodeResponseJson());
         $res->assertStatus(200);
     }

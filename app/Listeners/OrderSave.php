@@ -40,8 +40,8 @@ class OrderSave
         $items = $order->items;
         $branch_id = $order->branch_id ? $order->branch_id : $auth->branch_id;
         $sale = $order->sale ? $order->sale : new \stdClass;
-        $discount = array_key_exists("discount", $sale) ? $sale["discount"] : 0;
-        $payments = array_key_exists("payments", $sale) ? $sale["payments"] : [];
+        $discount = $sale && isset($sale->discount) ? $sale->discount : 0;
+        $payments = $sale && isset($sale->payments) ? $sale->payments : [];
         $subtotal = 0;
 
         SaleItem::where('session', $session)->get()->each(function ($item) {
@@ -51,23 +51,42 @@ class OrderSave
         foreach ($items as $item) {
             $subtotal += $item["total"];
             $branch = $branch_id;
+            $lots = null;
+            $cant = $item['cant'];
+
             $itemData = StoreItem::where("id", $item['store_items_id'])->first();
+            if ($itemData->branch_default) {
+                $branch = $itemData->branch_default;
+            }
 
+            $i_save['cant'] = $cant;
+            $i_save['price'] = $item['price'];
+            $i_save['subtotal'] = $item["total"];
+            $i_save['session'] = $session;
+            $i_save['descripcion'] = isset($item['descripcion']) ? $item['descripcion'] : null;
+            $i_save['store_items_id'] = $item['store_items_id'];
+            $i_save['branch_id'] = $branch;
+            $i_save['user_id'] = $auth->id;
 
-            if ($itemData && $item["total"]) {
-                if ($itemData->branch_default) {
-                    $branch = $itemData->branch_default;
+            $branchItem = $itemData->inBranch()->where("branch_id", $branch)->first();
+            if ($branchItem) {
+                $i_save['store_branch_id'] = $branchItem->id;
+                $lots = $branchItem->lots()->orderBy("created_at")->get();
+            }
+
+            if ($lots && $lots->count()) {
+                foreach ($lots as $lot) {
+                    $i_save['store_lot_id'] = $lot->id;
+                    if ($lot->cant >= $cant) {
+                        SaleItem::create($i_save);
+                        break;
+                    } else {
+                        $cant -= $lot->cant;
+                        $i_save['cant'] = $lot->cant;
+                        SaleItem::create($i_save);
+                    }
                 }
-
-                $i_save['cant'] = $item['cant'];
-                $i_save['price'] = $item['price'];
-                $i_save['subtotal'] = $item["total"];
-                $i_save['session'] = $session;
-                $i_save['store_items_id'] = $item['store_items_id'];
-                $i_save['descripcion'] = isset($item['descripcion']) ? $item['descripcion'] : null;
-                $i_save['branch_id'] = $branch;
-                $i_save['user_id'] = $auth->id;
-
+            } else {
                 SaleItem::create($i_save);
             }
         }

@@ -14,7 +14,7 @@ class SaleItem extends Model
 {
     protected $table = "sales_items";
     protected $fillable = [
-        "cant", "price", "subtotal", "inStorage", "session", "store_items_id", "user_id", "out", "descripcion", "branch_id"
+        "cant", "price", "subtotal", "inStorage", "session", "store_items_id", "store_branch_id", "store_lot_id", "user_id", "out", "descripcion", "branch_id"
     ];
     protected $hidden = [];
     protected $dates = [
@@ -41,6 +41,14 @@ class SaleItem extends Model
     public function branch()
     {
         return $this->belongsTo(Config::class, 'branch_id');
+    }
+    public function branchItem()
+    {
+        return $this->hasOne(StoreBranch::class, 'id', 'store_branch_id');
+    }
+    public function lot()
+    {
+        return $this->hasOne(StoreLot::class, 'id', 'store_lot_id');
     }
     //Scopes
     public function scopeStock($query, $search)
@@ -81,116 +89,74 @@ class SaleItem extends Model
     {
         $item = StoreItem::where("id", $saleitem->store_items_id)->with('inBranch')->first();
         $auth = Auth::user();
+        $branch = $saleitem->branchItem;
 
-        if ($item) {
-            if ($item->inBranch && count($item->inBranch)) {
+        if ($branch) {
+            $lot = $saleitem->lot;
+            $cant = $saleitem->cant;
+            $lot_selected = null;
+            $typeSale = "";
 
-                foreach ($item->inBranch as $branch) {
-                    if ($branch->branch_id === $saleitem->branch_id) {
-                        if ($saleitem->cant) {
+            if ($type === "created") {
+                $branch->cant -= $cant;
+                $typeSale = "created item";
 
-                            $sale = Sale::where("session", $saleitem->session)->with('metas')->first();
-                            $dataSale = ["user_id" => $auth->id, "datetime" => Carbon::now()];
-                            $typeSale = "";
-
-                            if ($type === "created") {
-                                $branch->cant -= $saleitem->cant;
-                                $typeSale = "created item";
-                            } else {
-                                $branch->cant += $saleitem->cant;
-                                $typeSale = "deleted item";
-                            }
-
-                            if ($sale) {
-                                $dataSale["inputs"] = [
-                                    "cant" => $saleitem->cant,
-                                    "branch_id" => $saleitem->branch_id,
-                                    "name" => $item->name,
-                                ];
-
-                                $sale->metas()->create(["key" => $typeSale, "value" => $dataSale]);
-                            }
-
-                            if ($branch->cant < 0) {
-                                $branch->cant = 0;
-                            }
-
-                            $branch->updated_at = Carbon::now();
-                            $branch->updated_id = $auth->id;
-                            $branch->save();
-
-                            // $item->updated_at = Carbon::now();
-                            // $item->user_id = $auth->id;
-                            // $item->save();
-                        } else {
-                            Log::error("The sales $item->session with item $item->code not have cant to rest");
-                        }
-
-                        return [
-                            "saleID" => $saleitem->id,
-                            "itemId" => $item->id,
-                            "name" => $item->name,
-                            "code" => $item->code,
-                            "branch" => $branch->branch_id,
-                            "cant" => $saleitem->cant,
-                            "status" => $saleitem->cant ? "OK" : "failer",
-                            "message" => $saleitem->cant ? "" : "Cant no found o zero"
-                        ];
-                    }
+                if ($lot) {
+                    $lot->cant -= $cant;
+                    $lot->save();
+                    $lot_selected = $lot->id;
                 }
-
-                Log::error("The item $item->code in sale $saleitem->id doesn't match with branches: $saleitem->branch_id");
-                $item->inBranch()->create([
-                    "branch_id" => $saleitem->branch_id,
-                    "cant" => 0,
-                    "price" => 1,
-                    "user_id" => 1,
-                ]);
-
-                return [
-                    "saleID" => $saleitem->id,
-                    "itemId" => $item->id,
-                    "name" => $item->name,
-                    "code" => $item->code,
-                    "branch" => $saleitem->branch_id,
-                    "cant" => $saleitem->cant,
-                    "status" => "failer",
-                    "message" => "Item doesn't do match with branches"
-                ];
             } else {
-                Log::error("The item $item->code doesn't have branches");
-                // $this->sendErrorNotification($saleitem, $item);
-                $item->inBranch()->create([
-                    "branch_id" => $saleitem->branch_id,
-                    "cant" => 0,
-                    "price" => 1,
-                    "user_id" => 1,
-                ]);
+                $branch->cant += $cant;
+                $typeSale = "deleted item";
 
-                return [
-                    "saleID" => $saleitem->id,
-                    "itemId" => $item->id,
-                    "name" => $item->name,
-                    "code" => $item->code,
-                    "branch" => $saleitem->branch_id,
-                    "cant" => $saleitem->cant,
-                    "status" => "failer",
-                    "message" => "Item not have branches"
-                ];
+                if ($lot) {
+                    $lot->cant += $cant;
+                    $lot->save();
+                    $lot_selected = $lot->id;
+                }
             }
-        } else {
-            // send notification because no exit item
-            Log::error("The item $saleitem->store_item_id not found");
-            $this->sendErrorNotification($saleitem, new \stdClass);
+
+            if ($branch->cant < 0) {
+                $branch->cant = 0;
+            }
+
+            $branch->updated_at = Carbon::now();
+            $branch->updated_id = $auth->id;
+            $branch->save();
+
+            $sale = Sale::where("session", $saleitem->session)->first();
+            if ($sale) {
+                $dataSale = ["user_id" => $auth->id, "datetime" => Carbon::now()];
+                $dataSale["inputs"] = [
+                    "cant" => $saleitem->cant,
+                    "branch_id" => $saleitem->branch_id,
+                    "name" => $item->name,
+                    "lot" => $lot_selected ?? "--",
+                ];
+                $sale->metas()->create(["key" => $typeSale, "value" => $dataSale]);
+            }
+
             return [
                 "saleID" => $saleitem->id,
-                "itemId" => $saleitem->store_item_id,
-                "name" => "",
-                "code" => "",
+                "itemId" => $item->id,
+                "name" => $item->name,
+                "code" => $item->code,
+                "branch" => $branch->id,
+                "cant" => $saleitem->cant,
+                "status" => "ok",
+            ];
+        } else {
+            Log::error("The item $item->code doesn't have branches");
+            return [
+                "saleID" => $saleitem->id,
+                "itemId" => $item->id,
+                "name" => $item->name,
+                "code" => $item->code,
                 "branch" => $saleitem->branch_id,
                 "cant" => $saleitem->cant,
                 "status" => "failer",
-                "message" => "Item not found in store"
+                "message" => "Item not have branches"
             ];
         }
     }

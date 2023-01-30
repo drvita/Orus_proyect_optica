@@ -40,16 +40,16 @@ class StoreLot extends Model
     //Functions
     protected static function booted()
     {
-        static::created(function ($item) {
-            $updateItem = StoreItem::find($item->store_items_id);
-            $updateItem->cant += $item->amount;
-            $updateItem->price = $item->price;
-            $updateItem->save();
-        });
-        static::deleted(function ($item) {
-            $updateItem = StoreItem::find($item->store_items_id);
-            $updateItem->cant -= $item->amount;
-            $updateItem->save();
-        });
+        // static::created(function ($item) {
+        //     $updateItem = StoreItem::find($item->store_items_id);
+        //     $updateItem->cant += $item->amount;
+        //     $updateItem->price = $item->price;
+        //     $updateItem->save();
+        // });
+        // static::deleted(function ($item) {
+        //     $updateItem = StoreItem::find($item->store_items_id);
+        //     $updateItem->cant -= $item->amount;
+        //     $updateItem->save();
+        // });
     }
 }

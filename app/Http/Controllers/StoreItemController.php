@@ -223,11 +223,22 @@ class StoreItemController extends Controller
     public function storeList(StoreItemByList $request)
     {
         $currentUser = $request->user();
+        $auth = $request->user();
 
         foreach ($request->items as $row) {
             $item = StoreItem::find($row['id']);
             $branch_id = $item->branch_default ? $item->branch_default : $row['branch_id'];
             $branch = $item->inBranch()->where("branch_id", $branch_id)->first();
+
+            if (!$branch) {
+                $branch = $item->inBranch()->create([
+                    "user_id" => $auth->id,
+                    "store_item_id" => $item->id,
+                    "branch_id" => $branch_id,
+                    "cant" => $row['cant'],
+                    "price" => $row['price'],
+                ]);
+            }
 
             if ($branch->cant < 0) {
                 $branch->cant = 0;
@@ -237,8 +248,8 @@ class StoreItemController extends Controller
                 $branch->price = (float) $row['price'];
             }
 
-            $branch->cant += (int) $row['cant'];
-            $branch->updated_id = Auth::user()->id;
+            $branch->cant += (int) $row['price'];
+            $branch->updated_id = $auth->id;
             $branch->save();
 
             //TODO: save in Store lot
