@@ -19,6 +19,7 @@ class SaleItemShort extends JsonResource
             $return['price'] = $this->price;
             $return['subtotal'] = $this->cant * $this->price;
             $return['description'] = $this->descripcion;
+            $return['lot'] = $this->lot ? $this->lot->num_invoice : null;
         }
         return $return;
     }
