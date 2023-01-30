@@ -222,7 +222,6 @@ class StoreItemController extends Controller
      */
     public function storeList(StoreItemByList $request)
     {
-        $currentUser = $request->user();
         $auth = $request->user();
 
         foreach ($request->items as $row) {
@@ -257,7 +256,7 @@ class StoreItemController extends Controller
             $row['cost'] = isset($row['cost']) ? $row['cost'] : 0;
             if (!$lot) {
                 $lot = $branch->lots()->create([
-                    "user_id" => $currentUser->id,
+                    "user_id" => $auth->id,
                     "store_items_id" => $item->id,
                     "store_branch_id" => $branch->id,
                     "cost" => $row['cost'],
