@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\StoreItem;
 use App\User;
+use Carbon\Carbon;
 
 class StoreLot extends Model
 {
@@ -40,12 +41,18 @@ class StoreLot extends Model
     //Functions
     protected static function booted()
     {
-        // static::created(function ($item) {
-        //     $updateItem = StoreItem::find($item->store_items_id);
-        //     $updateItem->cant += $item->amount;
-        //     $updateItem->price = $item->price;
-        //     $updateItem->save();
-        // });
+        static::created(function ($item) {
+            $data = [
+                "user_id" => $item->user_id,
+                "inputs" => [
+                    "branch_id" => $item->store_branch_id,
+                    "cant" => $item->cant,
+                    "invoice" => $item->num_invoice,
+                ],
+                "datetime" => Carbon::now(),
+            ];
+            $item->producto->metas()->create(["key" => "created lot", "value" => $data]);
+        });
         // static::deleted(function ($item) {
         //     $updateItem = StoreItem::find($item->store_items_id);
         //     $updateItem->cant -= $item->amount;

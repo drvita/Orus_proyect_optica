@@ -247,9 +247,12 @@ class StoreItemController extends Controller
                 $branch->price = (float) $row['price'];
             }
 
-            $branch->cant += (int) $row['price'];
+            $branch->cant += (int) $row['cant'];
             $branch->updated_id = $auth->id;
             $branch->save();
+            $item->cant += (int) $row['cant'];
+            $item->updated_id = $auth->id;
+            $item->save();
 
             $lot = $branch->lots()->where("num_invoice", $row['invoice'])->first();
             $row['cost'] = isset($row['cost']) ? $row['cost'] : 0;
@@ -264,7 +267,7 @@ class StoreItemController extends Controller
                     "cant" => (int) $row['cant'],
                 ]);
             } else {
-                $lot->cant = (int) $row['cant'];
+                $lot->cant += (int) $row['cant'];
                 $lot->save();
             }
         }

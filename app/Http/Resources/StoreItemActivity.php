@@ -19,7 +19,11 @@ class StoreItemActivity extends JsonResource
             $price = 0;
             $from = 0;
             $branchSelect = null;
-            $activity = $this->metas()->whereIn("key", ["updated", "deleted", "created", "created branch"])->orderBy("id", "desc")->get();
+            $activity = $this->metas()
+                ->whereIn("key", ["updated", "deleted", "created", "created branch", "created lot"])
+                ->orderBy("id", "desc")
+                ->take(18)
+                ->get();
 
             $obj = [
                 'id' => 0,

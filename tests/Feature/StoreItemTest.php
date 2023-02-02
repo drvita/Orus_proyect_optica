@@ -26,17 +26,34 @@ class StoreItemTest extends TestCase
         $branch = $item->inBranch()->inRandomOrder()->first();
         $price = rand(100, 1000);
         $cost = $price - ((rand(10, 35) / 100) * $price);
+        $invoice_num = Str::random(8);
 
         $this->actingAs($user);
         $res = $this->json('POST', 'api/store/bylist', [
             "items" => [
+                // [
+                //     "id" => $item->id,
+                //     "branch_id" => $branch->branch_id,
+                //     "cant" => rand(1, 10),
+                //     "price" => $price,
+                //     "cost" => $cost,
+                //     "invoice" => $invoice_num,
+                // ],
                 [
-                    "id" => $item->id,
-                    "branch_id" => $branch->branch_id,
-                    "cant" => rand(1, 10),
-                    "price" => $price,
-                    "cost" => $cost,
-                    "invoice" => Str::random(8),
+                    "id" => 13299,
+                    "branch_id" => 13,
+                    "cant" => 10,
+                    "price" => 100,
+                    "cost" => 50,
+                    "invoice" => $invoice_num,
+                ],
+                [
+                    "id" => 13299,
+                    "branch_id" => 15,
+                    "cant" => 5,
+                    "price" => 150,
+                    "cost" => 50,
+                    "invoice" => $invoice_num,
                 ],
             ]
         ]);
