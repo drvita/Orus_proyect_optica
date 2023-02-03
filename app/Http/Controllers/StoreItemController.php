@@ -237,19 +237,20 @@ class StoreItemController extends Controller
                     "cant" => $row['cant'],
                     "price" => $row['price'],
                 ]);
+            } else {
+                if ($branch->cant < 0) {
+                    $branch->cant = 0;
+                }
+
+                if (isset($row['price'])) {
+                    $branch->price = (float) $row['price'];
+                }
+
+                $branch->cant += (int) $row['cant'];
+                $branch->updated_id = $auth->id;
+                $branch->save();
             }
 
-            if ($branch->cant < 0) {
-                $branch->cant = 0;
-            }
-
-            if (isset($row['price'])) {
-                $branch->price = (float) $row['price'];
-            }
-
-            $branch->cant += (int) $row['cant'];
-            $branch->updated_id = $auth->id;
-            $branch->save();
             $item->cant += (int) $row['cant'];
             $item->updated_id = $auth->id;
             $item->save();

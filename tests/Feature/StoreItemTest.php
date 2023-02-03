@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Config;
 use App\Models\Contact;
+use App\Models\Order;
 use App\Models\StoreItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -13,11 +14,6 @@ use App\User;
 
 class StoreItemTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
     public function test_update_store_by_list()
     {
         // $this->withoutExceptionHandling();
@@ -31,30 +27,30 @@ class StoreItemTest extends TestCase
         $this->actingAs($user);
         $res = $this->json('POST', 'api/store/bylist', [
             "items" => [
+                [
+                    "id" => $item->id,
+                    "branch_id" => $branch->branch_id,
+                    "cant" => rand(1, 10),
+                    "price" => $price,
+                    "cost" => $cost,
+                    "invoice" => $invoice_num,
+                ],
                 // [
-                //     "id" => $item->id,
-                //     "branch_id" => $branch->branch_id,
-                //     "cant" => rand(1, 10),
-                //     "price" => $price,
-                //     "cost" => $cost,
+                //     "id" => 13299,
+                //     "branch_id" => 13,
+                //     "cant" => 10,
+                //     "price" => 100,
+                //     "cost" => 50,
                 //     "invoice" => $invoice_num,
                 // ],
-                [
-                    "id" => 13299,
-                    "branch_id" => 13,
-                    "cant" => 10,
-                    "price" => 100,
-                    "cost" => 50,
-                    "invoice" => $invoice_num,
-                ],
-                [
-                    "id" => 13299,
-                    "branch_id" => 15,
-                    "cant" => 5,
-                    "price" => 150,
-                    "cost" => 50,
-                    "invoice" => $invoice_num,
-                ],
+                // [
+                //     "id" => 13299,
+                //     "branch_id" => 15,
+                //     "cant" => 5,
+                //     "price" => 150,
+                //     "cost" => 50,
+                //     "invoice" => $invoice_num,
+                // ],
             ]
         ]);
         dd($res->decodeResponseJson());
@@ -84,6 +80,20 @@ class StoreItemTest extends TestCase
 
         $this->actingAs($user);
         $res = $this->json('POST', 'api/orders', $data);
+        // dd($res->decodeResponseJson());
+        $res->assertStatus(200);
+    }
+    public function test_show_order()
+    {
+        // $this->withoutExceptionHandling();
+        $user = User::role('admin')->inRandomOrder()->first();
+        $order = Order::whereHas('items', function ($q) {
+            $q->has('lot');
+        })->inRandomOrder()->first();
+
+
+        $this->actingAs($user);
+        $res = $this->json('GET', 'api/orders/' . $order->id);
         dd($res->decodeResponseJson());
         $res->assertStatus(200);
     }

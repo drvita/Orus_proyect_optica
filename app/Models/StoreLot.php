@@ -27,9 +27,13 @@ class StoreLot extends Model
     {
         return $this->belongsTo(StoreItem::class, 'store_items_id');
     }
+    public function storeBranch()
+    {
+        return $this->belongsTo(StoreBranch::class, 'store_branch_id');
+    }
     public function branch()
     {
-        return $this->belongsTo(Config::class, 'branch_id', 'id');
+        return $this->belongsTo(StoreBranch::class, 'store_branch_id');
     }
     //Scopes
     public function scopeBranch($query, $search)
@@ -45,7 +49,7 @@ class StoreLot extends Model
             $data = [
                 "user_id" => $item->user_id,
                 "inputs" => [
-                    "branch_id" => $item->store_branch_id,
+                    "branch_id" => $item->storeBranch ? $item->storeBranch->branch_id : "--",
                     "cant" => $item->cant,
                     "invoice" => $item->num_invoice,
                 ],
