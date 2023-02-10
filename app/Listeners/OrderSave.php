@@ -40,8 +40,8 @@ class OrderSave
         $items = $order->items;
         $branch_id = $order->branch_id ? $order->branch_id : $auth->branch_id;
         $sale = $order->sale ? $order->sale : new \stdClass;
-        $discount = $sale && isset($sale->discount) ? $sale->discount : 0;
-        $payments = $sale && isset($sale->payments) ? $sale->payments : [];
+        $discount = $sale && isset($sale['discount']) ? $sale['discount'] : 0;
+        $payments = $sale && isset($sale['payments']) ? $sale['payments'] : [];
         $subtotal = 0;
 
         SaleItem::where('session', $session)->get()->each(function ($item) {
