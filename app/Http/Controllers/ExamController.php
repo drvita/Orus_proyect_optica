@@ -79,7 +79,6 @@ class ExamController extends Controller
         }
 
         $exam = $this->exam->create($request->all());
-        // if ($rolUser === 1) event(new ExamEvent($exam, $rolUser));
 
         return new ExamResources($exam);
     }
@@ -108,7 +107,7 @@ class ExamController extends Controller
     public function update(ExamRequests $request, Exam $exam)
     {
         $currentUser = Auth::user();
-        $request->updated_id = $currentUser->id;
+        $request['updated_id'] = $currentUser->id;
 
         if (isset($request['branch_id'])) {
             unset($request['branch_id']);
@@ -169,6 +168,6 @@ class ExamController extends Controller
             }
         }
 
-        return $request->age;
+        return $request->age ? $request->age : 0;
     }
 }
