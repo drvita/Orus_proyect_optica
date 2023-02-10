@@ -43,7 +43,7 @@ class ContactController extends Controller
             ->business($request->business)
             ->publish()
             ->paginate($page);
-        // dd($request->all());
+
         return ContactResourceList::collection($contacts);
     }
 

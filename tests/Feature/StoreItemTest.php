@@ -18,40 +18,55 @@ class StoreItemTest extends TestCase
     {
         // $this->withoutExceptionHandling();
         $user = User::role('admin')->inRandomOrder()->first();
-        $item = StoreItem::has('inBranch')->inRandomOrder()->first();
-        $branch = $item->inBranch()->inRandomOrder()->first();
+        // $item = StoreItem::has('inBranch')->inRandomOrder()->first();
+        // $branch = $item->inBranch()->inRandomOrder()->first();
         $price = rand(100, 1000);
         $cost = $price - ((rand(10, 35) / 100) * $price);
         $invoice_num = Str::random(8);
 
         $this->actingAs($user);
+        $items = array(
+            array(
+                'code' => 'codecode',
+                'codeBar' => '',
+                'category_id' => 55,
+                'supplier_id' => 868,
+                'brand_id' => 110,
+                'branch_id' => 15,
+                'cant' => 2,
+                'name' => 'Armazon acetato optifree 10ml code',
+                "price" => $price,
+                "cost" => $cost,
+                "invoice" => $invoice_num,
+            ),
+            array(
+                'code' => 'rm32523',
+                'codeBar' => '',
+                'category_id' => 54,
+                'supplier_id' => 1392,
+                'brand_id' => 114,
+                'branch_id' => 13,
+                'cant' => 2,
+                'name' => 'Armazon metalico perry ellis rm32523',
+                "price" => $price,
+                "cost" => $cost,
+                "invoice" => $invoice_num,
+            ),
+            array(
+                'code' => 'mgtrer',
+                'codeBar' => '',
+                'category_id' => 176,
+                'supplier_id' => 1583,
+                'brand_id' => 103,
+                'branch_id' => 12,
+                'cant' => 2,
+                'name' => 'Armazon armazon de prueba JIMMY CHOO mgtrer',
+                "price" => $price,
+                "invoice" => $invoice_num,
+            ),
+        );
         $res = $this->json('POST', 'api/store/bylist', [
-            "items" => [
-                [
-                    "id" => $item->id,
-                    "branch_id" => $branch->branch_id,
-                    "cant" => rand(1, 10),
-                    "price" => $price,
-                    "cost" => $cost,
-                    "invoice" => $invoice_num,
-                ],
-                // [
-                //     "id" => 13299,
-                //     "branch_id" => 13,
-                //     "cant" => 10,
-                //     "price" => 100,
-                //     "cost" => 50,
-                //     "invoice" => $invoice_num,
-                // ],
-                // [
-                //     "id" => 13299,
-                //     "branch_id" => 15,
-                //     "cant" => 5,
-                //     "price" => 150,
-                //     "cost" => 50,
-                //     "invoice" => $invoice_num,
-                // ],
-            ]
+            "items" => $items
         ]);
         dd($res->decodeResponseJson());
         $res->assertStatus(200);

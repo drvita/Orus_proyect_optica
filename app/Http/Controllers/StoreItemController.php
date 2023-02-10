@@ -225,9 +225,18 @@ class StoreItemController extends Controller
         $auth = $request->user();
 
         foreach ($request->items as $row) {
-            $item = StoreItem::find($row['id']);
+            $item = StoreItem::where("code", $row['code'])->first();
+
+            if (!$item) {
+                $row['contact_id'] = $row['supplier_id'];
+                $row['unit'] = "pz";
+                $row['user_id'] = $auth->id;
+                $item = StoreItem::create($row);
+            }
+
             $branch_id = $item->branch_default ? $item->branch_default : $row['branch_id'];
             $branch = $item->inBranch()->where("branch_id", $branch_id)->first();
+
 
             if (!$branch) {
                 $branch = $item->inBranch()->create([

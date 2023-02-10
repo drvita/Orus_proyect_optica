@@ -26,12 +26,17 @@ class StoreItemByList extends FormRequest
     {
         return [
             "items" => "required|array",
-            "items.*.id" => ["required", "numeric", Rule::exists("store_items", "id")->whereNull('deleted_at')],
+            "items.*.code" => "sometimes|string|min:4",
+            "items.*.codebar" => "sometimes|nullable|string|min:10",
             "items.*.cant" => "required|numeric|min:1",
-            "items.*.price" => "nullable|numeric|min:1",
+            "items.*.category_id" => "required|numeric|min:1|exists:categories,id",
+            "items.*.supplier_id" => "required|numeric|min:1|exists:contacts,id",
+            "items.*.brand_id" => "required|numeric|min:1|exists:brands,id",
+            "items.*.branch_id" => ["required", "numeric", "min:1", Rule::exists("config", "id")->where("name", "branches")],
+            "items.*.name" => "required|string|min:4",
+            "items.*.price" => "required|numeric|min:1",
             "items.*.cost" => "sometimes|nullable|numeric|min:0",
-            "items.*.branch_id" => ["required", "numeric", Rule::exists("config", "id")->where("name", "branches")],
-            "items.*.invoice" => "required|string",
+            "items.*.invoice" => "required|string|min:3",
         ];
     }
 }
