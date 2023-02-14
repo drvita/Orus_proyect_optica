@@ -59,9 +59,10 @@ class SaleSave
                 $branch = $branch_id;
                 $itemData = StoreItem::where("id", $item['store_items_id'])->first();
                 $saleItem = SaleItem::where("id", $item["id"])->first();
+                $cant = $item['cant'];
 
                 if ($saleItem) {
-                    $saleItem->cant = $item['cant'];
+                    $saleItem->cant = $cant;
                     $saleItem->price = $item['price'];
                     $saleItem->subtotal = $item['total'];
                     $saleItem->store_items_id = $item['store_items_id'];
@@ -73,7 +74,7 @@ class SaleSave
                             $branch = $itemData->branch_default;
                         }
 
-                        $i_save['cant'] = $item['cant'];
+                        $i_save['cant'] = $cant;
                         $i_save['price'] = $item['price'];
                         $i_save['subtotal'] = $item["total"];
                         $i_save['session'] = $session;
@@ -82,7 +83,28 @@ class SaleSave
                         $i_save['branch_id'] = $branch;
                         $i_save['user_id'] = $auth->id;
 
-                        SaleItem::create($i_save);
+                        $branchItem = $itemData->inBranch()->where("branch_id", $branch)->first();
+
+                        if ($branchItem) {
+                            $i_save['store_branch_id'] = $branchItem->id;
+                            $lots = $branchItem->lots()->orderBy("created_at")->get();
+                        }
+
+                        if ($lots && $lots->count()) {
+                            foreach ($lots as $lot) {
+                                $i_save['store_lot_id'] = $lot->id;
+                                if ($lot->cant >= $cant) {
+                                    SaleItem::create($i_save);
+                                    break;
+                                } else {
+                                    $cant -= $lot->cant;
+                                    $i_save['cant'] = $lot->cant;
+                                    SaleItem::create($i_save);
+                                }
+                            }
+                        } else {
+                            SaleItem::create($i_save);
+                        }
                     }
                 }
             }
