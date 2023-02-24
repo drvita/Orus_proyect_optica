@@ -73,6 +73,7 @@ class SaleSave
                         if ($itemData->branch_default) {
                             $branch = $itemData->branch_default;
                         }
+                        $lots = null;
 
                         $i_save['cant'] = $cant;
                         $i_save['price'] = $item['price'];
@@ -90,7 +91,7 @@ class SaleSave
                             $lots = $branchItem->lots()->orderBy("created_at")->get();
                         }
 
-                        if ($lots && $lots->count()) {
+                        if (isset($lots) && $lots->count()) {
                             foreach ($lots as $lot) {
                                 $i_save['store_lot_id'] = $lot->id;
                                 if ($lot->cant >= $cant) {
