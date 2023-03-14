@@ -26,8 +26,8 @@ class StoreItemByList extends FormRequest
     {
         return [
             "items" => "required|array",
-            "items.*.code" => "sometimes|string|min:4",
-            "items.*.codebar" => "sometimes|nullable|string|min:10",
+            "items.*.code" => "sometimes|string|min:4|max:18",
+            "items.*.codebar" => "sometimes|nullable|string|min:10|max:100",
             "items.*.cant" => "required|numeric|min:1",
             "items.*.category_id" => "required|numeric|min:1|exists:categories,id",
             "items.*.supplier_id" => "required|numeric|min:1|exists:contacts,id",

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
+Route::middleware('auth:api')->post('/store/bylist', 'StoreItemController@storeList');
 Route::middleware('auth:api')->apiResource('contacts', 'ContactController');
 Route::middleware('auth:api')->apiResource('categories', 'CategoryController');
 Route::middleware('auth:api')->apiResource('config', 'ConfigController');
@@ -27,5 +28,4 @@ Route::middleware('auth:api')->post('/user/readAllNotifications', 'AuthControlle
 Route::middleware('auth:api')->get('/user/subscriptionNotify', 'AuthController@userSubscriptionNotify')->name('users.subscribtionNotify');
 
 Route::middleware('auth:api')->post('/categories/setprice/{category}', 'CategoryController@setPriceByCategory');
-Route::middleware('auth:api')->post('/store/bylist', 'StoreItemController@storeList');
 Route::middleware('auth:api')->post('/store/setcant/{item}', 'StoreItemController@setCantItem');
