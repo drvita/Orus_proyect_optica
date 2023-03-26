@@ -11,6 +11,7 @@ use App\Http\Requests\StoreItem as StoreRequests;
 use App\Http\Requests\StoreItemByList;
 use App\Http\Requests\StoreItemSetCant;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class StoreItemController extends Controller
 {
@@ -215,6 +216,14 @@ class StoreItemController extends Controller
             "data" => $item,
         ];
     }
+    private function validateNameStore($name)
+    {
+        if (!$name) {
+            return false;
+        }
+
+        return !StoreItem::where("name", $name)->count();
+    }
     /**
      * Save items by array
      * @param $request into items
@@ -228,6 +237,13 @@ class StoreItemController extends Controller
             $item = StoreItem::where("code", $row['code'])->first();
 
             if (!$item) {
+                do {
+                    if ($this->validateNameStore($row['name'])) {
+                        break;
+                    }
+                    $row['name'] .= " - " . Str::random(8);
+                } while (false);
+
                 $row['contact_id'] = $row['supplier_id'];
                 $row['unit'] = "pz";
                 $row['user_id'] = $auth->id;
@@ -236,7 +252,6 @@ class StoreItemController extends Controller
 
             $branch_id = $item->branch_default ? $item->branch_default : $row['branch_id'];
             $branch = $item->inBranch()->where("branch_id", $branch_id)->first();
-
 
             if (!$branch) {
                 $branch = $item->inBranch()->create([
@@ -260,8 +275,15 @@ class StoreItemController extends Controller
                 $branch->save();
             }
 
+            if ($item->cant < 0) {
+                $item->cant = 0;
+            }
+
             $item->cant += (int) $row['cant'];
             $item->updated_id = $auth->id;
+            $item->codebar = $row['codebar'];
+            $item->price = (float) $row['price'];
+            $item->cant += (int) $row['cant'];
             $item->save();
 
             $lot = $branch->lots()->where("num_invoice", $row['invoice'])->first();
