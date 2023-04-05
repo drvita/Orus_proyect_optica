@@ -79,6 +79,10 @@ class StoreItemTest extends TestCase
         foreach ($items as $item) {
             $rows = StoreItem::where("code", $item['code'])->get();
 
+            if (!$rows) {
+                $rows = StoreItem::where("codebar", $item['codebar'])->first();
+            }
+
             if (!$rows->count()) {
                 dd($item, $rows->toArray());
             }
@@ -98,6 +102,7 @@ class StoreItemTest extends TestCase
 
             $branch_id = $row->branch_default ? $row->branch_default : $item['branch_id'];
             $branch = $row->inBranch()->where("branch_id", $branch_id)->first();
+
             if (!$branch) {
                 dd($item, $rows->toArray());
             }

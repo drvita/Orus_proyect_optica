@@ -237,11 +237,16 @@ class StoreItemController extends Controller
             $item = StoreItem::where("code", $row['code'])->first();
 
             if (!$item) {
+                $item = StoreItem::where("codebar", $row['codebar'])->first();
+            }
+
+            if (!$item) {
+
                 do {
                     if ($this->validateNameStore($row['name'])) {
                         break;
                     }
-                    $row['name'] .= " - " . Str::random(8);
+                    $row['name'] .= " - " . Str::random(6);
                 } while (false);
 
                 $row['contact_id'] = $row['supplier_id'];
