@@ -46,10 +46,10 @@ class SaleItem extends Model
     {
         return $this->hasOne(StoreBranch::class, 'id', 'store_branch_id');
     }
-    public function lot()
-    {
-        return $this->hasOne(StoreLot::class, 'id', 'store_lot_id');
-    }
+    // public function lot()
+    // {
+    //     return $this->hasOne(StoreLot::class, 'id', 'store_lot_id');
+    // }
     //Scopes
     public function scopeStock($query, $search)
     {

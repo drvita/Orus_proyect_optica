@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Order;
 use App\User;
 use Illuminate\Support\Str;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -70,5 +71,16 @@ class OrderTest extends TestCase
         $res = $this->json('POST', 'api/orders', $data);
         dd($res->decodeResponseJson());
         $res->assertStatus(200);
+    }
+
+    public function test_get_order_show()
+    {
+        $user = User::role('admin')->inRandomOrder()->first();
+        // $order = Order::inRandomOrder()->first();
+        $order = Order::find(8481);
+        $this->actingAs($user);
+
+        $res = $this->json('GET', 'api/orders/' . $order->id);
+        dd("Response", $res->decodeResponseJson());
     }
 }
