@@ -234,14 +234,10 @@ class StoreItemController extends Controller
         $auth = $request->user();
 
         foreach ($request->items as $row) {
-            $item = StoreItem::where("code", $row['code'])->first();
-
+            $item = StoreItem::where("code", $row['code'])
+                ->orWhere("codebar", $row['codebar'])
+                ->first();
             if (!$item) {
-                $item = StoreItem::where("codebar", $row['codebar'])->first();
-            }
-
-            if (!$item) {
-
                 do {
                     if ($this->validateNameStore($row['name'])) {
                         break;
@@ -257,7 +253,6 @@ class StoreItemController extends Controller
 
             $branch_id = $item->branch_default ? $item->branch_default : $row['branch_id'];
             $branch = $item->inBranch()->where("branch_id", $branch_id)->first();
-
             if (!$branch) {
                 $branch = $item->inBranch()->create([
                     "user_id" => $auth->id,
