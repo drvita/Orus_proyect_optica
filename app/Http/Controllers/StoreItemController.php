@@ -248,7 +248,11 @@ class StoreItemController extends Controller
                 $row['contact_id'] = $row['supplier_id'];
                 $row['unit'] = "pz";
                 $row['user_id'] = $auth->id;
-                $item = StoreItem::create($row);
+                try {
+                    $item = StoreItem::create($row);
+                } catch (\Throwable $th) {
+                    throw $th;
+                }
             }
 
             $branch_id = $item->branch_default ? $item->branch_default : $row['branch_id'];
