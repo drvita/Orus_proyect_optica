@@ -234,9 +234,12 @@ class StoreItemController extends Controller
         $auth = $request->user();
 
         foreach ($request->items as $row) {
-            $item = StoreItem::where("code", $row['code'])
-                ->orWhere("codebar", $row['codebar'])
-                ->first();
+            $item = StoreItem::where("code", $row['code'])->first();
+
+            if (!$item && $row['codebar']) {
+                $item = StoreItem::where("codebar", $row['codebar'])->first();
+            }
+
             if (!$item) {
                 do {
                     if ($this->validateNameStore($row['name'])) {
