@@ -13,9 +13,26 @@ use App\User;
 
 class StoreItemTest extends TestCase
 {
+    /**
+     * Test about get item by code
+     */
+    public function test_get_item_code()
+    {
+        $user = User::role('admin')->inRandomOrder()->first();
+        $item = StoreItem::has('inBranch')->inRandomOrder()->first();
+        $this->actingAs($user);
+
+        $res = $this->json('GET', 'api/store', [
+            "search" => "6506-gray",
+        ]);
+        dd($res->decodeResponseJson());
+    }
+    /**
+     * Test about create items by LIST
+     */
     public function test_update_store_by_list()
     {
-        $this->withoutExceptionHandling();
+        // $this->withoutExceptionHandling();
         $user = User::role('admin')->inRandomOrder()->first();
         $item = StoreItem::has('inBranch')->inRandomOrder()->first();
         // $branch = $item->inBranch()->inRandomOrder()->first();
@@ -31,7 +48,7 @@ class StoreItemTest extends TestCase
                 'category_id' => 55,
                 'supplier_id' => 868,
                 'brand_id' => 110,
-                'branch_id' => 15,
+                'branch_id' => 12,
                 'cant' => rand(1, 5),
                 'name' => 'Armazon acetato optifree 10ml code',
                 "price" => $price,
@@ -70,7 +87,7 @@ class StoreItemTest extends TestCase
         if ($res->status() != 200) {
             dd($res->decodeResponseJson());
         }
-
+        dd($res->decodeResponseJson());
         $res->assertStatus(200)
             ->assertJson([
                 "status" => "ok"
