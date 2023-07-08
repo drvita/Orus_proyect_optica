@@ -11,9 +11,9 @@ use App\User;
 use App\Models\Session;
 use Carbon\Carbon;
 
-
 class UserController extends Controller
 {
+    private $user;
     public function __construct(User $user)
     {
         $this->middleware('can:user.list')->only('index');
