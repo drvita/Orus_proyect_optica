@@ -14,8 +14,8 @@ class StoreBranchController extends Controller
 
     public function __construct(StoreBranch $branch)
     {
-        $this->middleware('can:user.add')->only('store');
-        $this->middleware('can:user.edit')->only('update');
+        $this->middleware('can:storeBranch.add')->only('store');
+        $this->middleware('can:storeBranch.edit')->only('update');
         $this->branch = $branch;
     }
 

@@ -101,9 +101,9 @@ class RoleSeeder extends Seeder
         Permission::create(["name" => "store.delete", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot]);
         // Store Branch
         Permission::create(["name" => "storeBranch.list", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot, $roleVentas, $roleDoctor]);
-        Permission::create(["name" => "storeBranch.show", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot]);
-        Permission::create(["name" => "storeBranch.add", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot]);
-        Permission::create(["name" => "storeBranch.edit", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot]);
+        Permission::create(["name" => "storeBranch.show", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot, $roleVentas]);
+        Permission::create(["name" => "storeBranch.add", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot, $roleVentas]);
+        Permission::create(["name" => "storeBranch.edit", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot, $roleVentas]);
         Permission::create(["name" => "storeBranch.delete", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot]);
         // Store lot
         Permission::create(["name" => "storeLot.list", "guard_name" => "api"])->syncRoles([$roleAdmin, $roleBot]);
