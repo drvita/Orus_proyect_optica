@@ -26,7 +26,6 @@ class Payment extends FormRequest
         return [
             "metodopago"=>"required",
             "total"=>"required",
-            "metodopago"=>"required",
             "contact_id"=>"required",
             "sale_id"=>"required",
         ];

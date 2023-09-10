@@ -138,7 +138,7 @@ class OrderSave
                         "details" => $payment['details'],
                         "auth" => $payment['auth'],
                         "total" => $payment['total'],
-                        "bank_id" => $payment['bank_id'],
+                        "bank_id" => $payment['bank_id'] ? $payment['bank_id'] : null,
                         "contact_id" => $sale->contact_id,
                         "branch_id" => $branch_id,
                         "user_id" => $auth->id,

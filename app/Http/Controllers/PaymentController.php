@@ -98,16 +98,20 @@ class PaymentController extends Controller
     public function store(PaymentRequests $request)
     {
         $currentUser = Auth::user();
-        $request['user_id'] = $currentUser->id;
-        $request['branch_id'] = $currentUser->branch_id;
+        $data = $request->all();
+        $data['user_id'] = $currentUser->id;
+        $data['branch_id'] = $currentUser->branch_id;
         $rolUser = $currentUser->rol;
 
         //Only admin can save in differents branches
         if (!$rolUser) {
-            if (isset($request->branch_id)) $request['branch_id'] = $request->branch_id;
+            if (isset($request->branch_id)) $data['branch_id'] = $request->branch_id;
+        }
+        if (!$request->bank_id) {
+            unset($data['bank_id']);
         }
 
-        $payment = $this->payment->create($request->all());
+        $payment = $this->payment->create($data);
         //event(new PaymentSave($payment, $messegeId, $table));
         return new PaymentResources($payment);
     }
