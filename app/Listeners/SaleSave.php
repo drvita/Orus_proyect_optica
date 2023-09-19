@@ -145,10 +145,10 @@ class SaleSave
                 if (preg_match("/^new\d{10,}/im", $payment["id"])) {
                     $sale->payments()->create([
                         "metodopago" => $payment['metodopago'],
-                        "details" => $payment['details'] ?? "",
+                        "details" => isset($payment['details']) && $payment['details'] ? $payment['details'] : "",
                         "auth" => $payment['auth'] ?? "",
                         "total" => $payment['total'],
-                        "bank_id" => $payment['bank_id'] ? $payment['bank_id'] : null,
+                        "bank_id" => isset($payment['bank_id']) && $payment['bank_id'] ? $payment['bank_id'] : null,
                         "contact_id" => $sale->contact_id,
                         "branch_id" => $branch_id,
                         "user_id" => $auth->id,
