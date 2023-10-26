@@ -14,4 +14,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
+Route::get('/', 'WebController@index')->name('/');
 Route::get('/{any}', 'WebController@index')->where('any', '.*');
