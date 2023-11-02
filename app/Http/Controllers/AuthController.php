@@ -74,7 +74,6 @@ class AuthController extends Controller
     }
     public function userData(Request $request)
     {
-        dd("Into");
         return new UserNoty($request->user()->load("session")->load("branch"));
     }
     public function userReadNotify(Request $request)

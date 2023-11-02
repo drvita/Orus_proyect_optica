@@ -15,8 +15,7 @@ class Order extends Model
 {
     protected $table = "orders";
     protected $fillable = [
-        "contact_id", "exam_id", "ncaja", "npedidolab", "lab_id", "user_id",
-        "observaciones", "session", "status", "branch_id", "updated_id"
+        "contact_id", "exam_id", "ncaja", "npedidolab", "lab_id", "observaciones", "session", "status", "updated_id"
     ];
     protected $hidden = [];
     protected $dates = [
@@ -105,6 +104,12 @@ class Order extends Model
     protected static function booted()
     {
         parent::boot();
+        static::creating(function ($item) {
+            $user = auth()->user();
+            $item->user_id = $user->id;
+            $item->branch_id = $user->branch_id;
+            $item->status = 0;
+        });
 
         static::updated(function ($item) {
             $type = "";

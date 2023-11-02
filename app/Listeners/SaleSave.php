@@ -31,7 +31,6 @@ class SaleSave
 
         $subtotal = 0;
 
-        //delete
         if (!$auth) {
             $auth = User::where("id", 2)->first();
         }

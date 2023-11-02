@@ -1,7 +1,8 @@
 <?php
 function normaliza($cadena)
 {
-    if (!$cadena) return;
+    if (!$cadena)
+        return;
 
     $originales = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûýýþÿŔŕ';
     $modificadas = 'aaaaaaaceeeeiiiidnoooooouuuuybsaaaaaaaceeeeiiiidnoooooouuuyybyRr';
@@ -15,11 +16,12 @@ function getItemsRequest($items, $branch_id = null)
         $itemsArray = is_string($items) ? json_decode($items, true) : $items;
 
         if (is_array($itemsArray)) {
-            if ($branch_id) {
-                foreach ($itemsArray as $key => $item) {
+            foreach ($itemsArray as $key => $item) {
+                if ($branch_id) {
                     $itemsArray[$key]['branch_id'] = $branch_id;
-                    $itemsArray[$key]['total'] = $item['cant'] * $item['price'];
                 }
+
+                $itemsArray[$key]['total'] = $item['cant'] * $item['price'];
             }
 
             return $itemsArray;
@@ -65,7 +67,7 @@ function getParentCategories($item)
             $codeNameCategory = $item->parent->name . "|" . $item->name . "||";
         }
     } else {
-        $codeCategory =  "$item->id|0|0|0";
+        $codeCategory = "$item->id|0|0|0";
         $codeNameCategory = "$item->name|||";
     }
 

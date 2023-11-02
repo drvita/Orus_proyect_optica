@@ -98,14 +98,10 @@ class OrderController extends Controller
      */
     public function store(OrderRequests $request)
     {
-        $currentUser = Auth::user();
-        $request['user_id'] = $currentUser->id;
-        $request['status'] = 0;
-        $request['branch_id'] = $currentUser->branch_id;
-
         $order = $this->order->create($request->all());
 
         if ($request->has("items")) {
+            $currentUser = Auth::user();
             $order->items = getItemsRequest($request->items, $currentUser->branch_id);
         }
 
