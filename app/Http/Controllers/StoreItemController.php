@@ -235,7 +235,7 @@ class StoreItemController extends Controller
 
         foreach ($request->items as $row) {
             $item = StoreItem::where("code", $row['code'])->first();
-            $row['codebar'] = !isset($row['codebar']) || !$row['codebar'] ? Str::random(32) : $row['codebar'];
+            // $row['codebar'] = !isset($row['codebar']) || !$row['codebar'] ? Str::random(32) : $row['codebar'];
 
             if (!$item && isset($row['codebar']) && $row['codebar']) {
                 $item = StoreItem::where("codebar", $row['codebar'])->first();
@@ -289,7 +289,6 @@ class StoreItemController extends Controller
 
             $item->cant += (int) $row['cant'];
             $item->updated_id = $auth->id;
-            $item->codebar = isset($row['codebar']) ? $row['codebar'] : "";
             $item->price = (float) $row['price'];
             $item->cant += (int) $row['cant'];
             $item->save();
