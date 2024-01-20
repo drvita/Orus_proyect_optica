@@ -235,8 +235,6 @@ class StoreItemController extends Controller
 
         foreach ($request->items as $row) {
             $item = StoreItem::where("code", $row['code'])->first();
-            // $row['codebar'] = !isset($row['codebar']) || !$row['codebar'] ? Str::random(32) : $row['codebar'];
-
             if (!$item && isset($row['codebar']) && $row['codebar']) {
                 $item = StoreItem::where("codebar", $row['codebar'])->first();
             }

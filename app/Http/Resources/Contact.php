@@ -32,8 +32,15 @@ class Contact extends JsonResource
             $brands = $this->brands()->paginate($perPage, ['*'], 'brands_page');
             $purchases = $this->buys()->paginate($perPage, ['*'], 'purchases_page');
             $orders = $this->orders()->paginate($perPage, ['*'], 'orders_page');
-            $metadata = $this->metas()->where("key", "metadata")->get();
-            $activity = $this->metas()->where("key", ["updated", "deleted", "created"])->orderBy("id", "desc")->get();
+            $metadata = $this->metas()
+                ->where("key", "metadata")
+                ->take(25)
+                ->get();
+            $activity = $this->metas()
+                ->where("key", ["updated", "deleted", "created"])
+                ->orderBy("id", "desc")
+                ->take(25)
+                ->get();
 
             $obj = [
                 'id' => 0,
@@ -55,7 +62,7 @@ class Contact extends JsonResource
             $return['business'] = $this->business;
             $return['age'] = 1 < $edad && $edad < 120 ? $edad : 0;
 
-            $return['phones'] =  new ContactPhones($this->telnumbers);
+            $return['phones'] = new ContactPhones($this->telnumbers);
             $return['address'] = new ContactAddress($this->domicilio);
 
             $return['purchases'] = SaleInContact::collection($purchases);

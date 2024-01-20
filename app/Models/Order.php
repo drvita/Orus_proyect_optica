@@ -9,6 +9,7 @@ use App\Models\Contact;
 use App\User;
 use App\Models\Sale;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class Order extends Model
@@ -104,17 +105,23 @@ class Order extends Model
     protected static function booted()
     {
         parent::boot();
-        static::creating(function ($item) {
+        static::creating(function ($order) {
             $user = auth()->user();
-            $item->user_id = $user->id;
-            $item->branch_id = $user->branch_id;
-            $item->status = 0;
+            $order->user_id = $user->id;
+            $order->branch_id = $user->branch_id;
+            $order->status = 0;
         });
 
-        static::updated(function ($item) {
+        static::created(function ($order) {
+            $user = auth()->user();
+            Log::info("Order created: ". json_encode($order));
+            Log::info("User data: $user->id, branch: $user->branch_id");
+        });
+
+        static::updated(function ($order) {
             $type = "";
             $auth = Auth::user();
-            $dirty = $item->getDirty();
+            $dirty = $order->getDirty();
             unset($dirty['updated_at']);
             unset($dirty['updated_id']);
             unset($dirty['user_id']);
@@ -122,7 +129,7 @@ class Order extends Model
 
             if (!$dirty || !count($dirty)) return;
 
-            if (is_null($item->deleted_at)) {
+            if (is_null($order->deleted_at)) {
                 $data['datetime'] = Carbon::now();
                 $type = "updated";
             } else {
@@ -130,7 +137,7 @@ class Order extends Model
                 $type = "deleted";
             }
 
-            $item->metas()->create(["key" => $type, "value" => $data]);
+            $order->metas()->create(["key" => $type, "value" => $data]);
         });
     }
 }

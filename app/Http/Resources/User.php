@@ -23,7 +23,11 @@ class User extends JsonResource
                 }
             }
 
-            $activity = $this->metas()->where("key", ["updated", "deleted", "created"])->orderBy("id", "desc")->get();
+            $activity = $this->metas()
+                ->where("key", ["updated", "deleted", "created"])
+                ->orderBy("id", "desc")
+                ->take(25)
+                ->get();
             $obj = [
                 'id' => 0,
                 'key' => 'created',

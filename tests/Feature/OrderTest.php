@@ -16,10 +16,10 @@ class OrderTest extends TestCase
      *
      * @return void
      */
-    public function test_save_order()
+    public function test_order_create_new_by_sales()
     {
         // $this->withoutExceptionHandling();
-        $user = User::role('admin')->inRandomOrder()->first();
+        $user = User::role('ventas')->inRandomOrder()->first();
         $session = Str::random(8) . "." . Str::random(8) . "." . Str::random(8);
 
         $this->actingAs($user);
@@ -71,6 +71,8 @@ class OrderTest extends TestCase
         $res = $this->json('POST', 'api/orders', $data);
         dd($res->decodeResponseJson());
         $res->assertStatus(200);
+        
+        
     }
 
     public function test_get_order_show()

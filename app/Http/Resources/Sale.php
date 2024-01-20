@@ -10,7 +10,11 @@ class Sale extends JsonResource
     public function toArray($request)
     {
         $return = [];
-        $activity = $this->metas()->whereIn("key", ["updated", "deleted", "created", "created item", "deleted item", "deleted payment", "created payment"])->orderBy("id", "desc")->get();
+        $activity = $this->metas()
+            ->whereIn("key", ["updated", "deleted", "created", "created item", "deleted item", "deleted payment", "created payment"])
+            ->orderBy("id", "desc")
+            ->take(25)
+            ->get();
 
         $obj = [
             'id' => 0,

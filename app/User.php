@@ -8,7 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Carbon\Carbon;
 use App\Models\Meta;
-use phpDocumentor\Reflection\Types\Boolean;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
 {
@@ -142,7 +142,6 @@ class User extends Authenticatable
             }
 
             $data = ["user_id" => 1, "inputs" => $dirty];
-
             if (is_null($user->deleted_at)) {
                 $data['datetime'] = Carbon::now();
                 $type = "updated";
@@ -152,6 +151,7 @@ class User extends Authenticatable
             }
 
             $user->metas()->create(["key" => $type, "value" => $data]);
+            Log::info("User data change:". json_encode($user));
         });
     }
 }
