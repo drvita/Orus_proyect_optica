@@ -1,31 +1,50 @@
 <?php
 
+use App\Http\Controllers\api\AuthController;
+use App\Http\Controllers\api\v2\UserController;
+use App\Http\Controllers\AtmController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ConfigController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ExamController;
+use App\Http\Controllers\MessengerController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SaleItemController;
+use App\Http\Controllers\StoreBranchController;
+use App\Http\Controllers\StoreItemController;
+use App\Http\Controllers\StoreLotController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:api')->post('/store/bylist', 'StoreItemController@storeList');
-Route::middleware('auth:api')->apiResource('contacts', 'ContactController');
-Route::middleware('auth:api')->apiResource('categories', 'CategoryController');
-Route::middleware('auth:api')->apiResource('config', 'ConfigController');
-Route::middleware('auth:api')->apiResource('exams', 'ExamController');
-Route::middleware('auth:api')->apiResource('store', 'StoreItemController');
-Route::middleware('auth:api')->apiResource('items', 'StoreLotController');
-Route::middleware('auth:api')->apiResource('orders', 'OrderController');
-Route::middleware('auth:api')->apiResource('sales', 'SaleController');
-Route::middleware('auth:api')->apiResource('salesItems', 'SaleItemController');
-Route::middleware('auth:api')->apiResource('payments', 'PaymentController');
-Route::middleware('auth:api')->apiResource('atms', 'AtmController');
-Route::middleware('auth:api')->apiResource('brands', 'BrandController');
-Route::middleware('auth:api')->apiResource('messengers', 'MessengerController');
-Route::middleware('auth:api')->apiResource('users', 'UserController');
-Route::middleware('auth:api')->apiResource('branches', 'StoreBranchController')->except("index", "show", "destroy");
+Route::post('user/login', [AuthController::class, 'login'])->name('users.login');
 
-// Rutas especiales
-Route::post('user/login', 'AuthController@login')->name('users.login');
-Route::middleware('auth:api')->post('/users/clearToken/{id}', 'UserController@clearToken')->name('users.clearToken');
-Route::middleware('auth:api')->post('/user/logout', 'AuthController@logout')->name('users.logout');
-Route::middleware('auth:api')->get('/user', 'AuthController@userData')->name('users.data');
-Route::middleware('auth:api')->post('/user/readAllNotifications', 'AuthController@userReadNotify')->name('users.readNotify');
-Route::middleware('auth:api')->get('/user/subscriptionNotify', 'AuthController@userSubscriptionNotify')->name('users.subscribtionNotify');
+Route::group(['middleware' => 'auth:api'], function () {
+    Route::post('/store/bylist', [StoreItemController::class, 'storeList']);
+    Route::apiResource('contacts', ContactController::class);
+    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('config', ConfigController::class);
+    Route::apiResource('exams', ExamController::class);
+    Route::apiResource('store', StoreItemController::class);
+    Route::apiResource('items', StoreLotController::class);
+    Route::apiResource('orders', OrderController::class);
+    Route::apiResource('sales', SaleController::class);
+    Route::apiResource('salesItems', SaleItemController::class);
+    Route::apiResource('payments', PaymentController::class);
+    Route::apiResource('atms', AtmController::class);
+    Route::apiResource('brands', BrandController::class);
+    Route::apiResource('messengers', MessengerController::class);
+    Route::apiResource('users', UserController::class);
+    Route::apiResource('branches', StoreBranchController::class)->except(['index', 'show', 'destroy']);
 
-Route::middleware('auth:api')->post('/categories/setprice/{category}', 'CategoryController@setPriceByCategory');
-Route::middleware('auth:api')->post('/store/setcant/{item}', 'StoreItemController@setCantItem');
+    // Rutas especiales
+    Route::post('/users/clearToken/{id}', [UserController::class, 'clearToken'])->name('users.clearToken');
+    Route::post('/user/logout', [AuthController::class, 'logout'])->name('users.logout');
+    Route::get('/user', [AuthController::class, 'userData'])->name('users.data');
+    Route::post('/user/readAllNotifications', [AuthController::class, 'userReadNotify'])->name('users.readNotify');
+    Route::get('/user/subscriptionNotify', [AuthController::class, 'userSubscriptionNotify'])->name('users.subscribtionNotify');
+
+    Route::post('/categories/setprice/{category}', [CategoryController::class, 'setPriceByCategory']);
+    Route::post('/store/setcant/{item}', [StoreItemController::class, 'setCantItem']);
+});

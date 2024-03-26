@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\WebController;
 use Illuminate\Support\Facades\Route;
+use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +15,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
-Route::get('/', 'WebController@index')->name('/');
-Route::get('/{any}', 'WebController@index')->where('any', '.*');
+Route::get('logs', [LogViewerController::class, 'index']);
+
+Route::controller(WebController::class)->group(function () {
+    Route::get('/', 'index')->name('/');
+    Route::get('/{any}', 'index')->where('any', '.*');
+});
