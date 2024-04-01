@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\User;
 use App\Models\Category;
+use App\Models\SaleItem;
 use App\Models\Contact;
 use App\Models\StoreLot;
 use App\Models\Brand;
@@ -47,7 +48,7 @@ class StoreItem extends Model
     }
     public function salesItems()
     {
-        return $this->belongsTo(SalesItems::class, 'store_items_id');
+        return $this->belongsTo(SaleItem::class, 'store_items_id');
     }
     public function brand()
     {

@@ -20,22 +20,22 @@ class SalesTest extends TestCase
         $user = User::role('ventas')->inRandomOrder()->first();
 
         $res = $this->actingAs($user)
-            ->putJson('/api/sales/9935', [
-                "id" => 9935,
-                "contact_id" => 8577,
+            ->putJson('/api/sales/1', [
+                "id" => 1,
+                "contact_id" => 1,
                 "discount" => 0,
                 "items" => [
                     [
-                        "id" => 47387,
+                        "id" => 1,
                         "cant" => 2,
                         "price" => 650,
-                        "store_items_id" => 10421
+                        "store_items_id" => 1
                     ],
                     [
-                        "id" => 47388,
+                        "id" => 2,
                         "cant" => 1,
                         "price" => 3920,
-                        "store_items_id" => 15797
+                        "store_items_id" => 2
                     ]
                 ],
                 "payments" => [
@@ -48,7 +48,7 @@ class SalesTest extends TestCase
                     ]
                 ],
             ]);
-        dd($res->getContent());
+        //dd($res->getContent());
         $res->assertStatus(200);
     }
 }

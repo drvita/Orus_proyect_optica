@@ -21,11 +21,11 @@ class UserTest extends TestCase
         $this->actingAs($user);
 
         $res = $this->json('PUT', 'api/users/' . $user->id, [
-            "branch_id" => rand(0,1) ? 12 : 13,
+            "branch_id" => rand(0, 1) ? 12 : 13,
             "name" => $user->name,
             "username" => $user->username,
         ]);
-        dd($res->decodeResponseJson());
+        //dd($res->decodeResponseJson());
         $res->assertStatus(200);
     }
 }

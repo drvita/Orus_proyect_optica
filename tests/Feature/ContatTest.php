@@ -24,7 +24,7 @@ class ContatTest extends TestCase
             "type" => 1,
             "business" => 0
         ]);
-        dd($res->decodeResponseJson());
+        //dd($res->decodeResponseJson());
         $res->assertStatus(200);
     }
 }

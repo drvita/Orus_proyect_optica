@@ -25,7 +25,8 @@ class StoreItemTest extends TestCase
         $res = $this->json('GET', 'api/store', [
             "search" => "6506-gray",
         ]);
-        dd($res->decodeResponseJson());
+        //dd($res->decodeResponseJson());
+        $res->assertStatus(200);
     }
     /**
      * Test about create items by LIST
@@ -85,9 +86,9 @@ class StoreItemTest extends TestCase
         ]);
 
         if ($res->status() != 200) {
-            dd($res->decodeResponseJson());
+            //dd($res->decodeResponseJson());
         }
-        dd($res->decodeResponseJson());
+        //dd($res->decodeResponseJson());
         $res->assertStatus(200)
             ->assertJson([
                 "status" => "ok"
@@ -101,7 +102,7 @@ class StoreItemTest extends TestCase
             }
 
             if (!$rows->count()) {
-                dd($item, $rows->toArray());
+                //dd($item, $rows->toArray());
             }
             $this->assertTrue(true);
 
@@ -109,28 +110,28 @@ class StoreItemTest extends TestCase
 
             $this->assertTrue($item['code'] == $row['code']);
             if ($item['code'] != $row['code']) {
-                dd("code", $item, $row->toArray());
+                //dd("code", $item, $row->toArray());
             }
 
             $this->assertTrue($item['codebar'] == $row['codebar']);
             if ($item['codebar'] != $row['codebar']) {
-                dd("codebar", $item, $row->toArray());
+                //dd("codebar", $item, $row->toArray());
             }
 
             $branch_id = $row->branch_default ? $row->branch_default : $item['branch_id'];
             $branch = $row->inBranch()->where("branch_id", $branch_id)->first();
 
             if (!$branch) {
-                dd($item, $rows->toArray());
+                //dd($item, $rows->toArray());
             }
 
             if ($item['price'] != $branch->price) {
-                dd("price", $item, $branch->toArray());
+                //dd("price", $item, $branch->toArray());
             }
             $this->assertTrue($item['price'] == $branch->price);
 
             if ($item['cant'] > $branch->cant) {
-                dd("cant", $item, $branch->toArray());
+                //dd("cant", $item, $branch->toArray());
             }
             $this->assertTrue($item['cant'] <= $branch->cant);
         }
@@ -159,7 +160,7 @@ class StoreItemTest extends TestCase
 
         $this->actingAs($user);
         $res = $this->json('POST', 'api/orders', $data);
-        // dd($res->decodeResponseJson());
+        //dd($res->decodeResponseJson());
         $res->assertStatus(200);
     }
     public function test_show_order()
@@ -173,7 +174,7 @@ class StoreItemTest extends TestCase
 
         $this->actingAs($user);
         $res = $this->json('GET', 'api/orders/' . $order->id);
-        dd($res->decodeResponseJson());
+        //dd($res->decodeResponseJson());
         $res->assertStatus(200);
     }
 }

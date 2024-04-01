@@ -26,7 +26,7 @@ class ExamTest extends TestCase
         $res = $this->json('POST', 'api/exams', [
             "contact_id" => $contact->id,
         ]);
-        dd($res->decodeResponseJson());
-        $res->assertStatus(200);
+        //dd($res->decodeResponseJson());
+        $res->assertStatus(201);
     }
 }

@@ -25,7 +25,7 @@ class OrderTest extends TestCase
         $this->actingAs($user);
         $data = array(
             'session' => $session,
-            'contact_id' => 390,
+            'contact_id' => 1,
             'items' =>
             array(
                 0 =>
@@ -66,23 +66,22 @@ class OrderTest extends TestCase
                     ),
                 ),
             ),
-            'exam_id' => 2406,
+            'exam_id' => 1,
         );
         $res = $this->json('POST', 'api/orders', $data);
-        dd($res->decodeResponseJson());
+        //dd($res->decodeResponseJson());
         $res->assertStatus(200);
-        
-        
     }
 
     public function test_get_order_show()
     {
         $user = User::role('admin')->inRandomOrder()->first();
-        // $order = Order::inRandomOrder()->first();
-        $order = Order::find(8481);
+        $order = Order::inRandomOrder()->first();
+        //$order = Order::find(1);
         $this->actingAs($user);
 
         $res = $this->json('GET', 'api/orders/' . $order->id);
-        dd("Response", $res->decodeResponseJson());
+
+        $res->assertStatus(200);
     }
 }
