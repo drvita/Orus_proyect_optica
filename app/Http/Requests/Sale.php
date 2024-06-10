@@ -41,7 +41,7 @@ class Sale extends FormRequest
                 if (count($data['items'])) {
                     $rules['items.*.cant'] = "required|numeric";
                     $rules['items.*.price'] = "required|numeric|min:1";
-                    $rules['items.*.store_items_id'] = ["required", "numeric", Rule::exists("store_items", "id")->whereNull('deleted_at')];
+                    // $rules['items.*.store_items_id'] = ["required", "numeric", Rule::exists("store_items", "id")->whereNull('deleted_at')];
                 }
             }
         } else {
