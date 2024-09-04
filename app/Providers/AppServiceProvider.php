@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
+// use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        
+
     }
 
     /**
@@ -24,8 +26,21 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         setlocale(LC_ALL, "es_MX.UTF-8");
-        //Carbon::setLocale(config('app.locale'));
         Carbon::setLocale('es_MX.UTF-8');
         date_default_timezone_set('America/Mexico_City');
+
+        if (config('app.env') != "local") {
+            DB::listen(function ($query) {
+                if ($query->time > 100) {
+                    $message = "Slow query detected:\n";
+                    $message .= "Execution time: {$query->time} ms\n";
+                    $message .= "SQL Query: {$query->sql}\n";
+                    $message .= "Bindings: " . implode(", ", $query->bindings) . "\n";
+
+                    // Log::debug($message);
+                    \Sentry\captureMessage($message);
+                }
+            });
+        }
     }
 }
