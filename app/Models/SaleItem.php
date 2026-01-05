@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\StoreItem;
 use App\Notifications\ErrorStoreNotification;
-use App\User;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +14,18 @@ class SaleItem extends Model
 {
     protected $table = "sales_items";
     protected $fillable = [
-        "cant", "price", "subtotal", "inStorage", "session", "store_items_id", "store_branch_id", "store_lot_id", "user_id", "out", "descripcion", "branch_id"
+        "cant",
+        "price",
+        "subtotal",
+        "inStorage",
+        "session",
+        "store_items_id",
+        "store_branch_id",
+        "store_lot_id",
+        "user_id",
+        "out",
+        "descripcion",
+        "branch_id"
     ];
     protected $hidden = [];
     protected $dates = [

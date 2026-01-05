@@ -7,14 +7,14 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\User as UserResource;
 use App\Http\Requests\UserRequest;
-use App\User;
+use App\Models\User;
 use App\Models\Session;
 use Carbon\Carbon;
 
 
 class UserController extends Controller
 {
-    public function __construct(User $user)
+    public function __construct(private User $user)
     {
         $this->middleware('can:user.list')->only('index');
         $this->middleware('can:user.show')->only('show');
@@ -22,7 +22,6 @@ class UserController extends Controller
         $this->middleware('can:user.edit')->only('update');
         $this->middleware('can:user.delete')->only('destroy');
         $this->middleware('can:auth.closeSession')->only('clearToken');
-        $this->user = $user;
     }
     /**
      * Muestra la lista de usuarios en sistema
@@ -95,9 +94,9 @@ class UserController extends Controller
      */
     public function update(UserRequest $request, User $user)
     {
-        $currenUser = Auth::user();
-        $can_changeBranch = user_can($currenUser, "auth.changeBranch");
-        $can_changeRole = user_can($currenUser, "auth.changeRole");
+        $currenUser = $request->user();
+        $can_changeBranch = $currenUser->can("auth.changeBranch");
+        $can_changeRole = $currenUser->can("auth.changeRole");
 
         if (isset($request["branch_id"])) {
             if ($user->branch_id !== $request->branch_id) {
@@ -116,7 +115,7 @@ class UserController extends Controller
         }
 
         if (isset($request["role"])) {
-            $have_role = user_can($user, $request->role);
+            $have_role = $user->can($request->role);
 
             if (!$have_role) {
                 if (!$can_changeRole) {

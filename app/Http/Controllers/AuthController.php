@@ -4,79 +4,107 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use App\User;
+use App\Models\User;
 use App\Models\Session;
 use App\Http\Resources\UserNoty;
 use App\Http\Resources\User as UserResource;
 use App\Http\Requests\AuthRequest;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Laravel\Sanctum\HasApiTokens;
 
 
 class AuthController extends Controller
 {
-    public function __construct(User $user)
+    /**
+    * User model instance.
+    */
+    public function __construct(private User $user)
     {
-        // $this->middleware('can:auth.access')->only('login');
-        $this->user = $user;
     }
-    public function login(AuthRequest $request)
+    
+    /**
+    * Authenticate the user and create a new API token using Sanctum
+    *
+    * @param AuthRequest $request
+    * @return JsonResponse
+    */
+    public function login(AuthRequest $request): JsonResponse
     {
-        $user = $this->user
-            ->userEmail($request->email)
-            ->publish()
-            ->withRelation()
-            ->first();
-
+        // Find the user by email
+        /** @var User $user */
+        $user = $this->user->userEmail($request->email)->first();
+        
+        // Check if user exists and password is correct
         if ($user && Hash::check($request->password, $user->password)) {
-            $user->api_token = hash('sha256', Str::random(60));
-            $user->save();
-            $session = Session::where("session_id", $user->id)->first();
-            if ($session) {
-                $session->ip_address = getenv("REMOTE_ADDR");
-                $session->user_agent = getenv("HTTP_USER_AGENT");
-                $session->last_activity = new Carbon();
-                $session->user_data = $user->api_token;
-                $session->save();
-            } else {
-                $session = Session::create([
-                    'session_id' => $user->id,
-                    'ip_address' => getenv("REMOTE_ADDR"),
-                    'user_agent' => getenv("HTTP_USER_AGENT"),
-                    'last_activity' => new Carbon(),
-                    'user_data' => $user->api_token
-                ]);
-            }
-
-            $respons["status"] = true;
-            $respons['data'] = new UserResource($user);
-            $respons['message'] = "Bienvenido al sistema";
-            $respons['token'] = $user->api_token;
-            return response()->json($respons, 200);
+            // Create a token with Sanctum
+            $token = $user->createToken('api-token')->plainTextToken;
+            // Update or create session record
+            Session::updateOrCreate(
+                ['session_id' => $user->id],
+                [
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'last_activity' => now(),
+                    'user_data' => $token
+                ]
+            );
+            
+            // Load relationships for the resource
+            // $user->load(['publish', 'relation']);
+            return response()->json([
+                'status' => true,
+                'data' => new UserResource($user),
+                'token' => $token
+            ], 200);
         } else {
-            $respons["status"] = false;
-            $respons['message'] = $user ? "La contrasena es incorrecta" : "Las credenciales del usuario no son correctas";
-            $respons['errnum'] = $user ? $user->id : 0;
-            return response()->json($respons, 401);
+            // Authentication failed
+            $errorMessage = $user ? 'La contraseña es incorrecta' : 'Las credenciales del usuario no son correctas';
+            
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage,
+            ], 401);
         }
     }
-    public function logout(Request $request)
+    /**
+    * Log the user out (revoke the token)
+    *
+    * @param Request $request
+    * @return JsonResponse
+    */
+    public function logout(Request $request): JsonResponse
     {
         $user = $request->user();
 
         if ($user) {
-            $user->api_token = null;
-            $user->save();
-            return response()->json(['message' => 'Ha salido del sistema correctamente'], 200);
+            // Revoke all tokens...
+            $user->tokens()->delete();
+            
+            return response()->json(['message' => 'Logged out successfully'], 200);
         }
 
         return response()->json(['message' => 'Usted no tiene una session activa'], 401);
     }
-    public function userData(Request $request)
+    /**
+    * Get authenticated user data
+    *
+    * @param Request $request
+    * @return UserNoty
+    */
+    public function userData(Request $request): UserNoty
     {
         return new UserNoty($request->user()->load("session")->load("branch"));
     }
-    public function userReadNotify(Request $request)
+    /**
+    * Mark user notifications as read
+    *
+    * @param Request $request
+    * @return JsonResponse
+    */
+    public function userReadNotify(Request $request): JsonResponse
     {
         $res = ["success" => false, "id" => $request->id];
         $code = 200;
@@ -94,7 +122,13 @@ class AuthController extends Controller
         }
         return response()->json($res, $code);
     }
-    public function userSubscriptionNotify(Request $request)
+    /**
+    * Handle user notification subscription
+    *
+    * @param Request $request
+    * @return JsonResponse
+    */
+    public function userSubscriptionNotify(Request $request): JsonResponse
     {
         return response()->json(["success" => true], 200);
     }

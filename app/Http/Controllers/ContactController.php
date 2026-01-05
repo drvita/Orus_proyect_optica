@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Contact as ContactResource;
 use App\Http\Resources\ContactList as ContactResourceList;
-use App\Http\Requests\Contact as ContactRequests;
+use App\Http\Requests\ContactRequest;
 use App\Models\Contact;
 use Carbon\Carbon;
 
@@ -52,7 +52,7 @@ class ContactController extends Controller
      * @param  $request a traves del body json
      * @return Json api rest
      */
-    public function store(ContactRequests $request)
+    public function store(ContactRequest $request)
     {
         if (!count($request->all())) {
             return new ContactResource($this->contact);
@@ -60,7 +60,6 @@ class ContactController extends Controller
 
         $request['user_id'] = Auth::user()->id;
         $request['telnumbers'] = $request->phones;
-
         $contact = $this->contact->create($request->all());
         $contact->saveMetas($request);
         return new ContactResource($contact);
@@ -86,7 +85,7 @@ class ContactController extends Controller
      * @param  int  $id
      * @return Json api rest
      */
-    public function update(ContactRequests $request, Contact $contact)
+    public function update(ContactRequest $request, Contact $contact)
     {
         $currentUser = Auth::user();
         $request['user_id'] = $contact->user_id;

@@ -3,20 +3,33 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\User;
+use App\Models\User;
 use App\Models\Sale;
 use App\Models\Order;
 use App\Models\Exam;
 use App\Models\Brand;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Services\SearchService;
+use App\DTOs\Search\SearchNameRequest;
+use Hamcrest\Arrays\IsArray;
+use Illuminate\Support\Facades\Log;
 
 class Contact extends Model
 {
+    use HasFactory;
     protected $table = "contacts";
-    //type 0 is customer contact  //business is a company : 1
-    //Type 1 is supply contact    //Business not is company: 0,
     protected $fillable = [
-        "name", "rfc", "email", "type", "telnumbers", "birthday", "domicilio", "user_id", "business", "updated_id"
+        "name",
+        "rfc",
+        "email",
+        "type",
+        "telnumbers",
+        "birthday",
+        "domicilio",
+        "user_id",
+        "business",
+        "updated_id"
     ];
     protected $hidden = ["updated_id", "user_id"];
     protected $dates = [
@@ -28,6 +41,7 @@ class Contact extends Model
     protected $casts = [
         'telnumbers' => 'array',
         'domicilio' => 'array',
+        'birthday' => 'date'
     ];
 
 
@@ -64,29 +78,49 @@ class Contact extends Model
     {
         return $this->morphMany(Meta::class, 'metable');
     }
+
     //Scopes
     public function scopeSearchUser($query, $search)
     {
         if (trim($search) != "") {
-            $query->where('name', "LIKE", "%$search%")
-                ->orWhere('email', "LIKE", "$search%")
-                ->orWhere('rfc', "LIKE", "$search%");
+            $query->Where('email', "LIKE", "$search%")
+                ->orWhere('rfc', "LIKE", "$search%")
+                ->orWhere(function ($q) use ($search) {
+                    $this->scopeName($q, $search, null);
+                });
         }
     }
-    public function scopeName($query, $search, $id)
+    public function scopeName($query, $search, $exept)
     {
         if (trim($search) != "") {
-            $query->where("name", "LIKE", "$search%");
+            if (!request()->has('withoutSearch')) {
+                Log::info("[Contact model] Scope name request withoutSearch");
+                $searchResult = $this->searchService($search);
 
-            if ($id) $query->where('id', '!=', $id);
+                if (isset($searchResult['results']) && is_array($searchResult['results']) && count($searchResult['results'])) {
+                    $ids = array_column($searchResult['results'], 'id');
+                    Log::info("[Contact model] Search ids contacts: ", $ids);
+                    $query->whereIn("id", $ids);
+                }
+
+                $query->orWhere('name', 'LIKE', "%$search%");
+            } else {
+                Log::info("[Contact model] Scope name NOT request withoutSearch");
+                $query->where('name', 'LIKE', "$search");
+            }
+
+            if ($exept) {
+                Log::info("[Contact model] Scope name request exept id {$exept}");
+                $query->where('id', '!=', $exept);
+            }
         }
     }
-    public function scopeEmail($query, $search, $id)
+    public function scopeEmail($query, $search, $exept)
     {
         if (trim($search) != "") {
             $query->where("email", "LIKE", "$search%");
 
-            if ($id) $query->where('id', '!=', $id);
+            if ($exept) $query->where('id', '!=', $exept);
         }
     }
     public function scopeType($query, $search)
@@ -109,7 +143,18 @@ class Contact extends Model
     {
         $query->whereNull('deleted_at');
     }
+
     // Other functions
+    private function searchService(string $name)
+    {
+        $request = new SearchNameRequest(
+            name: $name,
+            min_similarity: 0.5,
+            limit: 10
+        );
+        $services =  new SearchService();
+        return $services->searchName($request);
+    }
     public function saveMetas($request)
     {
         $metadata = $this->metas()->where("key", "metadata")->first();
@@ -142,28 +187,5 @@ class Contact extends Model
         } else {
             $this->metas()->create(["key" => "metadata", "value" => $data]);
         }
-    }
-    // Listerning 
-    protected static function booted()
-    {
-        parent::boot();
-
-        static::updated(function (Contact $contact) {
-            $type = "";
-            $dirty = $contact->getDirty();
-            unset($dirty['updated_at']);
-            unset($dirty['updated_id']);
-            $data = ["user_id" => $contact->updated_id, "inputs" => $dirty];
-
-            if (is_null($contact->deleted_at)) {
-                $data['datetime'] = $contact->updated_at;
-                $type = "updated";
-            } else {
-                $data['datetime'] = $contact->deleted_at;
-                $type = "deleted";
-            }
-
-            $contact->metas()->create(["key" => $type, "value" => $data]);
-        });
     }
 }

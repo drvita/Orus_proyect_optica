@@ -8,7 +8,7 @@ use App\Models\SaleItem;
 use App\Models\Messenger;
 use App\Models\StoreItem;
 use App\Models\Payment;
-use App\User;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;

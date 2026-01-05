@@ -4,14 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\StoreItem;
-use App\User;
+use App\Models\User;
 use Carbon\Carbon;
 
 class StoreLot extends Model
 {
     protected $table = "store_lots";
     protected $fillable = [
-        "cost", "price", "cant", "num_invoice", "store_branch_id", "store_items_id", "user_id"
+        "cost",
+        "price",
+        "cant",
+        "num_invoice",
+        "store_branch_id",
+        "store_items_id",
+        "user_id"
     ];
     protected $hidden = [];
     protected $dates = [

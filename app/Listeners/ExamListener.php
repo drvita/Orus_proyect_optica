@@ -4,7 +4,7 @@ namespace App\Listeners;
 
 use App\Notifications\ExamNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use App\User;
+use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Auth;

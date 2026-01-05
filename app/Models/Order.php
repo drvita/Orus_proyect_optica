@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\SaleItem;
 use App\Models\Exam;
 use App\Models\Contact;
-use App\User;
+use App\Models\User;
 use App\Models\Sale;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -15,8 +15,17 @@ class Order extends Model
 {
     protected $table = "orders";
     protected $fillable = [
-        "contact_id", "exam_id", "ncaja", "npedidolab", "lab_id", "user_id",
-        "observaciones", "session", "status", "branch_id", "updated_id"
+        "contact_id",
+        "exam_id",
+        "ncaja",
+        "npedidolab",
+        "lab_id",
+        "user_id",
+        "observaciones",
+        "session",
+        "status",
+        "branch_id",
+        "updated_id"
     ];
     protected $hidden = [];
     protected $dates = [

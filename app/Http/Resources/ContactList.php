@@ -12,7 +12,6 @@ class ContactList extends JsonResource
     {
 
         $return = [];
-
         if (isset($this->id)) {
             if ($this->metas && $this->metas->count()) {
                 foreach ($this->metas as $meta) {
@@ -22,8 +21,8 @@ class ContactList extends JsonResource
                 }
             }
 
-            $edad = $this->birthday !== null ? $this->birthday->diffInYears(carbon::now()) : 0;
-            $exams = $this->exams()->with('user')->paginate(10, ['*'], 'exam_page');
+            $edad = $this->birthday ? $this->birthday->diffInYears(carbon::now()) : 0;
+            // $exams = $this->exams()->with('user')->paginate(10, ['*'], 'exam_page');
 
             $return['id'] = $this->id;
             $return['name'] = $this->name;
@@ -39,7 +38,7 @@ class ContactList extends JsonResource
                 count($this->supplier) +
                 count($this->orders);
 
-            $return['exams'] = ExamShort::collection($exams);
+            // $return['exams'] = ExamShort::collection($exams);
             $return["metadata"] = $this->metas->count() ? new Metas($this->metas[0]) : [];
             $return['created'] = new UserSimple($this->user);
             $return['updated'] = new UserSimple($this->user_updated);
@@ -52,6 +51,8 @@ class ContactList extends JsonResource
             }
         }
 
+
         return $return;
+        // return parent::toArray($request);
     }
 }

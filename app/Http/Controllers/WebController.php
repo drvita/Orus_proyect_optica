@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class WebController extends Controller{
-    public function index(Request $request){
+class WebController extends Controller
+{
+    public function index(Request $request)
+    {
         return view('web', ['version' => '037197d2']);
     }
 }
