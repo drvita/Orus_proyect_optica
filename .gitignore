@@ -15,5 +15,5 @@ yarn-error.log
 /.idea
 /.vscode
 /.docker
-/.DS_Store
+.DS_Store
 /storage/logs
