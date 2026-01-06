@@ -16,7 +16,7 @@ class CreateStoreBranches extends Migration
         Schema::create('store_branches', function (Blueprint $table) {
             $table->id();
             $table->integer('cant')->nullable();
-            $table->float('price')->nullable();
+            $table->decimal('price', 12, 2)->nullable();
             $table->unsignedBigInteger('store_item_id');
             $table->unsignedBigInteger('branch_id');
             $table->unsignedBigInteger('user_id');

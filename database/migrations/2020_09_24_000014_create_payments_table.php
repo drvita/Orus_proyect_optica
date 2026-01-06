@@ -25,7 +25,7 @@ class CreatePaymentsTable extends Migration
             $table->integer('metodopago')->default(0);
             $table->string('banco', 100)->nullable();
             $table->string('auth', 200)->nullable();
-            $table->float('total')->default(0);
+            $table->decimal('total', 12, 2)->default(0);
             $table->foreignId('sale_id')->constrained();
             $table->foreignId('contact_id')->constrained();
             $table->foreignId('user_id')->constrained();
@@ -38,8 +38,8 @@ class CreatePaymentsTable extends Migration
      *
      * @return void
      */
-     public function down()
-     {
-       Schema::dropIfExists($this->tableName);
-     }
+    public function down()
+    {
+        Schema::dropIfExists($this->tableName);
+    }
 }

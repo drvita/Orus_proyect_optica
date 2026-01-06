@@ -29,7 +29,7 @@ class CreateStoreItemsTable extends Migration
             $table->string('name', 150)->unique();
             $table->string('unit', 4);
             $table->integer('cant')->nullable();
-            $table->float('price')->nullable();
+            $table->decimal('price', 12, 2)->nullable();
             $table->foreignId('category_id')->constrained();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
@@ -41,8 +41,8 @@ class CreateStoreItemsTable extends Migration
      *
      * @return void
      */
-     public function down()
-     {
-       Schema::dropIfExists($this->tableName);
-     }
+    public function down()
+    {
+        Schema::dropIfExists($this->tableName);
+    }
 }

@@ -52,16 +52,16 @@ class CreateExamsTable extends Migration
             $table->string('diagnostico', 30)->nullable();
             $table->tinyInteger('presbicie')->nullable();
             $table->text('txoftalmico')->nullable();
-            $table->float('esferaoi')->nullable();
-            $table->float('esferaod')->nullable();
-            $table->float('cilindroi')->nullable();
-            $table->float('cilindrod')->nullable();
+            $table->decimal('esferaoi', 8, 2)->nullable();
+            $table->decimal('esferaod', 8, 2)->nullable();
+            $table->decimal('cilindroi', 8, 2)->nullable();
+            $table->decimal('cilindrod', 8, 2)->nullable();
             $table->integer('ejeoi')->nullable();
             $table->integer('ejeod')->nullable();
-            $table->float('adicioni')->nullable();
-            $table->float('adiciond')->nullable();
-            $table->float('dpoi')->nullable();
-            $table->float('dpod')->nullable();
+            $table->decimal('adicioni', 8, 2)->nullable();
+            $table->decimal('adiciond', 8, 2)->nullable();
+            $table->decimal('dpoi', 8, 2)->nullable();
+            $table->decimal('dpod', 8, 2)->nullable();
             $table->string('avfod', 13)->nullable();
             $table->string('avfoi', 13)->nullable();
             $table->string('avf2o', 25)->nullable();
@@ -69,8 +69,8 @@ class CreateExamsTable extends Migration
             $table->string('lcgoi', 30)->nullable();
             $table->string('lcgod', 30)->nullable();
             $table->text('txoptico')->nullable();
-            $table->float('alturaod')->nullable();
-            $table->float('alturaoi')->nullable();
+            $table->decimal('alturaod', 8, 2)->nullable();
+            $table->decimal('alturaoi', 8, 2)->nullable();
             $table->integer('pioi')->nullable();
             $table->integer('piod')->nullable();
             $table->text('observaciones')->nullable();
@@ -104,8 +104,8 @@ class CreateExamsTable extends Migration
      *
      * @return void
      */
-     public function down()
-     {
-       Schema::dropIfExists($this->tableName);
-     }
+    public function down()
+    {
+        Schema::dropIfExists($this->tableName);
+    }
 }

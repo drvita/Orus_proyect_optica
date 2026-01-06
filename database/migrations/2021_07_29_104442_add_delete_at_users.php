@@ -18,7 +18,14 @@ class AddDeleteAtUsers extends Migration
                 ->after('remember_token')
                 ->nullable();
 
-            //$table->foreign('updated_id')->references('id')->on('users');
+            // For PostgreSQL compat with soft deletes
+            $table->dropUnique(['username']);
+            $table->dropUnique(['email']);
+            $table->dropUnique(['api_token']);
+
+            $table->unique('username')->whereNull('deleted_at');
+            $table->unique('email')->whereNull('deleted_at');
+            $table->unique('api_token')->whereNull('deleted_at');
         });
     }
 
