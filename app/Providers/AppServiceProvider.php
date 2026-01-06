@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
 
         if (config('app.env') === "production") {
             DB::listen(function ($query) {
-                if ($query->time > 1000) {
+                if ($query->time > 500) {
                     $path = request()->fullUrl();
                     $message = "[Slow query detected] " . $query->time . " ms";
                     $message .= " URL: " . $path;
