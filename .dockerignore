@@ -1,0 +1,14 @@
+vendor
+node_modules
+bootstrap/cache/*.php
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+.env
+.git
+.dockerignore
+.phpunit.result.cache
+.vscode
+.cache
+.composer
