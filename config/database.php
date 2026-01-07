@@ -63,6 +63,21 @@ return [
             ]) : [],
         ],
 
+        'pgsql_aws' => [
+            'driver' => 'pgsql',
+            'url' => env('DATABASE_URL_PG'),
+            'host' => env('DB_PG_HOST', '127.0.0.1'),
+            'port' => env('DB_PG_PORT', '5432'),
+            'database' => env('DB_PG_DATABASE', 'forge'),
+            'username' => env('DB_PG_USERNAME', 'forge'),
+            'password' => env('DB_PG_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),
@@ -123,7 +138,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [
