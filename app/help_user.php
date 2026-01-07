@@ -2,7 +2,6 @@
 if (!function_exists('isAdmin')) {
     function isAdmin($user)
     {
-
         return $user->role("admin");
     }
 }

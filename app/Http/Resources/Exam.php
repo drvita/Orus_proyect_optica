@@ -18,11 +18,12 @@ class Exam extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
-            $activity = $this->metas()
-                ->where("key", ["updated", "deleted", "created"])
-                ->orderBy("id", "desc")
-                ->take(25)
-                ->get();
+            $activity = $this->metas // Usar la colección cargada
+                ->filter(function ($meta) {
+                    return in_array($meta->key, ["updated", "deleted", "created"]);
+                })
+                ->sortByDesc("id")
+                ->take(25);
 
             $obj = [
                 'id' => 0,

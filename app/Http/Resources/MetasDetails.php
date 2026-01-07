@@ -7,6 +7,8 @@ use App\User;
 
 class MetasDetails extends JsonResource
 {
+    private static $userCache = [];
+
     /**
      * Transform the resource into an array.
      *
@@ -18,7 +20,19 @@ class MetasDetails extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
-            $user = $this->value['user_id'] ? User::find($this->value['user_id']) : new \stdClass;
+            $userId = $this->value['user_id'] ?? null;
+            $user = null;
+
+            if ($userId) {
+                if (!isset(self::$userCache[$userId])) {
+                    self::$userCache[$userId] = User::find($userId);
+                }
+                $user = self::$userCache[$userId];
+            }
+
+            if (!$user) {
+                $user = new \stdClass;
+            }
 
             $return["type"] = $this->key;
             $return["data"] = [

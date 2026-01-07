@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Providers;
+
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\DB;
-// use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,10 +14,7 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
-    {
-
-    }
+    public function register() {}
 
     /**
      * Bootstrap any application services.
@@ -29,16 +27,16 @@ class AppServiceProvider extends ServiceProvider
         Carbon::setLocale('es_MX.UTF-8');
         date_default_timezone_set('America/Mexico_City');
 
-        if (config('app.env') != "local") {
+        if (config('app.env') === "production") {
             DB::listen(function ($query) {
-                if ($query->time > 100) {
-                    $message = "Slow query detected:\n";
-                    $message .= "Execution time: {$query->time} ms\n";
-                    $message .= "SQL Query: {$query->sql}\n";
-                    $message .= "Bindings: " . implode(", ", $query->bindings) . "\n";
+                if ($query->time > 500) {
+                    $path = request()->fullUrl();
+                    $message = "[Slow query detected] " . $query->time . " ms";
+                    $message .= " URL: " . $path;
+                    $message .= " SQL Query: " . $query->sql;
+                    $message .= " Bindings: " . implode(", ", $query->bindings);
 
-                    // Log::debug($message);
-                    \Sentry\captureMessage($message);
+                    Log::info($message);
                 }
             });
         }
