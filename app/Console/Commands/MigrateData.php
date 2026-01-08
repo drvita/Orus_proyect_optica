@@ -28,11 +28,12 @@ class MigrateData extends Command
             $this->info("Copiando tabla: {$tableName}...");
 
             // 3. Limpiar tabla destino antes de insertar (Opcional, pero recomendado)
-            DB::connection('pgsql_aws')->table($tableName)->truncate();
+            DB::connection('pgsql_aws')->statement("TRUNCATE TABLE {$tableName} RESTART IDENTITY CASCADE;");
 
             // 4. Procesar por bloques para no saturar memoria
             $count = 0;
-            DB::connection('mysql')->table($tableName)->orderByRaw('1')->chunk(1000, function ($rows) use ($tableName, &$count) {
+            $chunkSize = ($tableName === 'exams') ? 400 : 1000;
+            DB::connection('mysql')->table($tableName)->orderByRaw('1')->chunk($chunkSize, function ($rows) use ($tableName, &$count) {
                 $data = array_map(function ($row) {
                     return (array) $row;
                 }, $rows->toArray());
