@@ -17,7 +17,7 @@ RUN apk add --no-cache \
     unzip
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_pgsql pgsql bcmath gd zip intl pcntl opcache mbstring exif dom xml xmlwriter
+RUN docker-php-ext-install pdo_pgsql pgsql pdo_mysql mysqli bcmath gd zip intl pcntl opcache mbstring exif dom xml xmlwriter
 
 # Install Redis extension
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
