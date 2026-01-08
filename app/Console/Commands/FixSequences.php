@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class FixSequences extends Command
 {
-    protected $signature = 'migrate:fix-sequences';
+    protected $signature = 'orus:fix-sequences';
     protected $description = 'Corrige secuencias de PostgreSQL';
 
     public function handle()

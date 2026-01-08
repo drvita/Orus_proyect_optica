@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class MigrateData extends Command
 {
-    protected $signature = 'migrate:orus';
+    protected $signature = 'oru:migrate';
     protected $description = 'Migra datos de MySQL On-premise a PostgreSQL AWS';
 
     public function handle()
@@ -51,6 +51,6 @@ class MigrateData extends Command
 
         $this->info("--------------------------------------------------");
         $this->info("Migración finalizada con éxito, Ingeniero.");
-        $this->call('db:fix-sequences'); // Llamada al fix de secuencias
+        $this->call('orus:fix-sequences'); // Llamada al fix de secuencias
     }
 }
