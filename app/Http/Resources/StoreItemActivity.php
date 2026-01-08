@@ -83,8 +83,8 @@ class StoreItemActivity extends JsonResource
             $return['category'] = new CategoryStore($this->categoria);
             $return['supplier'] = new ContactStore($this->supplier);
 
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
-            $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
+            $return['updated_at'] = $this->updated_at ? $this->updated_at->format('Y-m-d H:i') : null;
         }
 
         return $return;

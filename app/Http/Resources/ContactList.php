@@ -44,8 +44,8 @@ class ContactList extends JsonResource
             $return['created'] = new UserSimple($this->user);
             $return['updated'] = new UserSimple($this->user_updated);
 
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
-            $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
+            $return['updated_at'] = $this->updated_at ? $this->updated_at->format('Y-m-d H:i') : null;
 
             if (isset($request->type) && $request->type == 1) {
                 $return['brands'] = BrandShort::collection($this->brands);

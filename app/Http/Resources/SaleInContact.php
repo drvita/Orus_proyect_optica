@@ -21,7 +21,7 @@ class SaleInContact extends JsonResource
             $return['total'] = $this->total;
             $return['pedido'] = $this->order_id;
             $return['branch'] = new ConfigBranch($this->branch);
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
         }
 
         return $return;
