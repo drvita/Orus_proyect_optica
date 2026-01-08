@@ -23,7 +23,7 @@ class SaleInPayment extends JsonResource
             $return['total'] = $this->total;
             $return['pedido'] = $this->order_id;
             $return['created'] = new UserInExam($this->user);
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
         }
 
         return $return;

@@ -86,11 +86,9 @@ class Contact extends JsonResource
             $return['updated'] = new UserSimple($this->user_updated);
 
             $return['deleted_at'] = $this->deleted_at ? $this->deleted_at->format('Y-m-d H:i') : null;
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
-            $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
+            $return['updated_at'] = $this->updated_at ? $this->updated_at->format('Y-m-d H:i') : null;
         }
-
-        // dd($return);
 
         return $return;
     }

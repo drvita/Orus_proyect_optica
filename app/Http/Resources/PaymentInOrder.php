@@ -4,12 +4,14 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PaymentInOrder extends JsonResource{
+class PaymentInOrder extends JsonResource
+{
 
-    public function toArray($request){
+    public function toArray($request)
+    {
         $return = [];
 
-        if(isset($this->id)){
+        if (isset($this->id)) {
             $return['id'] = $this->id;
             $return['metodopago'] = $this->metodopago;
             $return['metodoname'] = $this->methodName($this->metodopago);
@@ -20,13 +22,14 @@ class PaymentInOrder extends JsonResource{
             $return['details'] = $this->details;
             $return['branch'] = new Config($this->branch);
             $return['created'] = new UserInExam($this->user);
-            $return['created_at'] = $this->created_at->format('Y-m-d');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d') : null;
         }
-            
+
         return $return;
     }
 
-    function methodName ($id) {
+    function methodName($id)
+    {
         switch ($id) {
             case 1:
                 return "efectivo";

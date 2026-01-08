@@ -14,7 +14,7 @@ class ExamOrder extends JsonResource
         if (isset($this->id)) {
             $return['id'] = $this->id;
             $return['status'] = $this->status;
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
         }
         return $return;
     }

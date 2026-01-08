@@ -24,8 +24,8 @@ class Payment extends JsonResource
             $return['created_user'] = $this->user->name;
             $return['created'] = new UserInExam($this->user);
             $return['branch'] = new Config($this->branch);
-            $return['created_at'] = $this->created_at->format('Y-m-d');
-            $return['updated_at'] = $this->updated_at->format('Y-m-d');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d') : null;
+            $return['updated_at'] = $this->updated_at ? $this->updated_at->format('Y-m-d') : null;
         }
 
         return $return;

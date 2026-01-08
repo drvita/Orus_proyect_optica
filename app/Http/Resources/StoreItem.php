@@ -59,8 +59,8 @@ class StoreItem extends JsonResource
             $return['branches'] = StoreBranch::collection($this->inBranch);
             $return['category'] = new CategorySimple($this->categoria);
             $return['supplier'] = new ContactStore($this->supplier);
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
-            $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
+            $return['updated_at'] = $this->updated_at ? $this->updated_at->format('Y-m-d H:i') : null;
         }
 
         return $return;

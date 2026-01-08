@@ -17,7 +17,7 @@ class OrderInExam extends JsonResource
             $return['order_foreing'] = $this->npedidolab;
             $return['nota'] = $this->nota ? $this->nota->id : null;
             $return['branch'] = new ConfigBranch($this->branch);
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
         }
 
         return $return;

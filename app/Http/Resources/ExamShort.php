@@ -26,7 +26,7 @@ class ExamShort extends JsonResource
             $return['adicion_media_oi'] = $this->adicion_media_oi ? $this->adicion_media_oi : 0;
             $return['dpoi'] = $this->dpoi ? $this->dpoi : 0;
             $return['dpod'] = $this->dpod ? $this->dpod : 0;
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
         }
         return $return;
     }
