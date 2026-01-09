@@ -45,7 +45,8 @@ class MigrateData extends Command
 
             // 3. Limpiar tabla destino
             try {
-                DB::connection('pgsql_aws')->statement("TRUNCATE TABLE {$tableName} RESTART IDENTITY CASCADE;");
+                // Usamos DELETE en lugar de TRUNCATE CASCADE para evitar borrar datos
+                DB::connection('pgsql_aws')->table($tableName)->delete();
             } catch (\Throwable $e) {
                 $this->error("Error al limpiar tabla {$tableName}: " . $e->getMessage());
                 continue;
