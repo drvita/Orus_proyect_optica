@@ -22,7 +22,11 @@ class ContactList extends JsonResource
                 }
             }
 
-            $edad = $this->birthday !== null ? $this->birthday->diffInYears(carbon::now()) : 0;
+            $birthday = $this->birthday;
+            if (is_string($birthday)) {
+                $birthday = Carbon::parse($birthday);
+            }
+            $edad = $birthday !== null ? $birthday->diffInYears(Carbon::now()) : 0;
             $exams = $this->exams()->with('user')->paginate(10, ['*'], 'exam_page');
 
             $return['id'] = $this->id;
