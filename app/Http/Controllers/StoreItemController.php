@@ -28,48 +28,8 @@ class StoreItemController extends Controller
         $this->store = $store;
     }
     /**
-     * @OA\Get(
-     *  path="/api/store",
-     *  summary="List of store items",
-     *  description="GET list of store items in DB",
-     *  operationId="index",
-     *  tags={"Store"},
-     *  security={ {"bearer": {} }},
-     *  @OA\Parameter(name="orderby",in="query",required=false,@OA\Schema(type="string")),
-     *  @OA\Parameter(name="order",in="query",required=false,@OA\Schema(type="string")),
-     *  @OA\Parameter(name="itemsPage",in="query",required=false,@OA\Schema(type="string")),
-     *  @OA\Parameter( name="search",in="query",required=false,@OA\Schema(type="string")),
-     *  @OA\Parameter(name="code",in="query",required=false,@OA\Schema(type="string")),
-     *  @OA\Parameter(name="codebar",in="query",required=false,@OA\Schema(type="string")),
-     *  @OA\Parameter(name="zero",in="query",required=false,@OA\Schema(type="boolean")),
-     *  @OA\Parameter( name="cat",in="query",required=false,@OA\Schema(type="string")),
-     *  @OA\Parameter(name="supplier",in="query",required=false,@OA\Schema(type="string")),
-     *  @OA\Parameter(name="brand",in="query",required=false,@OA\Schema(type="string")),
-     *  @OA\Parameter(name="branch",in="query",required=false,@OA\Schema(type="string")),
-     *  @OA\Parameter( name="responseType",in="query",required=false,@OA\Schema(type="string")),
-     * 
-     *  @OA\Response(response=401,
-     *    description="Wrong credentials response",
-     *    @OA\JsonContent(
-     *       @OA\Property(property="message", type="string", example="Sorry. Please try again")
-     *    )
-     *  ),
-     *  @OA\Response(
-     *     response=200,
-     *     description="Success",
-     *     @OA\JsonContent(
-     *        @OA\Property(property="data", type="object"),
-     *     )
-     *  ),
-     *  @OA\Response(
-     *     response=201,
-     *     description="Success generate file csv",
-     *     @OA\JsonContent()
-     *  ),
-     * )
-     *
-     * @param "" $request
-     * @return JsonResponse
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
 
 

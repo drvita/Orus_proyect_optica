@@ -1,42 +1,84 @@
-FROM php:8.1-fpm
+# Stage 1: Base Image (Runtime + Extensions + Server)
+FROM php:8.4-fpm-alpine AS base
 
-# set your user name, ex: user=bernardo
-ARG user=cauan
-ARG uid=1000
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
+# Install system dependencies, Nginx, and Supervisor
+RUN apk add --no-cache \
+    postgresql-dev \
     libpng-dev \
-    libonig-dev \
+    libzip-dev \
+    icu-dev \
+    libpq \
+    oniguruma-dev \
     libxml2-dev \
+    nginx \
+    supervisor \
+    curl \
     zip \
     unzip
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd sockets
+RUN docker-php-ext-install pdo_pgsql pgsql pdo_mysql mysqli bcmath gd zip intl pcntl opcache mbstring exif dom xml xmlwriter
 
-# Get latest Composer
+# Install Redis extension
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
+
+# Create logs directory for supervisor
+RUN mkdir -p /var/log/supervisor
+
+WORKDIR /var/www/html
+
+# Stage 2: PHP Dependencies
+FROM base AS vendor
+
+# Get Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Create system user to run Composer and Artisan Commands
-RUN useradd -G www-data,root -u $uid -d /home/$user $user
-RUN mkdir -p /home/$user/.composer && \
-    chown -R $user:$user /home/$user
+# Copy composer files
+COPY composer.json composer.lock ./
 
-# Install redis
-RUN pecl install -o -f redis \
-    &&  rm -rf /tmp/pear \
-    &&  docker-php-ext-enable redis
+# Install dependencies
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --no-plugins \
+    --no-scripts \
+    --no-autoloader \
+    --prefer-dist
 
-# Set working directory
-WORKDIR /var/www
+# Copy necessary files for autoloader generation
+COPY app ./app
+COPY bootstrap ./bootstrap
+COPY config ./config
+COPY database ./database
+COPY routes ./routes
 
-# Copy custom configurations PHP
-COPY docker/php/custom.ini /usr/local/etc/php/conf.d/custom.ini
+# Generate optimized autoloader
+RUN composer dump-autoload --optimize --no-dev --no-scripts
 
-USER $user
+# Stage 3: Final Image
+FROM base
+
+# 1. Layer configurations first (change rarely)
+COPY ./docker/nginx/default.conf /etc/nginx/http.d/default.conf
+COPY ./docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
+# 3. Layer PHP dependencies (change occasionally)
+COPY --from=vendor /var/www/html/vendor ./vendor
+
+# 4. Layer application code last (change most frequently)
+COPY . .
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Clear and optimize Laravel
+RUN rm -f bootstrap/cache/*.php && \
+    php artisan package:discover --ansi
+
+EXPOSE 80
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

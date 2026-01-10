@@ -25,39 +25,8 @@ class OrderController extends Controller
         $this->order = $order;
     }
     /**
-     * @OA\Get(
-     *  path="/api/orders",
-     *  summary="List of orders",
-     *  description="GET list of orders in DB",
-     *  operationId="index",
-     *  tags={"Orders"},
-     *  security={ {"bearer": {} }},
-     *  @OA\Parameter(
-     *      name="email",
-     *      in="query",
-     *      required=false,
-     *      @OA\Schema(
-     *           type="string"
-     *      )
-     *  ),
-     *  @OA\Response(
-     *    response=401,
-     *    description="Wrong credentials response",
-     *    @OA\JsonContent(
-     *       @OA\Property(property="message", type="string", example="Sorry. Please try again")
-     *        )
-     *  ),
-     *  @OA\Response(
-     *     response=200,
-     *     description="Success",
-     *     @OA\JsonContent(
-     *        @OA\Property(property="data", type="object"),
-     *     )
-     *  ),
-     * )
-     *
-     * @param "" $request
-     * @return JsonResponse
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request)
     {

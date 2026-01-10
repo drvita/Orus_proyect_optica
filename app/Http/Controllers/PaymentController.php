@@ -26,39 +26,8 @@ class PaymentController extends Controller
     }
 
     /**
-     * @OA\Get(
-     *  path="/api/payments",
-     *  summary="Payments items and amounts",
-     *  description="GET items or amounts that depend of parameter type.",
-     *  operationId="index",
-     *  tags={"Payments"},
-     *  security={ {"bearer": {} }},
-     *  @OA\Parameter(name="orderby",in="query",required=false,@OA\Schema(type="date")),
-     *  @OA\Parameter(name="order",in="query",required=false,@OA\Schema(type="date")),
-     *  @OA\Parameter(name="itemsPage",in="query",required=false,@OA\Schema(type="date")),
-     *  @OA\Parameter(name="date_start",in="query",required=false,@OA\Schema(type="date")),
-     *  @OA\Parameter(name="date_end",in="query",required=false,@OA\Schema(type="date")),
-     *  @OA\Parameter(name="user",in="query",required=false,@OA\Schema(type="number")),
-     *  @OA\Parameter(name="branch_id",in="query",required=false,@OA\Schema(type="number")),
-     *  @OA\Parameter(name="type",in="query",required=false,@OA\Schema(type="string")),
-     * 
-     *  @OA\Response(response=401,
-     *    description="Wrong credentials response",
-     *    @OA\JsonContent(
-     *       @OA\Property(property="message", type="string", example="Sorry. Please try again")
-     *    )
-     *  ),
-     *  @OA\Response(
-     *     response=200,
-     *     description="Success",
-     *     @OA\JsonContent(
-     *        @OA\Property(property="data", type="object"),
-     *     )
-     *  ),
-     * )
-     *
-     * @param "" $request
-     * @return JsonResponse
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request)
     {
