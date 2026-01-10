@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\SaleItem;
 use App\Models\Exam;
 use App\Models\Contact;
-use App\User;
+use App\Models\User;
 use App\Models\Sale;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +16,17 @@ class Order extends Model
 {
     protected $table = "orders";
     protected $fillable = [
-        "contact_id", "exam_id", "ncaja", "npedidolab", "lab_id", "observaciones", "session", "status", "updated_id"
+        "contact_id",
+        "exam_id",
+        "ncaja",
+        "npedidolab",
+        "lab_id",
+        "user_id",
+        "observaciones",
+        "session",
+        "status",
+        "branch_id",
+        "updated_id"
     ];
     protected $hidden = [];
     protected $dates = [
@@ -114,7 +124,7 @@ class Order extends Model
 
         static::created(function ($order) {
             $user = auth()->user();
-            Log::info("Order created: ". json_encode($order));
+            Log::info("Order created: " . json_encode($order));
             Log::info("User data: $user->id, branch: $user->branch_id");
         });
 

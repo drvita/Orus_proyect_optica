@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\User;
+use App\Models\User;
 use App\Models\Category;
 use App\Models\Contact;
 use App\Models\StoreLot;
@@ -16,7 +16,19 @@ class StoreItem extends Model
 {
     protected $table = "store_items";
     protected $fillable = [
-        "code", "codebar", "grad", "brand_id", "name", "unit", "cant", "price", "category_id", "contact_id", "user_id", "branch_default", "updated_id"
+        "code",
+        "codebar",
+        "grad",
+        "brand_id",
+        "name",
+        "unit",
+        "cant",
+        "price",
+        "category_id",
+        "contact_id",
+        "user_id",
+        "branch_default",
+        "updated_id"
     ];
     protected $hidden = ["updated_id", "user_id"];
     protected $dates = [

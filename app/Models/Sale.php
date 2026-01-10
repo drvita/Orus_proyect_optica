@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\User;
+use App\Models\User;
 use App\Models\Contact;
 use App\Models\Order;
 use App\Models\SaleItem;
@@ -15,7 +15,16 @@ class Sale extends Model
 {
     protected $table = "sales";
     protected $fillable = [
-        "subtotal", "descuento", "total", "pagado", "contact_id", "order_id", "user_id", "session", "branch_id", "updated_id"
+        "subtotal",
+        "descuento",
+        "total",
+        "pagado",
+        "contact_id",
+        "order_id",
+        "user_id",
+        "session",
+        "branch_id",
+        "updated_id"
     ];
     protected $hidden = [];
     protected $dates = [

@@ -6,7 +6,7 @@ use Illuminate\Database\Seeder;
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use App\User;
+use App\Models\User;
 
 class RoleSeeder extends Seeder
 {
@@ -141,6 +141,8 @@ class RoleSeeder extends Seeder
         });
         // Assign role to bot
         $bot = User::find(1);
-        $bot->assignRole('bot');
+        if($bot){
+            $bot->assignRole('bot');
+        }
     }
 }

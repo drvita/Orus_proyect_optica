@@ -33,6 +33,9 @@ class UserNoty extends JsonResource
                 'roles' => $this->getRoleNames(),
                 'permissions' => $permissionsArray,
                 'unreadNotifications' => $this->unreadNotifications,
+                'isAdmin' => $this->hasRole('admin'),
+                'isVentas' => $this->hasRole('ventas'),
+                'isdoctor' => $this->hasRole('doctor'),
             ];
         }
 

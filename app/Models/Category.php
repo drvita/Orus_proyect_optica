@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\User;
+use App\Models\User;
 //use App\Models\Category;
 
 class Category extends Model
 {
     protected $table = "categories";
     protected $fillable = [
-        "name", "category_id", "user_id"
+        "name",
+        "category_id",
+        "user_id"
     ];
     protected $hidden = ['updated_at', 'created_at', 'user_id', 'category_id'];
     protected $dates = [

@@ -5,7 +5,6 @@ if (!function_exists('isAdmin')) {
         return $user->role("admin");
     }
 }
-
 if (!function_exists('user_can')) {
     function user_can($user, $can)
     {

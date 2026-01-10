@@ -3,30 +3,31 @@
 namespace Tests\Feature;
 
 use App\Models\Contact;
-use App\User;
-use Illuminate\Support\Str;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class ExamTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutExceptionHandling();
+        $this->seed();
+    }
+
     public function test_create_exam()
     {
-        $this->withoutExceptionHandling();
-        $user = User::role('admin')->inRandomOrder()->first();
-        $contact = Contact::inRandomOrder()->first();
-        $this->actingAs($user);
+        $user = User::factory()->create();
+        $contact = Contact::factory()->create();
 
-        $res = $this->json('POST', 'api/exams', [
-            "contact_id" => $contact->id,
-        ]);
-        dd($res->decodeResponseJson());
-        $res->assertStatus(200);
+        $this->actingAs($user)
+            ->postJson(route('exams.store'), [
+                "contact_id" => $contact->id,
+            ])
+            ->assertStatus(200);
     }
 }

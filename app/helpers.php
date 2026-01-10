@@ -2,17 +2,43 @@
 if (!function_exists('normaliza')) {
     function normaliza($cadena)
     {
-        if (!$cadena)
-            return;
+        if (!$cadena) return;
 
-        $originales = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûýýþÿŔŕ';
-        $modificadas = 'aaaaaaaceeeeiiiidnoooooouuuuybsaaaaaaaceeeeiiiidnoooooouuuyybyRr';
-        $cadena = utf8_decode($cadena);
-        $cadena = strtr($cadena, utf8_decode($originales), $modificadas);
-        return utf8_encode($cadena);
+        // Use Transliterator if available (requires the Intl extension)
+        if (class_exists('Transliterator')) {
+            $transliterator = \Transliterator::createFromRules(':: NFD; :: [:Nonspacing Mark:] Remove; :: NFC;', \Transliterator::FORWARD);
+            return $transliterator->transliterate($cadena);
+        }
+
+        // Fallback method using mb_string functions
+        if (function_exists('mb_convert_encoding')) {
+            $originales = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûýýþÿŔŕ';
+            $modificadas = 'aaaaaaaceeeeiiiidnoooooouuuuybsaaaaaaaceeeeiiiidnoooooouuuyybyRr';
+
+            // Ensure the string is in UTF-8
+            $cadena = mb_convert_encoding($cadena, 'UTF-8', mb_detect_encoding($cadena));
+
+            // Convert accented characters
+            $chars = preg_split('//u', $originales, -1, PREG_SPLIT_NO_EMPTY);
+            $replacement = preg_split('//u', $modificadas, -1, PREG_SPLIT_NO_EMPTY);
+
+            for ($i = 0; $i < count($chars); $i++) {
+                $cadena = str_replace($chars[$i], $replacement[$i], $cadena);
+            }
+
+            return $cadena;
+        }
+
+        // Last resort fallback using iconv if available
+        if (function_exists('iconv')) {
+            $cadena = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $cadena);
+            return $cadena;
+        }
+
+        // If all else fails, return the original string
+        return $cadena;
     }
 }
-
 if (!function_exists('getItemsRequest')) {
     function getItemsRequest($items, $branch_id = null)
     {
@@ -20,12 +46,11 @@ if (!function_exists('getItemsRequest')) {
             $itemsArray = is_string($items) ? json_decode($items, true) : $items;
 
             if (is_array($itemsArray)) {
-                foreach ($itemsArray as $key => $item) {
-                    if ($branch_id) {
+                if ($branch_id) {
+                    foreach ($itemsArray as $key => $item) {
                         $itemsArray[$key]['branch_id'] = $branch_id;
+                        $itemsArray[$key]['total'] = $item['cant'] * $item['price'];
                     }
-
-                    $itemsArray[$key]['total'] = $item['cant'] * $item['price'];
                 }
 
                 return $itemsArray;
@@ -35,7 +60,6 @@ if (!function_exists('getItemsRequest')) {
         return [];
     }
 }
-
 if (!function_exists('getPaymentsRequest')) {
     function getPaymentsRequest($payments, $branch_id = null)
     {
@@ -56,7 +80,6 @@ if (!function_exists('getPaymentsRequest')) {
         return [];
     }
 }
-
 if (!function_exists('getParentCategories')) {
     function getParentCategories($item)
     {
@@ -77,7 +100,7 @@ if (!function_exists('getParentCategories')) {
                 $codeNameCategory = $item->parent->name . "|" . $item->name . "||";
             }
         } else {
-            $codeCategory = "$item->id|0|0|0";
+            $codeCategory =  "$item->id|0|0|0";
             $codeNameCategory = "$item->name|||";
         }
 
@@ -87,7 +110,6 @@ if (!function_exists('getParentCategories')) {
         ];
     }
 }
-
 if (!function_exists('getPaymentName')) {
     function getPaymentName($id)
     {
@@ -109,7 +131,6 @@ if (!function_exists('getPaymentName')) {
         }
     }
 }
-
 if (!function_exists('getShortNameCat')) {
     function getShortNameCat($string)
     {

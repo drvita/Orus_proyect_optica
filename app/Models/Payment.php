@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Sale;
 use App\Models\Messenger;
 use App\Models\Config;
-use App\User;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -14,7 +14,16 @@ class Payment extends Model
 {
     protected $table = "payments";
     protected $fillable = [
-        "metodopago", "details", "bank_id", "auth", "total", "sale_id", "contact_id", "user_id", "branch_id", "updated_id"
+        "metodopago",
+        "details",
+        "bank_id",
+        "auth",
+        "total",
+        "sale_id",
+        "contact_id",
+        "user_id",
+        "branch_id",
+        "updated_id"
     ];
     protected $hidden = [];
     protected $dates = [

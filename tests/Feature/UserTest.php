@@ -2,30 +2,42 @@
 
 namespace Tests\Feature;
 
-use App\User;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class UserTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutExceptionHandling();
+        $this->seed();
+    }
+
     /**
-     * A basic feature test example.
+     * Test the users.data endpoint returns authenticated user data
      *
      * @return void
      */
-    public function test_user_update_by_sales()
+    public function test_users_data_returns_authenticated_user_data()
     {
-        // $this->withoutExceptionHandling();
-        $user = User::role('ventas')->inRandomOrder()->first();
-        $this->actingAs($user);
-
-        $res = $this->json('PUT', 'api/users/' . $user->id, [
-            "branch_id" => rand(0,1) ? 12 : 13,
-            "name" => $user->name,
-            "username" => $user->username,
+        // Create a test user
+        $user = User::factory()->create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
         ]);
-        dd($res->decodeResponseJson());
-        $res->assertStatus(200);
+
+        // Authenticate the user with Sanctum
+        Sanctum::actingAs($user);
+
+        // Make the request to the users.data endpoint
+        $response = $this->getJson(route('users.data'));
+
+        // Assert the response is successful
+        $response->assertStatus(200);
     }
 }

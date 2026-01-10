@@ -29,6 +29,7 @@ class AddSupplierStoreItems extends Migration
     public function down()
     {
         Schema::table('store_items', function (Blueprint $table) {
+            $table->dropForeignKey('store_items_contact_id_foreign');
             $table->dropColumn('contact_id');
         });
     }

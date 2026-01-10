@@ -3,7 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\User;
+use App\Models\User;
 
 class MetasDetails extends JsonResource
 {
