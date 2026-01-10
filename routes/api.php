@@ -36,7 +36,6 @@ Route::middleware('auth:sanctum')->apiResource('branches', StoreBranchController
 
 // Rutas especiales
 Route::post('user/login', [AuthController::class, 'login'])->name('user.login');
-Route::post('users/login', [AuthController::class, 'login'])->name('users.login');
 Route::middleware('auth:sanctum')->post('/users/clearToken/{id}', [UserController::class, 'clearToken'])->name('users.clearToken');
 Route::middleware('auth:sanctum')->post('/user/logout', [AuthController::class, 'logout'])->name('users.logout');
 Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'userData'])->name('users.data');
