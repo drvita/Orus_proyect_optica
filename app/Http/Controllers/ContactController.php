@@ -9,6 +9,7 @@ use App\Http\Resources\ContactList as ContactResourceList;
 use App\Http\Requests\Contact as ContactRequests;
 use App\Models\Contact;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ContactController extends Controller
 {
@@ -54,16 +55,35 @@ class ContactController extends Controller
      */
     public function store(ContactRequests $request)
     {
-        if (!count($request->all())) {
-            return new ContactResource($this->contact);
+        try {
+            if (!count($request->all())) {
+                return response()->json([
+                    'message' => 'No se proporcionaron datos',
+                ], 400);
+            }
+
+            $request['user_id'] = Auth::user()->id;
+            $request['telnumbers'] = $request->phones;
+
+            if ($request->has('birthday') && $request->birthday) {
+                $request['birthday'] = Carbon::parse($request->birthday)->toDateString();
+            }
+
+            $contact = $this->contact->create($request->all());
+            $contact->saveMetas($request);
+            Log::info("[contact.store] Save user successfully: " . $contact->id);
+            return response()->json(new ContactResource($contact));
+        } catch (\Throwable $th) {
+            Log::error("[contact.store] Error saving user: " . $th->getMessage(), [
+                'user' => $request->all(),
+                'line' => $th->getLine(),
+                'file' => $th->getFile()
+            ]);
+            return response()->json([
+                'message' => 'Error al guardar el usuario',
+                'error' => $th->getMessage()
+            ], 500);
         }
-
-        $request['user_id'] = Auth::user()->id;
-        $request['telnumbers'] = $request->phones;
-
-        $contact = $this->contact->create($request->all());
-        $contact->saveMetas($request);
-        return new ContactResource($contact);
     }
 
     /**
@@ -92,6 +112,10 @@ class ContactController extends Controller
         $request['user_id'] = $contact->user_id;
         $request['updated_id'] = $currentUser->id;
         $request['telnumbers'] = $request->phones;
+
+        if ($request->has('birthday') && $request->birthday) {
+            $request['birthday'] = Carbon::parse($request->birthday)->toDateString();
+        }
 
         $contact->update($request->all());
         $contact->saveMetas($request);
