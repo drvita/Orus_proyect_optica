@@ -72,7 +72,7 @@ class ContactController extends Controller
             $contact = $this->contact->create($request->all());
             $contact->saveMetas($request);
             Log::info("[contact.store] Save user successfully: " . $contact->id);
-            return response()->json(new ContactResource($contact));
+            return new ContactResource($contact);
         } catch (\Throwable $th) {
             Log::error("[contact.store] Error saving user: " . $th->getMessage(), [
                 'user' => $request->all(),
