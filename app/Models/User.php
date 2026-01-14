@@ -9,6 +9,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Carbon\Carbon;
 use App\Models\Meta;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
 {

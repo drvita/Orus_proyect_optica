@@ -4,39 +4,33 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Session;
 use App\Http\Resources\UserNoty;
 use App\Http\Resources\User as UserResource;
 use App\Http\Requests\AuthRequest;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Laravel\Sanctum\HasApiTokens;
 
 
 class AuthController extends Controller
 {
     /**
-    * User model instance.
-    */
-    public function __construct(private User $user)
-    {
-    }
-    
+     * User model instance.
+     */
+    public function __construct(private User $user) {}
+
     /**
-    * Authenticate the user and create a new API token using Sanctum
-    *
-    * @param AuthRequest $request
-    * @return JsonResponse
-    */
+     * Authenticate the user and create a new API token using Sanctum
+     *
+     * @param AuthRequest $request
+     * @return JsonResponse
+     */
     public function login(AuthRequest $request): JsonResponse
     {
         // Find the user by email
         /** @var User $user */
         $user = $this->user->userEmail($request->email)->first();
-        
+
         // Check if user exists and password is correct
         if ($user && Hash::check($request->password, $user->password)) {
             // Create a token with Sanctum
@@ -51,7 +45,7 @@ class AuthController extends Controller
                     'user_data' => $token
                 ]
             );
-            
+
             // Load relationships for the resource
             // $user->load(['publish', 'relation']);
             return response()->json([
@@ -62,7 +56,7 @@ class AuthController extends Controller
         } else {
             // Authentication failed
             $errorMessage = $user ? 'La contraseña es incorrecta' : 'Las credenciales del usuario no son correctas';
-            
+
             return response()->json([
                 'status' => false,
                 'message' => $errorMessage,
@@ -70,11 +64,11 @@ class AuthController extends Controller
         }
     }
     /**
-    * Log the user out (revoke the token)
-    *
-    * @param Request $request
-    * @return JsonResponse
-    */
+     * Log the user out (revoke the token)
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function logout(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -82,28 +76,28 @@ class AuthController extends Controller
         if ($user) {
             // Revoke all tokens...
             $user->tokens()->delete();
-            
+
             return response()->json(['message' => 'Logged out successfully'], 200);
         }
 
         return response()->json(['message' => 'Usted no tiene una session activa'], 401);
     }
     /**
-    * Get authenticated user data
-    *
-    * @param Request $request
-    * @return UserNoty
-    */
+     * Get authenticated user data
+     *
+     * @param Request $request
+     * @return UserNoty
+     */
     public function userData(Request $request): UserNoty
     {
         return new UserNoty($request->user()->load("session")->load("branch"));
     }
     /**
-    * Mark user notifications as read
-    *
-    * @param Request $request
-    * @return JsonResponse
-    */
+     * Mark user notifications as read
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function userReadNotify(Request $request): JsonResponse
     {
         $res = ["success" => false, "id" => $request->id];
@@ -123,11 +117,11 @@ class AuthController extends Controller
         return response()->json($res, $code);
     }
     /**
-    * Handle user notification subscription
-    *
-    * @param Request $request
-    * @return JsonResponse
-    */
+     * Handle user notification subscription
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function userSubscriptionNotify(Request $request): JsonResponse
     {
         return response()->json(["success" => true], 200);
