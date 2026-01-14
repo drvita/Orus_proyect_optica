@@ -44,6 +44,10 @@ class UpdateTablesAddDeleteAt extends Migration
             $table->dateTime('deleted_at')
                 ->after('updated_at')
                 ->nullable();
+
+            // For PostgreSQL compat with soft deletes
+            $table->dropUnique(['session']);
+            $table->unique('session')->whereNull('deleted_at');
         });
     }
 

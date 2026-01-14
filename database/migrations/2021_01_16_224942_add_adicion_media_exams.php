@@ -14,10 +14,10 @@ class AddAdicionMediaExams extends Migration
     public function up()
     {
         Schema::table('exams', function (Blueprint $table) {
-            $table->float('adicion_media_oi')
+            $table->decimal('adicion_media_oi', 8, 2)
                 ->after('adicioni')
                 ->nullable();
-            $table->float('adicion_media_od')
+            $table->decimal('adicion_media_od', 8, 2)
                 ->after('adiciond')
                 ->nullable();
         });

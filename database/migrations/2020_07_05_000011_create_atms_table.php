@@ -24,7 +24,7 @@ class CreateAtmsTable extends Migration
             $table->id();
             $table->string('session')->nullable();
             $table->integer('type');
-            $table->float('efectivo');
+            $table->decimal('efectivo', 12, 2);
             $table->text('motivo')->nullable();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();

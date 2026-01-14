@@ -23,8 +23,8 @@ class CreateSalesItemsTable extends Migration
         Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
             $table->integer('cant');
-            $table->float('price');
-            $table->float('subtotal');
+            $table->decimal('price', 12, 2);
+            $table->decimal('subtotal', 12, 2);
             $table->integer('inStorage')->default(0);
             $table->integer('out')->nullable()->default(0);
             $table->string('session', 100);

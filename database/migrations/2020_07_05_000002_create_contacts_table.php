@@ -27,7 +27,7 @@ class CreateContactsTable extends Migration
             $table->string('email', 100)->nullable();
             $table->integer('type');
             $table->integer('business');
-            $table->text('telnumbers');
+            $table->jsonb('telnumbers');
             $table->date('birthday')->nullable();
             $table->text('domicilio')->nullable();
             $table->foreignId('user_id')->constrained();

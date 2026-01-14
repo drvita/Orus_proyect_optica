@@ -20,6 +20,15 @@ class UpdateStoreAddDeleteAt extends Migration
             $table->dateTime('deleted_at')
                 ->after('updated_at')
                 ->nullable();
+
+            // For PostgreSQL compat with soft deletes
+            $table->dropUnique(['code']);
+            $table->dropUnique(['codebar']);
+            $table->dropUnique(['name']);
+
+            $table->unique('code')->whereNull('deleted_at');
+            $table->unique('codebar')->whereNull('deleted_at');
+            $table->unique('name')->whereNull('deleted_at');
         });
     }
 

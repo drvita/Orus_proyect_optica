@@ -1,48 +1,14 @@
-# Exclude version control
-.git
-.gitignore
-
-# Exclude environment files
-.env
-.env.*
-
-# Exclude development tools/configs
-.vscode
-.idea
-.docker
-.cache
-.composer
-.editorconfig
-.DS_Store
-
-# Exclude build artifacts and dependencies
-node_modules
 vendor
-npm-debug.log
-yarn-error.log
-
-# Exclude Laravel specific local files
-storage/logs/*
+node_modules
+bootstrap/cache/*.php
 storage/framework/cache/data/*
 storage/framework/sessions/*
 storage/framework/testing/*
 storage/framework/views/*
-!storage/logs/.gitignore
-!storage/framework/cache/data/.gitignore
-!storage/framework/sessions/.gitignore
-!storage/framework/testing/.gitignore
-!storage/framework/views/.gitignore
-
-# Exclude testing files
-tests
-phpunit.xml
-.phpunit.result.cache
-
-# Exclude Docker related files (they are not needed inside the image)
-Dockerfile
+.env
+.git
 .dockerignore
-compose.yaml
-docker-compose.yml
-
-# Exclude documentation
-README.md
+.phpunit.result.cache
+.vscode
+.cache
+.composer

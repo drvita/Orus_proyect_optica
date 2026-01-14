@@ -24,10 +24,10 @@ class CreateSalesTable extends Migration
             $table->id();
             $table->string('session', 100)->unique();
             $table->string('stringCfdi')->nullable();
-            $table->float('subtotal')->default(0);
-            $table->float('descuento')->nullable()->default(0);
-            $table->float('pagado')->nullable()->default(0);
-            $table->float('total')->default(0);
+            $table->decimal('subtotal', 12, 2)->default(0);
+            $table->decimal('descuento', 12, 2)->nullable()->default(0);
+            $table->decimal('pagado', 12, 2)->nullable()->default(0);
+            $table->decimal('total', 12, 2)->default(0);
             $table->foreignId('contact_id')->constrained();
             $table->foreignId('order_id')->nullable()->constrained();
             $table->foreignId('user_id')->constrained();
