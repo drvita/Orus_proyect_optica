@@ -12,7 +12,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Services\SearchService;
 use App\DTOs\Search\SearchNameRequest;
-use Hamcrest\Arrays\IsArray;
 use Illuminate\Support\Facades\Log;
 
 class Contact extends Model
@@ -93,21 +92,22 @@ class Contact extends Model
     public function scopeName($query, $search, $exept)
     {
         if (trim($search) != "") {
-            if (!request()->has('withoutSearch')) {
-                Log::info("[Contact model] Scope name request withoutSearch");
-                $searchResult = $this->searchService($search);
+            // if (!request()->has('withoutSearch')) {
+            //     Log::info("[Contact model] Scope name request withoutSearch");
+            //     $searchResult = $this->searchService($search);
 
-                if (isset($searchResult['results']) && is_array($searchResult['results']) && count($searchResult['results'])) {
-                    $ids = array_column($searchResult['results'], 'id');
-                    Log::info("[Contact model] Search ids contacts: ", $ids);
-                    $query->whereIn("id", $ids);
-                }
+            //     if (isset($searchResult['results']) && is_array($searchResult['results']) && count($searchResult['results'])) {
+            //         $ids = array_column($searchResult['results'], 'id');
+            //         Log::info("[Contact model] Search ids contacts: ", $ids);
+            //         $query->whereIn("id", $ids);
+            //     }
 
-                $query->orWhere('name', 'LIKE', "%$search%");
-            } else {
-                Log::info("[Contact model] Scope name NOT request withoutSearch");
-                $query->where('name', 'LIKE', "$search");
-            }
+            //     $query->orWhere('name', 'LIKE', "%$search%");
+            // } else {
+            //     Log::info("[Contact model] Scope name NOT request withoutSearch");
+            //     $query->where('name', 'LIKE', "$search");
+            // }
+            $query->where('name', 'LIKE', "$search");
 
             if ($exept) {
                 Log::info("[Contact model] Scope name request exept id {$exept}");
