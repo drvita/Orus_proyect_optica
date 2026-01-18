@@ -17,7 +17,7 @@
         "laravel/sanctum": "*",
         "laravel/tinker": "^2.9",
         "nesbot/carbon": "^3.0",
-        "sentry/sentry-laravel": "^4.0",
+        "sentry/sentry-laravel": "^4.20",
         "spatie/laravel-permission": "^6.0"
     },
     "require-dev": {
