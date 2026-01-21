@@ -2,7 +2,7 @@
     "name": "opticamadero/api",
     "type": "project",
     "description": "Optica Madero API",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "keywords": [
         "framework",
         "laravel"

@@ -13,20 +13,19 @@ class ContactList extends JsonResource
 
         $return = [];
         if (isset($this->id)) {
-            if ($this->metas && $this->metas->count()) {
+            $birthday = $this->birthday;
+            if (!$birthday && $this->metas && $this->metas->count()) {
                 foreach ($this->metas as $meta) {
                     if ($meta->key === "metadata" && isset($meta->value["birthday"])) {
-                        $this->birthday = new Carbon($meta->value["birthday"]);
+                        $birthday = new Carbon($meta->value["birthday"]);
                     }
                 }
             }
-
-            $birthday = $this->birthday;
             if (is_string($birthday)) {
                 $birthday = Carbon::parse($birthday);
             }
-            $edad = $birthday !== null ? $birthday->diffInYears(Carbon::now()) : 0;
-            $exams = $this->exams()->with('user')->paginate(10, ['*'], 'exam_page');
+            $edad = $birthday !== null ? (int)$birthday->diffInYears(Carbon::now()) : 0;
+            // $exams = $this->exams()->with('user')->paginate(10, ['*'], 'exam_page');
 
             $return['id'] = $this->id;
             $return['name'] = $this->name;

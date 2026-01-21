@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         WWWGROUP: "${WWWGROUP}"
-    image: "sail-8.4/app"
+    image: "omadero-api/app"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -20,11 +20,11 @@ services:
     volumes:
       - ".:/var/www/html"
     networks:
-      - sail
+      - omadero
     depends_on:
-      - mariadb
-      - redis
-  mariadb:
+      - omadero.mariadb
+      - omadero.redis
+  omadero.mariadb:
     image: "mariadb:11"
     ports:
       - "${FORWARD_DB_PORT:-3306}:3306"
@@ -39,7 +39,7 @@ services:
       - "sail-mariadb:/var/lib/mysql"
       - "./vendor/laravel/sail/database/mariadb/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh"
     networks:
-      - sail
+      - omadero
     healthcheck:
       test:
         - CMD
@@ -48,14 +48,14 @@ services:
         - "--innodb_initialized"
       retries: 3
       timeout: 5s
-  redis:
+  omadero.redis:
     image: "redis:alpine"
     ports:
       - "${FORWARD_REDIS_PORT:-6379}:6379"
     volumes:
       - "sail-redis:/data"
     networks:
-      - sail
+      - omadero
     healthcheck:
       test:
         - CMD
@@ -64,7 +64,7 @@ services:
       retries: 3
       timeout: 5s
 networks:
-  sail:
+  omadero:
     driver: bridge
 volumes:
   sail-mariadb:

@@ -12,3 +12,4 @@ storage/framework/views/*
 .vscode
 .cache
 .composer
+/compose.yaml
