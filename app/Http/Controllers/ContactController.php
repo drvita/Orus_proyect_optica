@@ -33,7 +33,6 @@ class ContactController extends Controller
         $orderby = $request->orderby ? $request->orderby : "created_at";
         $order = $request->order == "desc" ? "desc" : "asc";
         $page = $request->itemsPage ? $request->itemsPage : 50;
-
         $contacts = $this->contact
             ->withRelation()
             ->orderBy($orderby, $order)

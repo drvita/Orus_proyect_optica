@@ -24,9 +24,8 @@ class ContactList extends JsonResource
             if (is_string($birthday)) {
                 $birthday = Carbon::parse($birthday);
             }
-            $edad = $birthday !== null ? (int)$birthday->diffInYears(Carbon::now()) : 0;
-            // $exams = $this->exams()->with('user')->paginate(10, ['*'], 'exam_page');
 
+            $edad = $birthday !== null ? (int)$birthday->diffInYears(Carbon::now()) : 0;
             $return['id'] = $this->id;
             $return['name'] = $this->name;
             $return['email'] = $this->email;
@@ -41,7 +40,11 @@ class ContactList extends JsonResource
                 count($this->supplier) +
                 count($this->orders);
 
-            // $return['exams'] = ExamShort::collection($exams);
+            $return['exams'] = ExamShort::collection(
+                $this->whenLoaded('exams', function () {
+                    return $this->exams()->with('user')->paginate(10, ['*'], 'exam_page');
+                })
+            );
             $return["metadata"] = $this->metas->count() ? new Metas($this->metas[0]) : [];
             $return['created'] = new UserSimple($this->user);
             $return['updated'] = new UserSimple($this->user_updated);
@@ -54,8 +57,6 @@ class ContactList extends JsonResource
             }
         }
 
-
         return $return;
-        // return parent::toArray($request);
     }
 }
