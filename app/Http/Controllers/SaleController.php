@@ -9,6 +9,7 @@ use App\Http\Resources\Sale as SaleResources;
 use App\Http\Requests\Sale as SaleRequests;
 use App\Events\SaleSave;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class SaleController extends Controller
 {
@@ -130,6 +131,9 @@ class SaleController extends Controller
         $sale->items = getItemsRequest($request->items, $sale->branch_id);
         $sale->addPayments = false;
         if (isset($request["payments"])) {
+            Log::info("[Sales.update] Payments request", [
+                "payments" => $request->payments
+            ]);
             $sale->paymentsRequest = getPaymentsRequest($request->payments, $request['branch_id']);
             $sale->addPayments = true;
         }

@@ -2,8 +2,6 @@
 
 namespace App\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use App\Models\SaleItem;
 use App\Models\Messenger;
 use App\Models\StoreItem;
@@ -23,6 +21,7 @@ class SaleSave
      */
     public function handle($event)
     {
+        Log::info("[Sales.listener] Sale processing");
         $auth = Auth::user();
         $sale = $event->sale;
         $items = $sale->items;
@@ -121,6 +120,9 @@ class SaleSave
         }
 
         if (isset($sale["paymentsRequest"])) {
+            Log::info("[Sales.listener] Payments processing", [
+                "paymentsRequest" => $sale["paymentsRequest"]
+            ]);
             $amount = 0;
             $payments = isset($sale["paymentsRequest"]) ? $sale["paymentsRequest"] : [];
             $paymentsDb = Payment::where('sale_id', $sale->id)->get()->filter(function ($pay) use ($payments) {
