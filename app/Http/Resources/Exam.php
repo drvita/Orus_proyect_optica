@@ -2,11 +2,8 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\ContactInExam as ContactResource;
-use App\Http\Resources\UserInExam as UserResource;
-use App\Http\Resources\OrderInExam as OrderResource;
-use App\Http\Resources\CategoryInExam as CategoryResource;
 
+use App\Http\Resources\OrderInExam as OrderResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class Exam extends JsonResource
@@ -14,22 +11,9 @@ class Exam extends JsonResource
 
     public function toArray($request)
     {
-        // return parent::toArray($request);
         $return = [];
         if (isset($this->id)) {
-            $activity = $this->metas()->where("key", ["updated", "deleted", "created"])->orderBy("id", "desc")->get();
-
-            $obj = [
-                'id' => 0,
-                'key' => 'created',
-                'value' => json_encode([
-                    "datetime" => $this->created_at,
-                    "user_id" => $this->user->id
-                ])
-            ];
-            $obj = json_decode(json_encode($obj), false);
-            $obj->value = json_decode($obj->value, true);
-            $activity->push($obj);
+            $activity = $this->activity;
 
             $return['id'] = $this->id;
             $return['age'] = $this->edad ? $this->edad : 0;
@@ -101,20 +85,21 @@ class Exam extends JsonResource
             $return['d_fcloi'] = $this->d_fcloi ? true : false;
             $return['d_fclod_time'] = $this->d_fclod_time ? $this->d_fclod_time : "00:00";
             $return['d_fcloi_time'] = $this->d_fcloi_time ? $this->d_fcloi_time : "00:00";
+            $return['duration'] = $this->duration;
 
             $return['status'] = $this->status;
-            $return['category_id'] = new CategoryResource($this->categoryPrimary);
-            $return['category_ii'] = new CategoryResource($this->categorySecondary);
-            $return['customer'] = new ContactSimple($this->paciente);
+            $return['category_id'] = new CategoryHierarchyResource($this->whenLoaded('categoryPrimary'));
+            $return['category_ii'] = new CategoryHierarchyResource($this->whenLoaded('categorySecondary'));
+            $return['customer'] = new ContactSimple($this->whenLoaded('paciente'));
             $return['paciente'] = $return['customer'];
             $return['contact'] = $return['customer'];
             $return['patient'] = $return['customer'];
-            $return['orders'] = OrderResource::collection($this->orders);
-            $return['branch'] = new ConfigBranch($this->branch);
+            $return['orders'] = OrderResource::collection($this->whenLoaded('orders'));
+            $return['branch'] = new ConfigBranch($this->whenLoaded('branch'));
             $return["activity"] = MetasDetails::collection($activity);
 
-            $return['created_at'] = $this->created_at->format('Y-m-d H:i');
-            $return['updated_at'] = $this->updated_at->format('Y-m-d H:i');
+            $return['created_at'] = $this->created_at?->format('Y-m-d H:i');
+            $return['updated_at'] = $this->updated_at?->format('Y-m-d H:i');
         }
 
         return $return;

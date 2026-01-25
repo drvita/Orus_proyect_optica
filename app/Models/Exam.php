@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Contact;
 use App\Models\User;
 use App\Models\Order;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Observers\ExamObserver;
+use Carbon\Carbon;
+
+#[ObservedBy([ExamObserver::class])]
 class Exam extends Model
 {
     protected $table = "exams";
@@ -86,13 +93,17 @@ class Exam extends Model
         "adicion_media_oi",
         "adicion_media_od",
         "branch_id",
-        "updated_id"
+        "updated_id",
+        "started_at",
+        "ended_at"
     ];
     protected $hidden = ['category_id', 'category_ii', 'user_id', 'contact_id', 'updated_id'];
-    protected $dates = [
-        'updated_at',
-        'created_at',
-        'deleted_at'
+    protected $casts = [
+        'updated_at' => 'datetime',
+        'created_at' => 'datetime',
+        'deleted_at' => 'datetime',
+        'started_at' => 'datetime',
+        'ended_at'   => 'datetime',
     ];
 
     //Relationships
@@ -128,6 +139,45 @@ class Exam extends Model
     {
         return $this->morphMany(Meta::class, 'metable');
     }
+    // Attributes
+    public function getActivityAttribute($value)
+    {
+        $activity = $this->metas()
+            ->where("key", ["updated", "deleted", "created"])
+            ->orderBy("id", "desc")->get();
+
+        $obj = [
+            'id' => 0,
+            'key' => 'created',
+            'value' => json_encode([
+                "datetime" => $this->created_at,
+                "created_id" => $this->user_id
+            ])
+        ];
+        $obj = json_decode(json_encode($obj), false);
+        $obj->value = json_decode($obj->value, true);
+        $activity->push($obj);
+        return $activity;
+    }
+    public function getDurationAttribute($value)
+    {
+        $start = $this->started_at;
+        $end = $this->ended_at;
+
+        if (!$start || !$end) {
+            return null;
+        }
+
+        try {
+            $start = $start instanceof Carbon ? $start : Carbon::parse($start);
+            $end = $end instanceof Carbon ? $end : Carbon::parse($end);
+
+            return round($start->floatDiffInMinutes($end), 2);
+        } catch (\Exception $e) {
+            Log::error("[Exam] Error calculating duration: " . $e->getMessage());
+            return null;
+        }
+    }
     //Scopes
     public function scopePaciente($query, $name)
     {
@@ -162,8 +212,8 @@ class Exam extends Model
             'user',
             'orders.nota',
             'orders.branch',
-            'categoryPrimary.parent.parent.parent',
-            'categorySecondary.parent.parent.parent',
+            'categoryPrimary',
+            'categorySecondary',
             'branch',
             'metas'
         ]);
@@ -177,26 +227,5 @@ class Exam extends Model
         if (trim($search) != "") {
             $query->where("branch_id", $search);
         }
-    }
-    // Listerning 
-    protected static function booted()
-    {
-        static::updated(function (Exam $exam) {
-            $type = "";
-            $dirty = $exam->getDirty();
-            unset($dirty['updated_at']);
-            unset($dirty['updated_id']);
-            $data = ["user_id" => $exam->updated_id, "inputs" => $dirty];
-
-            if (is_null($exam->deleted_at)) {
-                $data['datetime'] = $exam->updated_at;
-                $type = "updated";
-            } else {
-                $data['datetime'] = $exam->deleted_at;
-                $type = "deleted";
-            }
-
-            $exam->metas()->create(["key" => $type, "value" => $data]);
-        });
     }
 }

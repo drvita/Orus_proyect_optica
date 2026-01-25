@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Http\Resources\Exam as ExamResources;
 use App\Http\Requests\Exam as ExamRequests;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ExamController extends Controller
 {
@@ -36,15 +37,27 @@ class ExamController extends Controller
         $status = $request->status;
         $currentUser = $request->user();
         $branch = $currentUser->branch_id;
+        $patient_id = $request->paciente ?? $request->patient_id ?? $request->contact_id ?? null;
 
         if (!$request->has('branch') || $request->branch === "all") {
             $branch = null;
         }
 
+        if ($patient_id) {
+            Log::info("[ExamController] Filter by patient: " . $patient_id);
+            $contact = Contact::find($patient_id);
+            if (!$contact) {
+                return response()->json([
+                    'message' => 'Patient not found',
+                ], 404);
+            }
+            $request->merge(['branch_id' => null]);
+        }
+
         $exams = $this->exam
             ->orderBy($orderby, $order)
             ->Paciente($request->search)
-            ->ExamsByPaciente($request->paciente)
+            ->ExamsByPaciente($patient_id)
             ->Date($date)
             ->Status($status)
             ->publish()
@@ -62,10 +75,6 @@ class ExamController extends Controller
      */
     public function store(ExamRequests $request)
     {
-        $currentUser = Auth::user();
-        $request['user_id'] = $currentUser->id;
-        $request['branch_id'] = $currentUser->branch_id;
-        $request['status'] = 0;
         if (isset($request['age'])) {
             $request["edad"] = $request['age'];
         } else {
@@ -73,7 +82,7 @@ class ExamController extends Controller
         }
 
         $exam = $this->exam->create($request->all());
-
+        Log::info("[ExamController] exam created: " . $exam->id);
         return new ExamResources($exam);
     }
 
@@ -88,6 +97,12 @@ class ExamController extends Controller
         $exam = $this->exam::where('id', $id)
             ->withRelation()
             ->first();
+        if ($exam->status == 0 && !$exam->started_at) {
+            Log::info("[ExamController] exam started: " . $exam->id);
+            $exam->update([
+                "started_at" => now()
+            ]);
+        }
 
         return new ExamResources($exam);
     }
@@ -100,9 +115,6 @@ class ExamController extends Controller
      */
     public function update(ExamRequests $request, Exam $exam)
     {
-        $currentUser = Auth::user();
-        $request['updated_id'] = $currentUser->id;
-
         if (isset($request['branch_id'])) {
             unset($request['branch_id']);
         }
@@ -116,6 +128,17 @@ class ExamController extends Controller
         }
 
         $exam->update($request->all());
+        $exam->load([
+            'paciente.metas',
+            'user',
+            'orders.nota',
+            'orders.branch',
+            'categoryPrimary',
+            'categorySecondary',
+            'branch',
+            'metas'
+        ]);
+        Log::info("[ExamController] exam updated: " . $exam->id);
         return new ExamResources($exam);
     }
 
@@ -140,6 +163,7 @@ class ExamController extends Controller
             $exam->delete();
         }
 
+        Log::info("[ExamController] exam deleted: " . $exam->id);
         return response()->json(null, 204);
     }
 

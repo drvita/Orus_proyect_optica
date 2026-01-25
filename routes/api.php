@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('contacts', ContactController::class);
 
     // Categories
+    Route::get('/categories/lens', [CategoryController::class, 'getLensCategories']);
     Route::post('/categories/setprice/{category}', [CategoryController::class, 'setPriceByCategory']);
     Route::apiResource('categories', CategoryController::class);
 

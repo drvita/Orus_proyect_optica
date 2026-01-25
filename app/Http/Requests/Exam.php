@@ -28,14 +28,9 @@ class Exam extends FormRequest
         $data = $this->request->all();
         $rules = [
             "contact_id" => ["required", "numeric", Rule::exists("contacts", "id")],
+            "category_id" => ["nullable", "numeric", Rule::exists("categories", "id")],
+            "category_ii" => ["nullable", "numeric", Rule::exists("categories", "id")],
         ];
-
-        if (array_key_exists("category_id", $data)) {
-            $rules['category_id'] = ["required", "numeric", Rule::exists("categories", "id")];
-        }
-        if (array_key_exists("category_ii", $data)) {
-            $rules['category_ii'] = ["required", "numeric", Rule::exists("categories", "id")];
-        }
 
         return $rules;
     }

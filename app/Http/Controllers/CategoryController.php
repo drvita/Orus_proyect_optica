@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\CategorySetPrice;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Category as CategoryResource;
+use App\Http\Resources\CategoryHierarchyResource;
 use App\Models\Category;
 use App\Models\StoreItem;
 
@@ -125,5 +126,24 @@ class CategoryController extends Controller
             "category" => $category,
             "request" => $request->all()
         ];
+    }
+
+    // return categories: 'lentes'' - NOT 'lentes de contacto'
+    // AND SUBCATEGORIES
+    public function getLensCategories()
+    {
+        $root = Category::where('name', 'lentes')
+            ->where('name', '!=', 'lentes de contacto')
+            ->whereNull('category_id') // Assuming it's a root category
+            ->first();
+
+        if (!$root) {
+            return response()->json(['data' => []]);
+        }
+
+        // Load sons recursively up to 3 levels (Type -> Material -> Treatment)
+        $root->load('sons.sons.sons');
+
+        return CategoryHierarchyResource::collection($root->sons);
     }
 }
