@@ -20,6 +20,29 @@ class StoreBranchController extends Controller
     }
 
     /**
+     * Muestra la lista de sucursales
+     * @param  $request datos de filtro y ordenamiento
+     * @return Json api rest
+     */
+    public function index(StoreRequests $request)
+    {
+        $search = $request->search;
+        $orderBy = $request->orderby ?? 'created_at';
+        $order = $request->order === 'asc' ? 'asc' : 'desc';
+
+        $branches = $this->branch->with('branchData')
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('branchData', function ($q) use ($search) {
+                    $q->where('name', 'LIKE', "%$search%");
+                });
+            })
+            ->orderBy($orderBy, $order)
+            ->get();
+
+        return BranchResource::collection($branches);
+    }
+
+    /**
      * Almacena un nuevo producto
      * @param  $request datos a almacenar a traves del body en formato json
      * @return Json api rest

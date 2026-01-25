@@ -17,10 +17,14 @@ class ConfigBranch extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
-            $value = json_decode($this->value);
+            if (is_string($this->value)) {
+                $value = json_decode($this->value);
+            } else {
+                $value = $this->value;
+            }
 
             $return['id'] = $this->id;
-            $return['name'] = $value->name;
+            $return['name'] = $value['name'];
         }
 
         return $return;

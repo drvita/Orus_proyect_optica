@@ -10,6 +10,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Carbon\Carbon;
 use App\Models\Meta;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class User extends Authenticatable
 {
@@ -46,19 +47,54 @@ class User extends Authenticatable
     {
         return "api";
     }
+
     //Relationship
     public function session()
     {
-        return $this->belongsTo('App\Models\Session', 'id', 'session_id');
+        return $this->belongsTo(Session::class, 'id', 'session_id');
     }
     public function branch()
     {
-        return $this->belongsTo('App\Models\Config', 'branch_id', 'id');
+        return $this->belongsTo(Config::class, 'branch_id', 'id');
     }
     public function metas()
     {
         return $this->morphMany(Meta::class, 'metable');
     }
+
+    // Attributes
+    public function getLastSessionAttribute()
+    {
+        return $this->session;
+    }
+    public function getActivityAttribute()
+    {
+        return $this->metas()->whereIn("key", ["updated", "deleted", "created", "login"])
+            ->orderByDesc("id")
+            ->take(25)
+            ->get();
+    }
+    public function getBranchNameAttribute()
+    {
+        return $this->branch->name;
+    }
+    public function getGenderAttribute()
+    {
+        return $this->metas()->where("key", "gender")->first()->value;
+    }
+
+    // functions
+    public function registerLogin()
+    {
+        $this->metas()->create([
+            'key' => 'login',
+            'value' => [
+                'datetime' => Carbon::now(),
+                'session' => $this->session
+            ]
+        ]);
+    }
+
     //Scopes
     public function scopeSearch($query, $search)
     {
@@ -140,6 +176,7 @@ class User extends Authenticatable
     {
         $query->with('session', 'branch');
     }
+
     // Listerning 
     protected static function booted()
     {
@@ -148,13 +185,13 @@ class User extends Authenticatable
             $dirty = $user->getDirty();
             unset($dirty['updated_at']);
             unset($dirty['updated_id']);
+            unset($dirty['api_token']);
 
-
-            if (isset($dirty['api_token']) || !count($dirty)) {
+            if (!count($dirty)) {
                 return null;
             }
 
-            $data = ["user_id" => 1, "inputs" => $dirty];
+            $data = ["user_id" => Auth::id() ?? 1, "inputs" => $dirty];
             if (is_null($user->deleted_at)) {
                 $data['datetime'] = Carbon::now();
                 $type = "updated";
@@ -164,7 +201,7 @@ class User extends Authenticatable
             }
 
             $user->metas()->create(["key" => $type, "value" => $data]);
-            Log::info("User data change:" . json_encode($user));
+            Log::info("[Observer.user] User data change", $data);
         });
     }
 }

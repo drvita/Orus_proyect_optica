@@ -18,8 +18,16 @@ class Metas extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
-            foreach ($this->value as $key => $value) {
-                $return[$key] = $value;
+            $value = $this->value;
+            if (is_string($value)) {
+                $value = json_decode($value, true);
+            }
+            if (is_array($value)) {
+                foreach ($value as $key => $value) {
+                    $return[$key] = $value;
+                }
+            } else {
+                $return[$this->key] = $value;
             }
         }
 

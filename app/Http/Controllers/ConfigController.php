@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\Config as ResourcesConfig;
+use App\Http\Resources\BranchesStore;
 use App\Models\Config;
 use Illuminate\Http\Request;
 
@@ -98,5 +99,14 @@ class ConfigController extends Controller
     {
         $config->delete();
         return response()->json(null, 204);
+    }
+
+    /**
+     * Devuelve solo las sucursales
+     */
+    public function branches()
+    {
+        $branches = $this->config->where('name', 'branches')->get();
+        return BranchesStore::collection($branches);
     }
 }

@@ -9,8 +9,14 @@ class Config extends Model
     protected $table = "config";
     public $timestamps = false;
     protected $fillable = [
-        "name", "value"
+        "name",
+        "value"
     ];
+
+    protected $casts = [
+        'value' => 'array',
+    ];
+
     public function scopeName($query, $search)
     {
         if (trim($search) === "") {

@@ -108,6 +108,7 @@ class Exam extends JsonResource
             $return['customer'] = new ContactSimple($this->paciente);
             $return['paciente'] = $return['customer'];
             $return['contact'] = $return['customer'];
+            $return['patient'] = $return['customer'];
             $return['orders'] = OrderResource::collection($this->orders);
             $return['branch'] = new ConfigBranch($this->branch);
             $return["activity"] = MetasDetails::collection($activity);

@@ -171,4 +171,111 @@ class UserController extends Controller
             "success" => false,
         ], 400);
     }
+    /**
+     * Cambia el branch_id de un usuario
+     */
+    public function changeBranch(Request $request)
+    {
+        $request->validate([
+            'branch_id' => 'required|exists:config,id,name,branches'
+        ]);
+        $user = $request->user();
+
+        $user->branch_id = $request->branch_id;
+        $user->save();
+        return new UserResource($user->load('branch', 'session'));
+    }
+
+    /**
+     * Devuelve estadísticas del usuario según su rol
+     */
+    public function stats(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->hasRole('doctor')) {
+            return $this->doctorStats($user);
+        }
+
+        if ($user->hasRole('admin')) {
+            return $this->adminStats();
+        }
+
+        if ($user->hasRole('ventas')) {
+            return $this->ventasStats();
+        }
+
+        return response()->json([]);
+    }
+
+    private function doctorStats($user)
+    {
+        $today = Carbon::today();
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $branch_id = $user->branch_id;
+
+        // Visitas de hoy: pacientes registrados hoy o con examen hoy
+        $visitsToday = \App\Models\Contact::where('type', 0)
+            ->with('metas')
+            ->where(function ($query) use ($today) {
+                $query->whereDate('created_at', $today)
+                    ->orWhereHas('exams', function ($q) use ($today) {
+                        $q->whereDate('created_at', $today);
+                    });
+            })
+            ->orderByDesc('updated_at')
+            ->get(['id', 'name', 'updated_at']);
+
+        // Exámenes pendientes (status 0)
+        $pendingExams = \App\Models\Exam::where('status', 0)
+            ->where('branch_id', $branch_id)
+            ->with('paciente:id,name')
+            ->orderByDesc('created_at')
+            ->get(['id', 'contact_id', 'created_at']);
+
+        $pendingExamsFormatted = $pendingExams->map(function ($exam) {
+            return [
+                'id' => $exam->id,
+                'paciente' => $exam->paciente->name ?? 'N/A',
+                'gender' => $exam->paciente->gender,
+                'age' => $exam->paciente->age,
+                'created_at' => $exam->created_at->format('Y-m-d H:i')
+            ];
+        });
+
+        // Pacientes nuevos del mes
+        $newPatientsMonth = \App\Models\Contact::where('type', 0)
+            ->with('metas')
+            ->whereDate('created_at', '>=', $startOfMonth)
+            ->orderByDesc('created_at')
+            ->get(['id', 'name', 'created_at']);
+
+        return response()->json([
+            'visitsToday' => $visitsToday->map(fn($v) => [
+                'id' => $v->id,
+                'paciente' => $v->name,
+                'gender' => $v->gender,
+                'age' => $v->age,
+                'updated_at' => $v->updated_at->format('Y-m-d H:i')
+            ]),
+            'pendingExams' => $pendingExamsFormatted,
+            'newPatientsMonth' => $newPatientsMonth->map(fn($p) => [
+                'id' => $p->id,
+                'paciente' => $p->name,
+                'gender' => $p->gender,
+                'age' => $p->age,
+                'created_at' => $p->created_at->format('Y-m-d H:i')
+            ]),
+        ]);
+    }
+
+    private function adminStats()
+    {
+        return response()->json([]);
+    }
+
+    private function ventasStats()
+    {
+        return response()->json([]);
+    }
 }

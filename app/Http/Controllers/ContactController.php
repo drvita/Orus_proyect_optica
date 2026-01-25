@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Contact as ContactResource;
 use App\Http\Resources\ContactList as ContactResourceList;
+use App\Http\Resources\ContactShowV2;
 use App\Http\Requests\ContactRequest;
 use App\Models\Contact;
 use Carbon\Carbon;
@@ -30,18 +30,30 @@ class ContactController extends Controller
      */
     public function index(Request $request)
     {
-        $orderby = $request->orderby ? $request->orderby : "created_at";
-        $order = $request->order == "desc" ? "desc" : "asc";
-        $page = $request->itemsPage ? $request->itemsPage : 50;
-        $contacts = $this->contact
-            ->withRelation()
+        $orderby = $request->input('orderby', 'created_at');
+        $order = $request->input('order', 'desc');
+        $page = $request->input('itemsPage', 50);
+        $version = $request->input('version', 'v1');
+        $search = $request->input('search', '');
+        $type = $request->input('type', '');
+        $business = $request->input('business', '');
+        $name = $request->input('name', '');
+        $email = $request->input('email', '');
+        $except = $request->input('except');
+
+        if ($version == 'v1') {
+            $contacts = $this->contact->withRelation();
+        } else {
+            $contacts = $this->contact->withRelationShort();
+        }
+
+        $contacts = $contacts->withUsageCounts()
             ->orderBy($orderby, $order)
-            ->searchUser($request->search)
-            ->name($request->name, $request->except)
-            ->email($request->email, $request->except)
-            ->type($request->type)
-            ->business($request->business)
-            ->publish()
+            ->searchUser($search)
+            ->name($name, $except)
+            ->email($email, $except)
+            ->type($type)
+            ->business($business)
             ->paginate($page);
 
         return ContactResourceList::collection($contacts);
@@ -61,11 +73,13 @@ class ContactController extends Controller
                 ], 400);
             }
 
-            $request['user_id'] = Auth::user()->id;
             $request['telnumbers'] = $request->phones;
 
             if ($request->has('birthday') && $request->birthday) {
                 $request['birthday'] = Carbon::parse($request->birthday)->toDateString();
+            }
+            if (!$request->has('business')) {
+                $request['business'] = false;
             }
 
             $contact = $this->contact->create($request->all());
@@ -90,13 +104,36 @@ class ContactController extends Controller
      * @param  int  $id
      * @return Json api rest
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $contact = $this->contact::where('contacts.id', $id)
-            ->withRelation()
-            ->first();
+        $version = $request->input('version', 'v1');
+        $perPage = 10;
 
-        return new ContactResource($contact);
+        $contact = $this->contact::findOrFail($id);
+
+        if ($version == 'v1') {
+            $contact->load(['phones']);
+            $contact->loadCount(['buys', 'brands', 'exams', 'supplier', 'orders', 'phones']);
+
+            // Manual pagination for Resource
+            $contact->setRelation('exams', $contact->exams()->with('user')->paginate($perPage, ['*'], 'exam_page'));
+            $contact->setRelation('supplier', $contact->supplier()->paginate($perPage, ['*'], 'suppliers_page'));
+            $contact->setRelation('brands', $contact->brands()->paginate($perPage, ['*'], 'brands_page'));
+            $contact->setRelation('buys', $contact->buys()->paginate($perPage, ['*'], 'purchases_page'));
+            $contact->setRelation('orders', $contact->orders()->paginate($perPage, ['*'], 'orders_page'));
+
+            // Filtered metas
+            $contact->setRelation('metas', $contact->metas()
+                ->whereIn('key', ['metadata', 'updated', 'deleted', 'created'])
+                ->orderBy('id', 'desc')
+                ->get());
+
+            return new ContactResource($contact);
+        }
+
+        // Version v2 (lightweight)
+        $contact->load(['phones', 'exams', 'metas', 'orders', 'user', 'user_updated']);
+        return new ContactShowV2($contact);
     }
 
     /**
@@ -107,18 +144,17 @@ class ContactController extends Controller
      */
     public function update(ContactRequest $request, Contact $contact)
     {
-        $currentUser = Auth::user();
         $request['user_id'] = $contact->user_id;
-        $request['updated_id'] = $currentUser->id;
-        $request['telnumbers'] = $request->phones;
+        if ($request->has('phones')) {
+            $request['telnumbers'] = $request->phones;
+        }
 
         if ($request->has('birthday') && $request->birthday) {
             $request['birthday'] = Carbon::parse($request->birthday)->toDateString();
         }
-
+        Log::info("[contact.update] Update contact: " . $contact->id, $request->all());
         $contact->update($request->all());
         $contact->saveMetas($request);
-
         return new ContactResource($contact);
     }
 
@@ -131,18 +167,50 @@ class ContactController extends Controller
     {
         $contact = $this->contact::where('id', $id)
             ->withRelation()
+            ->withUsageCounts()
             ->first();
 
-        $enUso = count($contact->buys) + count($contact->orders) + count($contact->supplier) + count($contact->exams) + count($contact->brands);
+        $enUso = $contact->en_uso;
 
         if ($enUso) {
-            $contact->deleted_at = Carbon::now();
-            $contact->updated_id = Auth::user()->id;
             $contact->save();
+            $contact->delete(); // Soft delete
         } else {
-            $contact->delete();
+            $contact->forceDelete(); // Hard delete
         }
 
+        Log::info("[contact.destroy] Delete contact: " . $contact->id);
         return response()->json(null, 204);
+    }
+
+    /**
+     * Retorna estadisticas del contacto
+     * @param  int  $id
+     * @return Json api rest
+     */
+    public function stats($id)
+    {
+        $contact = $this->contact::where('id', $id)
+            ->withUsageCounts()
+            ->firstOrFail();
+
+        if ($contact->type == 0) {
+            // Patient
+            $data = [
+                'buys' => $contact->buys_count ?? 0,
+                'orders' => $contact->orders_count ?? 0,
+                'exams' => $contact->exams_count ?? 0,
+                'phones' => $contact->phones_count ?? 0,
+            ];
+        } else {
+            // Supplier
+            $data = [
+                'supplier' => $contact->supplier_count ?? 0,
+                'brands' => $contact->brands_count ?? 0,
+                'phones' => $contact->phones_count ?? 0,
+            ];
+        }
+
+        return response()->json($data);
     }
 }

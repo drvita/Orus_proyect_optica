@@ -42,40 +42,28 @@ class ContactRequest extends FormRequest
 
         switch ($this->method()) {
             case 'PUT':
-                $rules['email'] = ['sometimes', 'email', Rule::unique('contacts')->ignore($this->contact->id)];
-                $rules['birthday'] = ['sometimes', 'date'];
-                $rules['phones'] = ['sometimes', 'array'];
-                $rules['phones.cell'] = ['sometimes', 'nullable', 'numeric'];
-                $rules['phones.notices'] = ['sometimes', 'nullable', 'numeric'];
-                $rules['phones.office'] = ['sometimes', 'nullable', 'numeric'];
-                $rules['domicilio'] = ['sometimes', 'array'];
-                $rules['domicilio.street'] = ['sometimes', 'required'];
-                $rules['domicilio.neighborhood'] = ['sometimes', 'required'];
-                $rules['domicilio.location'] = ['sometimes', 'required'];
-                $rules['domicilio.state'] = ['sometimes', 'required'];
-                $rules['domicilio.zip'] = ['sometimes', 'required'];
-                $rules['gender'] = ['sometimes', 'string'];
-                $rules['name'] = ['sometimes'];
+                $rules['email'] = ['nullable', 'email', Rule::unique('contacts')->ignore($this->contact->id)];
+                $rules['birthday'] = ['nullable', 'date'];
+                $rules['phones'] = ['nullable', 'array'];
+                $rules['gender'] = ['nullable', 'string'];
+                $rules['name'] = ['nullable'];
                 break;
             default:
                 $rules['name'] = ['required'];
                 $rules['type'] = ['required'];
-                $rules['email'] = ['required', 'email', 'unique:contacts'];
-                $rules['birthday'] = ['required', 'date'];
+                $rules['email'] = ['nullable', 'email', 'unique:contacts'];
+                $rules['birthday'] = ['nullable', 'date', 'after_or_equal:1900-01-01', 'before_or_equal:today'];
                 $rules['phones'] = ['required', 'array'];
-                $rules['phones.cell'] = ['sometimes', 'nullable', 'numeric'];
-                $rules['phones.notices'] = ['sometimes', 'nullable', 'numeric'];
-                $rules['phones.office'] = ['sometimes', 'nullable', 'numeric'];
-                $rules['gender'] = ['required', 'string'];
-                
-                // Optional domicilio validation
-                $rules['domicilio'] = ['sometimes', 'array'];
-                $rules['domicilio.street'] = ['sometimes', 'required'];
-                $rules['domicilio.neighborhood'] = ['sometimes', 'required'];
-                $rules['domicilio.location'] = ['sometimes', 'required'];
-                $rules['domicilio.state'] = ['sometimes', 'required'];
-                $rules['domicilio.zip'] = ['sometimes', 'required'];
+                $rules['gender'] = ['nullable', 'string', 'in:male,female,other'];
         }
+
+        // Optional domicilio validation
+        $rules['domicilio'] = ['nullable', 'array'];
+        $rules['domicilio.street'] = ['nullable', 'sometimes'];
+        $rules['domicilio.neighborhood'] = ['nullable', 'sometimes'];
+        $rules['domicilio.location'] = ['nullable', 'sometimes'];
+        $rules['domicilio.state'] = ['nullable', 'sometimes'];
+        $rules['domicilio.zip'] = ['nullable', 'sometimes'];
         return $rules;
     }
 }

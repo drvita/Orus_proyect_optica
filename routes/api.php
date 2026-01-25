@@ -18,30 +18,50 @@ use App\Http\Controllers\StoreLotController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->apiResource('contacts', ContactController::class);
-Route::middleware('auth:sanctum')->apiResource('categories', CategoryController::class);
-Route::middleware('auth:sanctum')->apiResource('config', ConfigController::class);
-Route::middleware('auth:sanctum')->apiResource('exams', ExamController::class);
-Route::middleware('auth:sanctum')->apiResource('store', StoreItemController::class);
-Route::middleware('auth:sanctum')->apiResource('items', StoreLotController::class);
-Route::middleware('auth:sanctum')->apiResource('orders', OrderController::class);
-Route::middleware('auth:sanctum')->apiResource('sales', SaleController::class);
-Route::middleware('auth:sanctum')->apiResource('salesItems', SaleItemController::class);
-Route::middleware('auth:sanctum')->apiResource('payments', PaymentController::class);
-Route::middleware('auth:sanctum')->apiResource('atms', AtmController::class);
-Route::middleware('auth:sanctum')->apiResource('brands', BrandController::class);
-Route::middleware('auth:sanctum')->apiResource('messengers', MessengerController::class);
-Route::middleware('auth:sanctum')->apiResource('users', UserController::class);
-Route::middleware('auth:sanctum')->apiResource('branches', StoreBranchController::class)->except("index", "show", "destroy");
-
-// Rutas especiales
+// Auth & Session
 Route::post('user/login', [AuthController::class, 'login'])->name('user.login');
-Route::middleware('auth:sanctum')->post('/users/clearToken/{id}', [UserController::class, 'clearToken'])->name('users.clearToken');
-Route::middleware('auth:sanctum')->post('/user/logout', [AuthController::class, 'logout'])->name('users.logout');
-Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'userData'])->name('users.data');
-Route::middleware('auth:sanctum')->post('/user/readAllNotifications', [AuthController::class, 'userReadNotify'])->name('users.readNotify');
-Route::middleware('auth:sanctum')->get('/user/subscriptionNotify', [AuthController::class, 'userSubscriptionNotify'])->name('users.subscribtionNotify');
 
-Route::middleware('auth:sanctum')->post('/categories/setprice/{category}', [CategoryController::class, 'setPriceByCategory']);
-Route::middleware('auth:sanctum')->post('/store/bylist', [StoreItemController::class, 'storeList']);
-Route::middleware('auth:sanctum')->post('/store/setcant/{item}', [StoreItemController::class, 'setCantItem']);
+Route::middleware('auth:sanctum')->group(function () {
+    // Current User Actions
+    Route::post('/user/logout', [AuthController::class, 'logout'])->name('users.logout');
+    Route::get('/user', [AuthController::class, 'userData'])->name('users.data');
+    Route::get('/user/stats', [UserController::class, 'stats'])->name('users.stats');
+    Route::post('/user/readAllNotifications', [AuthController::class, 'userReadNotify'])->name('users.readNotify');
+    Route::get('/user/subscriptionNotify', [AuthController::class, 'userSubscriptionNotify'])->name('users.subscribtionNotify');
+    Route::post('/user/change-branch', [UserController::class, 'changeBranch'])->name('users.changeBranch');
+
+    // Contacts
+    Route::get('contacts/{id}/stats', [ContactController::class, 'stats']);
+    Route::apiResource('contacts', ContactController::class);
+
+    // Categories
+    Route::post('/categories/setprice/{category}', [CategoryController::class, 'setPriceByCategory']);
+    Route::apiResource('categories', CategoryController::class);
+
+    // Config & Branches
+    Route::get('/config/branches', [ConfigController::class, 'branches']);
+    Route::apiResource('config', ConfigController::class);
+
+    // Store & Items
+    Route::post('/store/bylist', [StoreItemController::class, 'storeList']);
+    Route::post('/store/setcant/{item}', [StoreItemController::class, 'setCantItem']);
+    Route::apiResource('store', StoreItemController::class);
+
+    // Branches (Store Management)
+    Route::apiResource('branches', StoreBranchController::class)->except("show", "destroy");
+
+    // Users
+    Route::post('/users/clearToken/{user}', [UserController::class, 'clearToken'])->name('users.clearToken');
+    Route::apiResource('users', UserController::class);
+
+    // Other Resources
+    Route::apiResource('exams', ExamController::class);
+    Route::apiResource('items', StoreLotController::class);
+    Route::apiResource('orders', OrderController::class);
+    Route::apiResource('sales', SaleController::class);
+    Route::apiResource('salesItems', SaleItemController::class);
+    Route::apiResource('payments', PaymentController::class);
+    Route::apiResource('atms', AtmController::class);
+    Route::apiResource('brands', BrandController::class);
+    Route::apiResource('messengers', MessengerController::class);
+});

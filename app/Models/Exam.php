@@ -94,6 +94,7 @@ class Exam extends Model
         'created_at',
         'deleted_at'
     ];
+
     //Relationships
     public function paciente()
     {

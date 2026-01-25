@@ -17,12 +17,15 @@ class Config extends JsonResource
         $return = [];
 
         if (isset($this->id)) {
-            $value = json_decode($this->value);
+            if (is_string($this->value)) {
+                $value = json_decode($this->value, true);
+            } else {
+                $value = $this->value;
+            }
 
             $return['id'] = $this->id;
             $return['name'] = $this->name;
-            $return['data'] = $value ? $value : $this->value;
-            // $return['values'] = $value ? $value : $this->value;
+            $return['data'] = $value;
         }
 
         return $return;

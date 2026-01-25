@@ -2,75 +2,125 @@
 
 namespace App\Observers;
 
-use App\DTOs\Search\CreateNameRequest;
-use App\DTOs\Search\UpdateNameRequest;
 use App\Models\Contact;
-use App\Services\SearchService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class ContactObserver
 {
-    public function __construct(private SearchService $searchService) {}
-
+    /**
+     * handle the Contact "creating" event.
+     */
+    public function creating(Contact $contact): void
+    {
+        if (Auth::check()) {
+            $user = Auth::user();
+            $contact->user_id = $user->id;
+        }
+    }
     /**
      * Handle the Contact "created" event.
      */
     public function created(Contact $contact): void
     {
-        try {
-            // if (!$contact->search_uuid) {
-            //     $request = new CreateNameRequest(
-            //         name: $contact->name,
-            //         id: (string) $contact->id
-            //     );
-
-            //     $search = $this->searchService->createName($request);
-            //     $contact->search_uuid = $search['id'];
-            //     $contact->save();
-            // }
-        } catch (\Exception $e) {
-            Log::error('Error al sincronizar contacto con servicio de búsqueda', [
-                'contact_id' => $contact->id,
-                'error' => $e->getMessage()
+        $this->syncPhones($contact);
+        if (Auth::check()) {
+            $user = Auth::user();
+            Log::info("[ContactObserver] Contact created", [
+                "contact" => $contact->name,
+                "branch" => $user->branch_id,
+                "created_by_id" => $contact->user_id,
+            ]);
+            $contact->metas()->create([
+                'key' => 'branch_created',
+                'value' => $user->branch_id,
             ]);
         }
     }
 
-    public function updated(Contact $contact)
+    /**
+     * Handle the Contact "updating" event.
+     */
+    public function updating(Contact $contact): void
     {
-        // $type = "";
-        // $dirty = $contact->getDirty();
-        // unset($dirty['updated_at']);
-        // unset($dirty['updated_id']);
-        // $data = ["user_id" => $contact->updated_id, "inputs" => $dirty];
+        if (Auth::check()) {
+            $contact->updated_id = Auth::id();
+        }
+    }
 
-        // if (is_null($contact->deleted_at)) {
-        //     $data['datetime'] = $contact->updated_at;
-        //     $type = "updated";
-        // } else {
-        //     $data['datetime'] = $contact->deleted_at;
-        //     $type = "deleted";
-        // }
+    /**
+     * Handle the Contact "updated" event.
+     */
+    public function updated(Contact $contact): void
+    {
+        $this->syncPhones($contact);
+    }
 
-        // $contact->metas()->create(["key" => $type, "value" => $data]);
+    /**
+     * Handle the Contact "deleted" event.
+     */
+    public function deleted(Contact $contact): void
+    {
+        Log::info("[ContactObserver] Contact deleted", [
+            "contact" => $contact->name,
+            "id" => $contact->id,
+        ]);
+    }
 
-        // // Sync with search service if the name was changed and search_uuid exists
-        // try {
-        //     if (isset($dirty['name']) && $contact->search_uuid) {
-        //         $request = new UpdateNameRequest(
-        //             point_id: $contact->search_uuid,
-        //             name: $contact->name,
-        //             id: (string) $contact->id
-        //         );
+    /**
+     * Synchronize phone numbers from the telnumbers array to the phone_numbers table.
+     */
+    private function syncPhones(Contact $contact): void
+    {
+        $telnumbers = $contact->telnumbers;
 
-        //         $this->searchService->updateName($request);
-        //     }
-        // } catch (\Exception $e) {
-        //     Log::error('Error al actualizar contacto en servicio de búsqueda', [
-        //         'contact_id' => $contact->id,
-        //         'search_uuid' => $contact->search_uuid,
-        //         'error' => $e->getMessage()
-        //     ]);
-        // }
+        if (!is_array($telnumbers)) {
+            return;
+        }
+
+        $normalizedData = [];
+        foreach ($telnumbers as $key => $number) {
+            if (empty($number)) {
+                continue;
+            }
+
+            // Clean type key: remove t_, lowercase
+            $type = str_replace('t_', '', strtolower($key));
+
+            // Normalize cell/mobil to movil
+            if ($type === 'cell' || $type === 'mobil') {
+                $type = 'movil';
+            }
+
+            $normalizedData[$type] = $number;
+        }
+
+        // Get existing phone numbers for this contact
+        $existingPhones = $contact->phones()->get();
+
+        foreach ($normalizedData as $type => $number) {
+            $phone = $existingPhones->where('type', $type)->first();
+
+            if ($phone) {
+                // Update if number changed
+                if ($phone->number !== $number) {
+                    $phone->update(['number' => $number]);
+                }
+            } else {
+                // Create new
+                $contact->phones()->create([
+                    'type' => $type,
+                    'number' => $number,
+                    'country_code' => '+52'
+                ]);
+            }
+        }
+
+        // Delete ones that are no longer in telnumbers
+        foreach ($existingPhones as $phone) {
+            if (!isset($normalizedData[$phone->type])) {
+                $phone->delete();
+            }
+        }
     }
 }

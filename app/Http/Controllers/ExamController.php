@@ -34,17 +34,11 @@ class ExamController extends Controller
         $page = $request->itemsPage ? $request->itemsPage : 50;
         $date = $request->date;
         $status = $request->status;
-        $currentUser = Auth::user();
-        $branchUser = $currentUser->branch_id;
-        $branch = $branchUser;
+        $currentUser = $request->user();
+        $branch = $currentUser->branch_id;
 
-        // If branches var is not present, use the same branch of user
-        if (isset($request->branch)) {
-            if ($request->branch === "all") {
-                $branch = null;
-            } else {
-                $branch = $request->branch;
-            }
+        if (!$request->has('branch') || $request->branch === "all") {
+            $branch = null;
         }
 
         $exams = $this->exam

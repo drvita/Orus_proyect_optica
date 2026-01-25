@@ -30,9 +30,12 @@ class AuthController extends Controller
         // Find the user by email
         /** @var User $user */
         $user = $this->user->userEmail($request->email)->first();
+        $version = $request->input('version', 'v1');
 
         // Check if user exists and password is correct
         if ($user && Hash::check($request->password, $user->password)) {
+            // Register logins
+            $user->registerLogin();
             // Create a token with Sanctum
             $token = $user->createToken('api-token')->plainTextToken;
             // Update or create session record
@@ -42,16 +45,17 @@ class AuthController extends Controller
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                     'last_activity' => now(),
-                    'user_data' => $token
+                    'user_data' => $version === 'v1' ? $token : "{$user->username}::{$user->email}::{$user->roles->first()->name}"
                 ]
             );
 
-            // Load relationships for the resource
-            // $user->load(['publish', 'relation']);
+            $user->load(['metas', 'branch', 'session']);
+
             return response()->json([
                 'status' => true,
                 'data' => new UserResource($user),
-                'token' => $token
+                'token' => $token,
+                'version' => $version,
             ], 200);
         } else {
             // Authentication failed
@@ -90,7 +94,10 @@ class AuthController extends Controller
      */
     public function userData(Request $request): UserNoty
     {
-        return new UserNoty($request->user()->load("session")->load("branch"));
+        $user = $request->user();
+        return new UserNoty(
+            $user->load(["session", "branch", "metas"])
+        );
     }
     /**
      * Mark user notifications as read

@@ -13,35 +13,26 @@ class Contact extends JsonResource
 
     public function toArray($request)
     {
-
         $return = [];
-        $perPage = 10;
 
         if (isset($this->id)) {
-            if ($this->metas && $this->metas->count()) {
-                foreach ($this->metas as $meta) {
-                    if ($meta->key === "metadata" && isset($meta->value["birthday"])) {
-                        $this->birthday = new Carbon($meta->value["birthday"]);
-                    }
-                }
+            $exams = $this->whenLoaded('exams');
+            $supplierOf = $this->whenLoaded('supplier');
+            $brands = $this->whenLoaded('brands');
+            $purchases = $this->whenLoaded('buys');
+            $orders = $this->whenLoaded('orders');
+
+            $metas = $this->whenLoaded('metas');
+
+            $metadata = null;
+            $activity = collect();
+
+            if (!($metas instanceof \Illuminate\Http\Resources\MissingValue)) {
+                $metadata = $metas->where('key', 'metadata')->first();
+                $activity = $metas->whereIn('key', ['updated', 'deleted', 'created'])->take(25);
             }
 
-            $edad = $this->birthday !== null ? $this->birthday->diffInYears(carbon::now()) : 0;
-            $exams = $this->exams()->with('user')->paginate($perPage, ['*'], 'exam_page');
-            $supplierOf = $this->supplier()->paginate($perPage, ['*'], 'suppliers_page');
-            $brands = $this->brands()->paginate($perPage, ['*'], 'brands_page');
-            $purchases = $this->buys()->paginate($perPage, ['*'], 'purchases_page');
-            $orders = $this->orders()->paginate($perPage, ['*'], 'orders_page');
-            $metadata = $this->metas()
-                ->where("key", "metadata")
-                ->take(25)
-                ->get();
-            $activity = $this->metas()
-                ->where("key", ["updated", "deleted", "created"])
-                ->orderBy("id", "desc")
-                ->take(25)
-                ->get();
-
+            // Fallback for activity manually added in previous version
             $obj = [
                 'id' => 0,
                 'key' => 'created',
@@ -60,27 +51,50 @@ class Contact extends JsonResource
             $return['email'] = $this->email;
             $return['type'] = $this->type;
             $return['business'] = $this->business;
-            $return['age'] = 1 < $edad && $edad < 120 ? $edad : 0;
+            $return['age'] = $this->age;
 
-            $return['phones'] = new ContactPhones($this->telnumbers);
+            $return['phones'] = $this->whenLoaded('phones', function () {
+                $allPhones = $this->phones;
+                $movil = $allPhones->whereIn('type', ['whatsapp', 'movil'])->first();
+                $others = $allPhones->whereNotIn('type', ['whatsapp', 'movil'])->first();
+
+                return [
+                    'cell' => $movil?->number ?? '',
+                    'office' => $others?->number ?? '',
+                    'notices' => ''
+                ];
+            });
             $return['address'] = new ContactAddress($this->domicilio);
 
-            $return['purchases'] = SaleInContact::collection($purchases);
-            $return['purchases_count'] = $purchases->total();
+            $isPaginator = fn($value) => $value instanceof \Illuminate\Pagination\LengthAwarePaginator;
 
-            $return['brands'] = BrandResource::collection($brands);
-            $return['brands_count'] = $brands->total();
+            // Conditional rendering for paginated relations
+            $return['purchases'] = $this->when(!($purchases instanceof \Illuminate\Http\Resources\MissingValue), function () use ($purchases) {
+                return SaleInContact::collection($purchases);
+            });
+            $return['purchases_count'] = $isPaginator($purchases) ? $purchases->total() : ($this->buys_count ?? 0);
 
-            $return['exams'] = ExamResource::collection($exams);
-            $return['exams_count'] = $exams->total();
+            $return['brands'] = $this->when(!($brands instanceof \Illuminate\Http\Resources\MissingValue), function () use ($brands) {
+                return BrandResource::collection($brands);
+            });
+            $return['brands_count'] = $isPaginator($brands) ? $brands->total() : ($this->brands_count ?? 0);
 
-            $return['supplier_of'] = OrderResource::collection($supplierOf);
-            $return['suppliers_count'] = $supplierOf->total();
+            $return['exams'] = $this->when(!($exams instanceof \Illuminate\Http\Resources\MissingValue), function () use ($exams) {
+                return ExamResource::collection($exams);
+            });
+            $return['exams_count'] = $isPaginator($exams) ? $exams->total() : ($this->exams_count ?? 0);
 
-            $return['orders'] = OrderResource::collection($orders);
-            $return['orders_count'] = $orders->total();
+            $return['supplier_of'] = $this->when(!($supplierOf instanceof \Illuminate\Http\Resources\MissingValue), function () use ($supplierOf) {
+                return OrderResource::collection($supplierOf);
+            });
+            $return['suppliers_count'] = $isPaginator($supplierOf) ? $supplierOf->total() : ($this->supplier_count ?? 0);
 
-            $return["metadata"] = $metadata->count() ? new Metas($metadata[0]) : new \stdClass;
+            $return['orders'] = $this->when(!($orders instanceof \Illuminate\Http\Resources\MissingValue), function () use ($orders) {
+                return OrderResource::collection($orders);
+            });
+            $return['orders_count'] = $isPaginator($orders) ? $orders->total() : ($this->orders_count ?? 0);
+
+            $return["metadata"] = $metadata ? new Metas($metadata) : new \stdClass;
             $return["activity"] = MetasDetails::collection($activity);
             $return['created'] = new UserSimple($this->user);
             $return['updated'] = new UserSimple($this->user_updated);

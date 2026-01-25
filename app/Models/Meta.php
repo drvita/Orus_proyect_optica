@@ -31,4 +31,13 @@ class Meta extends Model
 
         $this->attributes['value'] = json_encode($properties);
     }
+    public function getValueAttribute($value)
+    {
+        $value = json_decode($value, true);
+
+        if (is_string($value)) {
+            $value = json_decode($value, true);
+        }
+        return $value;
+    }
 }

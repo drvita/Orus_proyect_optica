@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
 use App\Models\Sale;
 use App\Models\Order;
@@ -12,11 +13,16 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Services\SearchService;
 use App\DTOs\Search\SearchNameRequest;
+use App\Http\Requests\ContactRequest;
 use Illuminate\Support\Facades\Log;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Observers\ContactObserver;
+
+#[ObservedBy([ContactObserver::class])]
 class Contact extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $table = "contacts";
     protected $fillable = [
         "name",
@@ -77,6 +83,41 @@ class Contact extends Model
     {
         return $this->morphMany(Meta::class, 'metable');
     }
+    public function phones()
+    {
+        return $this->morphMany(PhoneNumber::class, 'model');
+    }
+
+    // Attributes
+    public function getAgeAttribute()
+    {
+        $birthday = $this->birthday;
+        $meta_data = $this->metas()->where("key", "metadata")->first();
+        if (!$birthday && $meta_data) {
+            $birthday = new Carbon($meta_data->value["birthday"]);
+        }
+        if (is_string($birthday)) {
+            $birthday = Carbon::parse($birthday);
+        }
+
+        $edad = $birthday !== null ? (int)$birthday->diffInYears(Carbon::now()) : 0;
+        return $edad > 0 && $edad < 120 ? $edad : 0;
+    }
+
+    public function getEnUsoAttribute()
+    {
+        return ($this->buys_count ?? 0) +
+            ($this->brands_count ?? 0) +
+            ($this->exams_count ?? 0) +
+            ($this->supplier_count ?? 0) +
+            ($this->orders_count ?? 0);
+    }
+
+    public function getGenderAttribute()
+    {
+        $metadata = $this->metas->where('key', 'metadata')->first();
+        return $metadata->value['gender'] ?? 'N/A';
+    }
 
     //Scopes
     public function scopeSearchUser($query, $search)
@@ -119,6 +160,10 @@ class Contact extends Model
             $query->where("business", $search);
         }
     }
+    public function scopeWithUsageCounts($query)
+    {
+        $query->withCount(['buys', 'brands', 'exams', 'supplier', 'orders', 'phones']);
+    }
     public function scopeWithRelation($query)
     {
         $query->with(
@@ -129,9 +174,23 @@ class Contact extends Model
             'supplier.nota',
             'exams',
             'brands',
-            'metas'
+            'metas',
+            'phones'
         );
     }
+    public function scopeWithRelationShort($query)
+    {
+        $query->with(
+            'user',
+            'user_updated',
+            'phones'
+        );
+    }
+
+    /**
+     * @deprecated This scope is deprecated and will be removed in future versions.
+     * Use SoftDeletes global scope instead.
+     */
     public function scopePublish($query)
     {
         $query->whereNull('deleted_at');
@@ -148,7 +207,7 @@ class Contact extends Model
         $services =  new SearchService();
         return $services->searchName($request);
     }
-    public function saveMetas($request)
+    public function saveMetas(ContactRequest $request)
     {
         $metadata = $this->metas()->where("key", "metadata")->first();
         $data = [

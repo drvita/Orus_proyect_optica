@@ -4,20 +4,25 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-use function GuzzleHttp\json_decode;
+class BranchesStore extends JsonResource
+{
 
-class BranchesStore extends JsonResource{
-
-    public function toArray($request){
+    public function toArray($request)
+    {
         $return = [];
 
-        if(isset($this->id)){
-            $data = json_decode($this->value, true);
+        if (isset($this->id)) {
+            if (is_string($this->value)) {
+                $data = json_decode($this->value, true);
+            } else {
+                $data = $this->value;
+            }
 
             $return['id'] = $this->id;
-            $return['name'] = $data->name;
+            $return['name'] = $data['name'];
+            $return['data']['name'] = $data['name'];
         }
-        
+
         return $return;
     }
 }

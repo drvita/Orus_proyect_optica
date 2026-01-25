@@ -30,19 +30,31 @@ class MetasDetails extends JsonResource
                 $user = self::$userCache[$userId];
             }
 
-            if (!$user) {
-                $user = new \stdClass;
-            }
-
             $return["type"] = $this->key;
-            $return["data"] = [
-                "datetime" => $this->value['datetime'] ?? "",
-                "user" => [
-                    "id" => $user->id ?? "",
-                    "name" => $user->name ?? "",
-                ],
-                "inputs" => $this->value['inputs'] ?? new \stdClass,
-            ];
+
+            if (in_array($this->key, ["updated", "deleted", "created"])) {
+                if (!$user) {
+                    $user = new \stdClass;
+                }
+                $value = $this->value;
+                if (is_string($value)) {
+                    $value = json_decode($value, true);
+                }
+                if (isset($value['inputs']['api_token'])) {
+                    unset($value['inputs']['api_token']);
+                }
+
+                $return["data"] = [
+                    "datetime" => $value['datetime'] ?? "",
+                    "user" => [
+                        "id" => $user->id ?? "",
+                        "name" => $user->name ?? "",
+                    ],
+                    "inputs" => $value['inputs'] ?? new \stdClass,
+                ];
+            } else {
+                $return["data"] = $this->value;
+            }
         }
 
         return $return;
