@@ -17,6 +17,23 @@ class Config extends Model
         'value' => 'array',
     ];
 
+    // Attributes
+    public function getValueAttribute(string $value)
+    {
+        try {
+            if (is_string($value)) {
+                $test = json_decode($value, true);
+                if (is_null($test)) {
+                    return $value;
+                }
+                return $test;
+            }
+            return $value;
+        } catch (\Exception $e) {
+            return $value;
+        }
+    }
+
     public function scopeName($query, $search)
     {
         if (trim($search) === "") {
