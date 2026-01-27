@@ -91,7 +91,7 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $order->withRelation();
+        $order->load(['examen', 'paciente.phones', 'laboratorio', 'user', 'nota', 'items']);
         return new OrderActivity($order);
     }
 

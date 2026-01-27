@@ -98,7 +98,7 @@ class Order extends Model
     }
     public function scopeWithRelation($query)
     {
-        $query->with('examen', 'paciente', 'laboratorio', 'user', 'nota', 'items');
+        $query->with('examen', 'paciente.phones', 'laboratorio', 'user', 'nota', 'items');
     }
     public function scopePublish($query)
     {
@@ -116,14 +116,16 @@ class Order extends Model
     {
         parent::boot();
         static::creating(function ($order) {
-            $user = auth()->user();
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
             $order->user_id = $user->id;
             $order->branch_id = $user->branch_id;
             $order->status = 0;
         });
 
         static::created(function ($order) {
-            $user = auth()->user();
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
             Log::info("Order created: " . json_encode($order));
             Log::info("User data: $user->id, branch: $user->branch_id");
         });

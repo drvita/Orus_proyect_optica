@@ -21,6 +21,8 @@ class BranchesStore extends JsonResource
             $return['id'] = $this->id;
             $return['name'] = $data['name'];
             $return['data']['name'] = $data['name'];
+            $return['data']['address'] = $data['address'];
+            $return['data']['phone'] = $data['phone'];
         }
 
         return $return;
