@@ -84,6 +84,17 @@ class ContactController extends Controller
 
             $contact = $this->contact->create($request->all());
             $contact->saveMetas($request);
+            $contact->load([
+                'user',
+                'user_updated',
+                'buys.pedido',
+                'orders.nota',
+                'supplier.nota',
+                'exams',
+                'brands',
+                'metas',
+                'phones'
+            ]);
             Log::info("[contact.store] Save user successfully: " . $contact->id);
             return new ContactResource($contact);
         } catch (\Throwable $th) {
