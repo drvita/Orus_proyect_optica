@@ -27,10 +27,19 @@ class ExamObserver
      */
     public function updating(Exam $exam): void
     {
+        Log::info("[ExamObserver] exam updating working: ", [
+            "exam_id" => $exam->id,
+            "is_auth" => Auth::check(),
+            "exam_status" => $exam->status,
+        ]);
         if (Auth::check()) {
             /** @var \App\Models\User $user */
             $user = Auth::user();
             $exam->updated_id = $user->id;
+            Log::info("[ExamObserver] with user auth: ", [
+                "user_id" => $user->id,
+                "user_role" => $user->roles->first()?->name,
+            ]);
 
             if ($user->hasRole("doctor") && $exam->category_id && $exam->status == 0) {
                 Log::info("[ExamObserver] exam end status: " . $exam->id);
