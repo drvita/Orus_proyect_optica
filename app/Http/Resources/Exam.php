@@ -90,12 +90,18 @@ class Exam extends JsonResource
             $return['status'] = $this->status;
             $return['category_id'] = new CategoryHierarchyResource($this->whenLoaded('categoryPrimary'));
             $return['category_ii'] = new CategoryHierarchyResource($this->whenLoaded('categorySecondary'));
-            $return['customer'] = new ContactSimple($this->whenLoaded('paciente'));
-            $return['paciente'] = $return['customer'];
-            $return['contact'] = $return['customer'];
-            $return['patient'] = $return['customer'];
+            if ($request->input('version', 1) == 1) {
+                $return['customer'] = new ContactSimple($this->whenLoaded('paciente'));
+                $return['paciente'] = $return['customer'];
+                $return['contact'] = $return['customer'];
+            } else {
+                $return['patient'] = $this->whenLoaded('paciente');
+            }
             $return['orders'] = OrderResource::collection($this->whenLoaded('orders'));
             $return['branch'] = new ConfigBranch($this->whenLoaded('branch'));
+            $return['lifestyle'] = new ExamLifestyleSimple($this->whenLoaded('lifestyle'));
+            $return['clinical'] = new ExamClinicalSimple($this->whenLoaded('clinical'));
+            $return['functions'] = new ExamFunctionsSimple($this->whenLoaded('functions'));
             $return["activity"] = MetasDetails::collection($activity);
 
             $return['created_at'] = $this->created_at?->format('Y-m-d H:i');

@@ -30,6 +30,7 @@ class Exam extends FormRequest
             "contact_id" => ["required", "numeric", Rule::exists("contacts", "id")],
             "category_id" => ["nullable", "numeric", Rule::exists("categories", "id")],
             "category_ii" => ["nullable", "numeric", Rule::exists("categories", "id")],
+            "age" => ["nullable", "numeric"],
         ];
 
         return $rules;

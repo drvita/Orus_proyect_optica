@@ -75,15 +75,21 @@ class ExamController extends Controller
      */
     public function store(ExamRequests $request)
     {
-        if (isset($request['age'])) {
+        if ($request->has('age') && $request->age) {
+            Log::info("[ExamController] Set manual age: " . $request['age']);
             $request["edad"] = $request['age'];
         } else {
+            Log::info("[ExamController] Set age from patient");
             $request["edad"] = $this->handleRequestToAge($request);
         }
 
         $exam = $this->exam->create($request->all());
+
+        // Sync relationships (Dual Write Strategy)
+        $this->syncExamRelations($exam, $request->all(), $request->query('version', 1));
+
         Log::info("[ExamController] exam created: " . $exam->id);
-        return new ExamResources($exam);
+        return new ExamResources($exam->load(['lifestyle', 'clinical', 'functions']));
     }
 
     /**
@@ -91,11 +97,10 @@ class ExamController extends Controller
      * @param  $exam id que proviene de la URL
      * @return Json api rest
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
-
         $exam = $this->exam::where('id', $id)
-            ->withRelation()
+            ->withRelation($request->input('version', 1))
             ->first();
         if ($exam->status == 0 && !$exam->started_at) {
             Log::info("[ExamController] exam started: " . $exam->id);
@@ -115,19 +120,35 @@ class ExamController extends Controller
      */
     public function update(ExamRequests $request, Exam $exam)
     {
-        if (isset($request['branch_id'])) {
-            unset($request['branch_id']);
+        if ($request->has('branch_id')) {
+            $request->offsetUnset('branch_id');
         }
 
-        if (isset($request['age']) && $request->age) {
+        if ($request->has('age') && $request->age) {
+            Log::info("[ExamController] Set manual age: " . $exam->id . " - " . $request['age']);
             $request["edad"] = $request['age'];
         } else {
             if (!$exam->edad) {
                 $request["edad"] = $this->handleRequestToAge($request);
+                Log::info("[ExamController] Set age from patient: " . $exam->id . " - " . $request["edad"]);
+            } else {
+                Log::info("[ExamController] Age already set: " . $exam->id . " - " . $exam->edad);
             }
         }
 
-        $exam->update($request->all());
+        $data = $request->all();
+        $version = $request->query('version', 1);
+
+        // If V2 and structured data is sent, flatten it to keep 'exams' table updated (Legacy Support)
+        if ($version == 2 && $this->isStructured($data)) {
+            $data = array_merge($data, $this->flattenData($data));
+        }
+
+        $exam->update($data);
+
+        // Sync relationships (Dual Write Strategy)
+        $this->syncExamRelations($exam, $data, $version);
+
         $exam->load([
             'paciente.metas',
             'user',
@@ -136,7 +157,10 @@ class ExamController extends Controller
             'categoryPrimary',
             'categorySecondary',
             'branch',
-            'metas'
+            'metas',
+            'lifestyle',
+            'clinical',
+            'functions'
         ]);
         Log::info("[ExamController] exam updated: " . $exam->id);
         return new ExamResources($exam);
@@ -167,25 +191,65 @@ class ExamController extends Controller
         return response()->json(null, 204);
     }
 
-    public function handleRequestToAge($request)
+    public function handleRequestToAge(ExamRequests $request)
     {
         $patient = Contact::find($request->contact_id);
-        if ($patient) {
-            $metas = $patient->metas;
+        return $patient ? $patient->age : 0;
+    }
 
-            if ($metas) {
-                $birthday = null;
-                foreach ($patient->metas as $meta) {
-                    if ($meta->key === "metadata" && isset($meta->value["birthday"])) {
-                        $birthday = new Carbon($meta->value["birthday"]);
-                    }
-                }
-                if ($birthday) {
-                    $request->age = $birthday->diffInYears(carbon::now());
-                }
-            }
+    /**
+     * Sincroniza las relaciones 1 a 1 de examen (Lifestyle, Clinical, Functions)
+     */
+    private function syncExamRelations(Exam $exam, array $data, $version)
+    {
+        // 1. Lifestyle
+        $lifestyleFields = (new \App\Models\ExamLifestyle)->getFillable();
+        $lifestyleData = ($version == 2 && isset($data['lifestyle']))
+            ? $data['lifestyle']
+            : array_intersect_key($data, array_flip($lifestyleFields));
+
+        if (!empty($lifestyleData)) {
+            $exam->lifestyle()->updateOrCreate([], $lifestyleData);
         }
 
-        return $request->age ? $request->age : 0;
+        // 2. Clinical
+        $clinicalFields = (new \App\Models\ExamClinical)->getFillable();
+        $clinicalData = ($version == 2 && isset($data['clinical']))
+            ? $data['clinical']
+            : array_intersect_key($data, array_flip($clinicalFields));
+
+        if (!empty($clinicalData)) {
+            $exam->clinical()->updateOrCreate([], $clinicalData);
+        }
+
+        // 3. Functions
+        $functionsFields = (new \App\Models\ExamFunctions)->getFillable();
+        $functionsData = ($version == 2 && isset($data['functions']))
+            ? $data['functions']
+            : array_intersect_key($data, array_flip($functionsFields));
+
+        if (!empty($functionsData)) {
+            $exam->functions()->updateOrCreate([], $functionsData);
+        }
+    }
+
+    /**
+     * Valida si el JSON enviado tiene estructura de V2 (objetos anidados)
+     */
+    private function isStructured(array $data)
+    {
+        return isset($data['lifestyle']) || isset($data['clinical']) || isset($data['functions']);
+    }
+
+    /**
+     * Aplana datos anidados para guardarlos en la tabla 'exams' actual
+     */
+    private function flattenData(array $data)
+    {
+        $flat = [];
+        if (isset($data['lifestyle'])) $flat = array_merge($flat, $data['lifestyle']);
+        if (isset($data['clinical'])) $flat = array_merge($flat, $data['clinical']);
+        if (isset($data['functions'])) $flat = array_merge($flat, $data['functions']);
+        return $flat;
     }
 }

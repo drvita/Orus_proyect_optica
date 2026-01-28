@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Contact;
 use App\Models\User;
 use App\Models\Order;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -139,6 +138,18 @@ class Exam extends Model
     {
         return $this->morphMany(Meta::class, 'metable');
     }
+    public function lifestyle()
+    {
+        return $this->hasOne(ExamLifestyle::class, 'exam_id');
+    }
+    public function clinical()
+    {
+        return $this->hasOne(ExamClinical::class, 'exam_id');
+    }
+    public function functions()
+    {
+        return $this->hasOne(ExamFunctions::class, 'exam_id');
+    }
     // Attributes
     public function getActivityAttribute($value)
     {
@@ -205,18 +216,34 @@ class Exam extends Model
             $query->orWhere("status", $search);
         }
     }
-    public function scopeWithRelation($query)
+    public function scopeWithRelation($query, int $version = 1)
     {
-        $query->with([
-            'paciente.metas',
-            'user',
-            'orders.nota',
-            'orders.branch',
-            'categoryPrimary',
-            'categorySecondary',
-            'branch',
-            'metas'
-        ]);
+        if ($version == 1) {
+            $query->with([
+                'paciente.metas',
+                'user',
+                'orders.nota',
+                'orders.branch',
+                'categoryPrimary',
+                'categorySecondary',
+                'branch',
+                'metas'
+            ]);
+        } else {
+            $query->with([
+                'paciente.metas',
+                'user',
+                'orders.nota',
+                'orders.branch',
+                'categoryPrimary',
+                'categorySecondary',
+                'branch',
+                'metas',
+                'lifestyle',
+                'clinical',
+                'functions'
+            ]);
+        }
     }
     public function scopePublish($query)
     {
