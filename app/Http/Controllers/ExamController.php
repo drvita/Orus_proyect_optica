@@ -231,6 +231,20 @@ class ExamController extends Controller
         if (!empty($functionsData)) {
             $exam->functions()->updateOrCreate([], $functionsData);
         }
+
+        // 4. Before Graduation (Meta)
+        if (array_key_exists('before_graduation', $data)) {
+            $value = $data['before_graduation'];
+            if (is_null($value)) {
+                Log::info("[ExamController] before_graduation is null");
+                $exam->metas()->where('key', 'before_graduation')->delete();
+            } else {
+                $exam->metas()->updateOrCreate(
+                    ['key' => 'before_graduation'],
+                    ['value' => $value]
+                );
+            }
+        }
     }
 
     /**

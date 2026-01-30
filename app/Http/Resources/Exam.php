@@ -96,6 +96,7 @@ class Exam extends JsonResource
                 $return['contact'] = $return['customer'];
             } else {
                 $return['patient'] = $this->whenLoaded('paciente');
+                $return['before_graduation'] = $this->before_graduation_meta ? $this->before_graduation_meta->value : null;
             }
             $return['orders'] = OrderResource::collection($this->whenLoaded('orders'));
             $return['branch'] = new ConfigBranch($this->whenLoaded('branch'));

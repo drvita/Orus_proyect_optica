@@ -151,7 +151,7 @@ class Exam extends Model
         return $this->hasOne(ExamFunctions::class, 'exam_id');
     }
     // Attributes
-    public function getActivityAttribute($value)
+    public function getActivityAttribute()
     {
         $activity = $this->metas()
             ->where("key", ["updated", "deleted", "created"])
@@ -170,7 +170,7 @@ class Exam extends Model
         $activity->push($obj);
         return $activity;
     }
-    public function getDurationAttribute($value)
+    public function getDurationAttribute()
     {
         $start = $this->started_at;
         $end = $this->ended_at;
@@ -188,6 +188,13 @@ class Exam extends Model
             Log::error("[Exam] Error calculating duration: " . $e->getMessage());
             return null;
         }
+    }
+    public function getBeforeGraduationMetaAttribute()
+    {
+        return $this->metas()
+            ->where("key", "before_graduation")
+            ->orderBy("id", "desc")
+            ->first();
     }
     //Scopes
     public function scopePaciente($query, $name)

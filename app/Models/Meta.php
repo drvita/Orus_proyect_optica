@@ -33,11 +33,14 @@ class Meta extends Model
     }
     public function getValueAttribute($value)
     {
-        $value = json_decode($value, true);
+        $decoded = json_decode($value, true);
 
-        if (is_string($value)) {
-            $value = json_decode($value, true);
+        if (is_string($decoded)) {
+            $secondDecoded = json_decode($decoded, true);
+            if (!is_null($secondDecoded)) {
+                return $secondDecoded;
+            }
         }
-        return $value;
+        return $decoded;
     }
 }
