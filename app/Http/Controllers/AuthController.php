@@ -10,6 +10,9 @@ use App\Http\Resources\UserNoty;
 use App\Http\Resources\User as UserResource;
 use App\Http\Requests\AuthRequest;
 use Illuminate\Http\JsonResponse;
+use App\Services\PasswordResetService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 
 class AuthController extends Controller
@@ -95,8 +98,9 @@ class AuthController extends Controller
     public function userData(Request $request): UserNoty
     {
         $user = $request->user();
+
         return new UserNoty(
-            $user->load(["session", "branch", "metas"])
+            $user->load(["session", "branch", "metas", "phones"])
         );
     }
     /**
@@ -132,5 +136,130 @@ class AuthController extends Controller
     public function userSubscriptionNotify(Request $request): JsonResponse
     {
         return response()->json(["success" => true], 200);
+    }
+
+    /**
+     * Request a password reset token.
+     *
+     * @param Request $request
+     * @param PasswordResetService $service
+     * @return JsonResponse
+     */
+    public function requestPasswordReset(Request $request, PasswordResetService $service): JsonResponse
+    {
+        $user = $request->user();
+        $targetUser = $user;
+
+        // Check if admin and requesting for another user
+        if ($user->hasRole('admin') && $request->has('user_id')) {
+            $targetUser = User::find($request->user_id);
+            if (!$targetUser) {
+                return response()->json(['message' => 'Usuario no encontrado'], 404);
+            }
+        }
+
+        $token = $service->generateToken($targetUser);
+        Log::info('Password reset token generated for user: ' . $targetUser->email);
+        return response()->json([
+            'status' => true,
+            'message' => 'Token generado exitosamente',
+            'token' => $token
+        ]);
+    }
+
+    /**
+     * Publicly request a password reset token via email.
+     *
+     * @param Request $request
+     * @param PasswordResetService $service
+     * @return JsonResponse
+     */
+    public function publicRequestPasswordReset(Request $request, PasswordResetService $service): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($user) {
+            $service->generateToken($user, true);
+        }
+
+        // Always return the same message for security
+        Log::info('Password reset token generated for user: ' . $request->email);
+        return response()->json([
+            'status' => true,
+            'message' => 'Si el correo existe en nuestro sistema, se ha generado un token. Por favor comuníquese con su administrador para obtenerlo.'
+        ]);
+    }
+
+    /**
+     * Validate a password reset token.
+     *
+     * @param Request $request
+     * @param PasswordResetService $service
+     * @return JsonResponse
+     */
+    public function validateResetToken(Request $request, PasswordResetService $service): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'token' => 'required|string|size:16',
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $targetUser = $service->validateToken($request->token, $request->email);
+
+        if (!$targetUser) {
+            return response()->json(['status' => false, 'message' => 'Token o Email inválido'], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Token válido',
+        ]);
+    }
+
+    /**
+     * Reset the user's password using a token.
+     *
+     * @param Request $request
+     * @param PasswordResetService $service
+     * @return JsonResponse
+     */
+    public function resetPassword(Request $request, PasswordResetService $service): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'token' => 'required|string|size:16',
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $targetUser = $service->validateToken($request->token, $request->email);
+
+        if (!$targetUser) {
+            return response()->json(['status' => false, 'message' => 'Token o Email inválido'], 404);
+        }
+
+        $targetUser->password = Hash::make($request->password);
+        $targetUser->remember_token = null; // Clear token after use
+        $targetUser->save();
+        Log::info('Password reset successfully for user: ' . $targetUser->email);
+        return response()->json([
+            'status' => true,
+            'message' => 'Contraseña actualizada exitosamente'
+        ]);
     }
 }

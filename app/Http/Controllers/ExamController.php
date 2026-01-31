@@ -8,6 +8,7 @@ use App\Models\Contact;
 use Illuminate\Http\Request;
 use App\Http\Resources\Exam as ExamResources;
 use App\Http\Requests\Exam as ExamRequests;
+use App\Models\Config;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -35,23 +36,34 @@ class ExamController extends Controller
         $page = $request->itemsPage ? $request->itemsPage : 50;
         $date = $request->date;
         $status = $request->status;
-        $currentUser = $request->user();
-        $branch = $currentUser->branch_id;
+        $branch_id = $request->input("branch_id", null);
         $patient_id = $request->paciente ?? $request->patient_id ?? $request->contact_id ?? null;
 
-        if (!$request->has('branch') || $request->branch === "all") {
-            $branch = null;
+        if ($branch_id === "all" || !is_numeric($branch_id)) {
+            $branch_id = null;
+        }
+
+        if ($branch_id) {
+            $branchExists = Config::where('name', "branches")
+                ->where('id', $branch_id)
+                ->exists();
+
+            if (!$branchExists) {
+                return response()->json([
+                    'message' => 'Branch not found',
+                ], 404);
+            }
+            Log::info("[ExamController] Filter by branch: " . $branch_id);
         }
 
         if ($patient_id) {
-            Log::info("[ExamController] Filter by patient: " . $patient_id);
             $contact = Contact::find($patient_id);
             if (!$contact) {
                 return response()->json([
                     'message' => 'Patient not found',
                 ], 404);
             }
-            $request->merge(['branch_id' => null]);
+            Log::info("[ExamController] Filter by patient: " . $patient_id);
         }
 
         $exams = $this->exam
@@ -62,7 +74,7 @@ class ExamController extends Controller
             ->Status($status)
             ->publish()
             ->withRelation()
-            ->branch($branch)
+            ->branch($branch_id)
             ->paginate($page);
 
         return ExamResources::collection($exams);

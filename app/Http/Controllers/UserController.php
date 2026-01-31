@@ -8,7 +8,9 @@ use App\Http\Resources\User as UserResource;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
 use App\Models\Session;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -82,7 +84,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return new UserResource($user->load("session")->load("branch"));
+        return new UserResource($user->load(["session", "branch"]));
     }
     /**
      * Actualiza el registro de un susuario
@@ -187,6 +189,30 @@ class UserController extends Controller
     }
 
     /**
+     * Actualiza el perfil del usuario autenticado
+     */
+    public function updateProfile(UserRequest $request)
+    {
+        $user = $request->user();
+        $data = $request->except(['email', 'password', 'branch_id', 'id', 'deleted_at']);
+        $user->update($data);
+
+        if ($request->has('phones')) {
+            $user->phones()->delete();
+            foreach ($request->phones as $phone) {
+                $user->phones()->create([
+                    'type' => $phone['type'] ?? 'mobile',
+                    'number' => $phone['number'],
+                    'country_code' => $phone['country_code'] ?? '+52',
+                ]);
+            }
+        }
+
+        return new UserResource($user->load('phones', 'branch', 'session'));
+    }
+
+
+    /**
      * Devuelve estadísticas del usuario según su rol
      */
     public function stats(Request $request)
@@ -277,5 +303,55 @@ class UserController extends Controller
     private function ventasStats()
     {
         return response()->json([]);
+    }
+
+    /**
+     * Genera un código para vincular con Telegram u otra red social.
+     * key: red social, value: AAA-00000
+     */
+    public function generateSocialCode(Request $request)
+    {
+        $request->validate([
+            'network' => 'required|string|in:' . implode(',', User::SOCIAL_CHANNELS)
+        ]);
+
+        $user = $request->user();
+        $network = $request->network;
+
+        // Generar código: 3 letras - 5 números
+        $code = Str::upper(Str::random(3)) . '-' . rand(10000, 99999);
+
+        // Buscar si ya existe la meta para este network y actualizarla o crearla
+        $user->metas()->updateOrCreate(
+            ['key' => $network],
+            ['value' => $code]
+        );
+        Log::info("Social code generated for user: {$user->email} / {$network}");
+        return new UserResource($user->load('metas'));
+    }
+
+    /**
+     * Elimina el vínculo con la red social.
+     */
+    public function deleteSocialCode(Request $request)
+    {
+        $request->validate([
+            'network' => 'required|string|in:' . implode(',', User::SOCIAL_CHANNELS) . ',all'
+        ]);
+
+        $user = $request->user();
+        $network = $request->network;
+
+        if ($network === 'all') {
+            $user->metas()->whereIn('key', User::SOCIAL_CHANNELS)->delete();
+        } else {
+            $user->metas()->where('key', $network)->delete();
+        }
+
+        Log::info("Social code deleted for user: {$user->email} / {$network}");
+        return response()->json([
+            'success' => true,
+            'message' => 'Vínculo eliminado correctamente'
+        ]);
     }
 }

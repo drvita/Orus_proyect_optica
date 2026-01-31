@@ -28,7 +28,12 @@ class UserNoty extends JsonResource
                 'branch' => new BranchesStore($this->whenLoaded('branch')),
                 'roles' => $this->getRoleNames(),
                 'permissions' => $permissionsArray,
+                'requestPasswordReset' => $this->remember_token,
                 'unreadNotifications' => $this->unreadNotifications,
+                'phones' => $this->whenLoaded('phones'),
+                'networks' => $this->whenLoaded('metas', function () {
+                    return SocialNetworkResource::collection($this->networks);
+                }, collect()),
                 'activity' => MetasDetails::collection($activity),
                 'isAdmin' => $this->hasRole('admin'),
                 'isVentas' => $this->hasRole('ventas'),

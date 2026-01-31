@@ -43,6 +43,11 @@ class User extends JsonResource
                 'branch' => new BranchesStore($this->whenLoaded('branch')),
                 'roles' => $this->getRoleNames(),
                 'permissions' => $permissionsArray,
+                'phones' => $this->whenLoaded('phones'),
+                'requestPasswordReset' => $this->remember_token,
+                'networks' => $this->whenLoaded('metas', function () {
+                    return SocialNetworkResource::collection($this->networks);
+                }, collect()),
                 'activity' => MetasDetails::collection($activity),
                 'created_at' => $this->created_at?->format('Y-m-d H:i'),
                 'updated_at' => $this->updated_at?->format('Y-m-d H:i')

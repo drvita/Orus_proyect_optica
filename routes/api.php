@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Route;
 
 // Auth & Session
 Route::post('user/login', [AuthController::class, 'login'])->name('user.login');
+Route::post('auth/validate-password-token', [AuthController::class, 'validateResetToken'])->name('auth.validateToken');
+Route::post('auth/reset-password', [AuthController::class, 'resetPassword'])->name('auth.resetPassword');
+Route::post('auth/request-reset-by-email', [AuthController::class, 'publicRequestPasswordReset'])->name('auth.requestResetEmail');
 
 Route::middleware('auth:sanctum')->group(function () {
     // Current User Actions
@@ -29,6 +32,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/readAllNotifications', [AuthController::class, 'userReadNotify'])->name('users.readNotify');
     Route::get('/user/subscriptionNotify', [AuthController::class, 'userSubscriptionNotify'])->name('users.subscribtionNotify');
     Route::post('/user/change-branch', [UserController::class, 'changeBranch'])->name('users.changeBranch');
+    Route::put('/user/profile', [UserController::class, 'updateProfile'])->name('users.updateProfile');
+    Route::post('/user/social/code', [UserController::class, 'generateSocialCode'])->name('users.socialCode');
+    Route::post('/user/social/unlink', [UserController::class, 'deleteSocialCode'])->name('users.socialUnlink');
+    Route::post('/auth/request-password-reset', [AuthController::class, 'requestPasswordReset'])->name('auth.requestReset');
 
     // Contacts
     Route::get('contacts/{id}/stats', [ContactController::class, 'stats']);

@@ -25,32 +25,27 @@ class UserRequest extends FormRequest
      */
     public function rules()
     {
-        $data = $this->request->all();
-        $rules = [];
+        $isPut = $this->isMethod('PUT');
 
-        switch ($this->method()) {
-            case 'PUT':
-                if (array_key_exists("email", $data)) {
-                    $rules['email'] = [Rule::unique('users')->ignore($this->route('user')), "email"];
-                }
-                if (array_key_exists("branch_id", $data)) {
-                    $rules['branch_id'] = ["numeric", Rule::exists("config", "id")->where("name", "branches")];
-                }
-                if (array_key_exists("password", $data)) {
-                    $rules['password'] = "min:8";
-                }
-                if (array_key_exists("role", $data)) {
-                    $rules['role'] = "exists:roles,name";
-                }
-                break;
-            default:
-                $rules['name'] = "required";
-                $rules['username'] = "required";
-                $rules['email'] = "email|required|unique:users";
-                $rules['password'] = "required|min:8";
-                $rules['role'] = "required|exists:roles,name";
-        }
-
-        return $rules;
+        return [
+            'name' => [$isPut ? 'sometimes' : 'required', 'string'],
+            'username' => [$isPut ? 'sometimes' : 'required', 'string'],
+            'email' => [
+                $isPut ? 'sometimes' : 'required',
+                'email',
+                Rule::unique('users')->ignore($this->route('user'))
+            ],
+            'password' => [$isPut ? 'sometimes' : 'required', 'min:8'],
+            'role' => [$isPut ? 'sometimes' : 'required', 'exists:roles,name'],
+            'branch_id' => [
+                'sometimes',
+                'numeric',
+                Rule::exists("config", "id")->where("name", "branches")
+            ],
+            'phones' => 'sometimes|array',
+            'phones.*.number' => 'required_with:phones|string',
+            'phones.*.type' => 'nullable|string',
+            'phones.*.country_code' => 'nullable|string',
+        ];
     }
 }

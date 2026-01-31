@@ -20,18 +20,20 @@ class User extends Authenticatable
     use HasRoles;
 
     protected $table = "users";
+
+    const SOCIAL_CHANNELS = ['telegram', 'whatsapp'];
+
     protected $fillable = [
         "name",
         "username",
         "email",
         "password",
-        "rol",
-        "branch_id"
+        "branch_id",
+        "remember_token", // varchar 100
     ];
     protected $hidden = [
         "password",
         "remember_token",
-        "api_token",
         "deleted_at"
     ];
     protected $dates = [
@@ -61,6 +63,10 @@ class User extends Authenticatable
     {
         return $this->morphMany(Meta::class, 'metable');
     }
+    public function phones()
+    {
+        return $this->morphMany(PhoneNumber::class, 'model');
+    }
 
     // Attributes
     public function getLastSessionAttribute()
@@ -81,6 +87,10 @@ class User extends Authenticatable
     public function getGenderAttribute()
     {
         return $this->metas()->where("key", "gender")->first()->value;
+    }
+    public function getNetworksAttribute()
+    {
+        return $this->metas()->whereIn("key", $this::SOCIAL_CHANNELS)->get();
     }
 
     // functions
