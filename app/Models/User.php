@@ -9,9 +9,10 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Carbon\Carbon;
 use App\Models\Meta;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Observers\UserObserver;
 
+#[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -20,7 +21,6 @@ class User extends Authenticatable
     use HasRoles;
 
     protected $table = "users";
-
     const SOCIAL_CHANNELS = ['telegram', 'whatsapp'];
 
     protected $fillable = [
@@ -185,33 +185,5 @@ class User extends Authenticatable
     public function scopeWithRelation($query)
     {
         $query->with('session', 'branch');
-    }
-
-    // Listerning 
-    protected static function booted()
-    {
-        static::updated(function (User $user) {
-            $type = "";
-            $dirty = $user->getDirty();
-            unset($dirty['updated_at']);
-            unset($dirty['updated_id']);
-            unset($dirty['api_token']);
-
-            if (!count($dirty)) {
-                return null;
-            }
-
-            $data = ["user_id" => Auth::id() ?? 1, "inputs" => $dirty];
-            if (is_null($user->deleted_at)) {
-                $data['datetime'] = Carbon::now();
-                $type = "updated";
-            } else {
-                $data['datetime'] = Carbon::now();
-                $type = "deleted";
-            }
-
-            $user->metas()->create(["key" => $type, "value" => $data]);
-            Log::info("[Observer.user] User data change", $data);
-        });
     }
 }

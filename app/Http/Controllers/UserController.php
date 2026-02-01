@@ -75,6 +75,7 @@ class UserController extends Controller
         $user->roles()->detach();
         $user->assignRole($request->role);
 
+        Log::info("[UserController] Usuario creado: " . $user->email);
         return new UserResource($user);
     }
     /**
@@ -134,6 +135,7 @@ class UserController extends Controller
         }
 
         $user->update($request->all());
+        Log::info("[UserController] Usuario actualizado: " . $user->email);
         return new UserResource($user);
     }
     /**
@@ -326,7 +328,7 @@ class UserController extends Controller
             ['key' => $network],
             ['value' => $code]
         );
-        Log::info("Social code generated for user: {$user->email} / {$network}");
+        Log::info("[UserController] Social code generated for user: {$user->email} / {$network}");
         return new UserResource($user->load('metas'));
     }
 
@@ -348,7 +350,7 @@ class UserController extends Controller
             $user->metas()->where('key', $network)->delete();
         }
 
-        Log::info("Social code deleted for user: {$user->email} / {$network}");
+        Log::info("[UserController] Social code deleted for user: {$user->email} / {$network}");
         return response()->json([
             'success' => true,
             'message' => 'Vínculo eliminado correctamente'
