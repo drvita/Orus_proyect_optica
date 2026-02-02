@@ -7,10 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Carbon\Carbon;
-use App\Models\Meta;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Observers\UserObserver;
+use App\Traits\Auditable;
 
 #[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
@@ -19,10 +18,11 @@ class User extends Authenticatable
     use HasFactory;
     use Notifiable;
     use HasRoles;
+    use Auditable;
 
     protected $table = "users";
     const SOCIAL_CHANNELS = ['telegram', 'whatsapp'];
-
+    protected $auditActivities = ["updated", "deleted", "created", "restored", "login"];
     protected $fillable = [
         "name",
         "username",
@@ -59,10 +59,6 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Config::class, 'branch_id', 'id');
     }
-    public function metas()
-    {
-        return $this->morphMany(Meta::class, 'metable');
-    }
     public function phones()
     {
         return $this->morphMany(PhoneNumber::class, 'model');
@@ -72,13 +68,6 @@ class User extends Authenticatable
     public function getLastSessionAttribute()
     {
         return $this->session;
-    }
-    public function getActivityAttribute()
-    {
-        return $this->metas()->whereIn("key", ["updated", "deleted", "created", "login"])
-            ->orderByDesc("id")
-            ->take(25)
-            ->get();
     }
     public function getBranchNameAttribute()
     {
@@ -93,19 +82,7 @@ class User extends Authenticatable
         return $this->metas()->whereIn("key", $this::SOCIAL_CHANNELS)->get();
     }
 
-    // functions
-    public function registerLogin()
-    {
-        $this->metas()->create([
-            'key' => 'login',
-            'value' => [
-                'datetime' => Carbon::now(),
-                'session' => $this->session
-            ]
-        ]);
-    }
-
-    //Scopes
+    // Scopes
     public function scopeSearch($query, $search)
     {
         if (trim($search) != "") {

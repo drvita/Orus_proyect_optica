@@ -9,10 +9,8 @@ class Order extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
@@ -20,50 +18,88 @@ class Order extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules()
+    public function rules(): array
     {
-        $data = $this->request->all();
-        $rules = [];
+        return match ($this->method()) {
+            'POST' => $this->onCreate(),
+            'PUT', 'PATCH' => $this->onUpdate(),
+            default => [],
+        };
+    }
 
-        if ($this->method() === "POST") {
-            $rules['session'] = "required|unique:orders";
-            $rules['contact_id'] = "required|exists:contacts,id";
-            $rules['exam_id'] = "required|numeric|exists:exams,id";
+    /**
+     * Rules for creating an order.
+     */
+    protected function onCreate(): array
+    {
+        $version = (int) $this->input('version', 1);
+        $isVersion2 = $version >= 2;
+        $presence = $isVersion2 ? 'nullable' : 'required';
 
-            $rules['items'] = "required|array";
-            $rules['items.*.store_items_id'] = ["required", "numeric", Rule::exists("store_items", "id")->whereNull('deleted_at')];
-            $rules['items.*.cant'] = "required|numeric|min:1";
-            $rules['items.*.price'] = "required|numeric|min:1";
+        $rules = [
+            'session' => [$presence, 'unique:orders,session'],
+            'contact_id' => ['required', 'exists:contacts,id'],
+            'exam_id' => ['required', 'numeric', 'exists:exams,id'],
+            'items' => [$presence, 'array'],
+            'items.*.store_items_id' => [
+                'required',
+                'numeric',
+                Rule::exists("store_items", "id")->whereNull('deleted_at'),
+            ],
+            'items.*.cant' => ['required', 'numeric', 'min:1'],
+            'items.*.price' => ['required', 'numeric', 'min:1'],
+        ];
 
-            if ($this->request->has('sale')) {
-                $rules['sale.discount'] = "required|numeric";
+        if ($this->has('sale') || $isVersion2) {
+            $rules['sale.discount'] = [$presence, 'numeric'];
 
-                if (array_key_exists("payments", $data['sale'])) {
-                    $rules['sale.payments'] = "required|array";
-                    $rules['sale.payments.*.metodopago'] = "required|numeric|between:0,6";
-                    $rules['sale.payments.*.total'] = "required|numeric|min:1";
-                    $rules['sale.payments.*.bank_id'] = "required_unless:sale.payments.*.metodopago, 1,4";
-                    $rules['sale.payments.*.auth'] = "required_unless:sale.payments.*.metodopago,1";
-                }
-            }
-        } else if ($this->method() === "PUT") {
-            $rules['status'] = "required|numeric|between:0,4";
-            // $rules['exam_id'] = "required|numeric|exists:exams,id";
-
-            if ($data['status'] == 1) {
-                $rules['lab_id'] = ["sometimes", "numeric", Rule::exists("contacts", "id")->whereNull('deleted_at')->where('type', 1)->where('business', 1)];
-                $rules['lab_order'] = "required|string|between:1,100";
-            } else if ($data['status'] == 2) {
-                $rules['bi_box'] = "sometimes|numeric|min:1";
-                $rules['bi_details'] = "sometimes|string";
+            if ($this->has('sale.payments') || $isVersion2) {
+                $rules['sale.payments'] = [$presence, 'array'];
+                $rules['sale.payments.*.metodopago'] = ['required', 'numeric', 'between:0,6'];
+                $rules['sale.payments.*.total'] = ['required', 'numeric', 'min:1'];
+                $rules['sale.payments.*.bank_id'] = ['required_unless:sale.payments.*.metodopago,1,4'];
+                $rules['sale.payments.*.auth'] = ['required_unless:sale.payments.*.metodopago,1'];
             }
         }
 
         return $rules;
     }
-    public function attributes()
+
+    /**
+     * Rules for updating an order.
+     */
+    protected function onUpdate(): array
+    {
+        $rules = [
+            'status' => ['required', 'numeric', 'between:0,4'],
+        ];
+
+        $status = (int) $this->input('status');
+
+        if ($status === 1) {
+            $rules['lab_id'] = [
+                'sometimes',
+                'numeric',
+                Rule::exists("contacts", "id")
+                    ->whereNull('deleted_at')
+                    ->where('type', 1)
+                    ->where('business', 1),
+            ];
+            $rules['lab_order'] = ['required', 'string', 'between:1,100'];
+        } elseif ($status === 2) {
+            $rules['bi_box'] = ['sometimes', 'numeric', 'min:1'];
+            $rules['bi_details'] = ['sometimes', 'string'];
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     */
+    public function attributes(): array
     {
         return [
             "items" => "productos",
@@ -73,17 +109,20 @@ class Order extends FormRequest
             "sale.payments" => "datos de los abonos",
             "sale.payments.*.metodopago" => "metodo de pago",
             "sale.payments.*.total" => "total del abono",
-            // "sale.payments.*.bank_id" => "ID del banco",
             "sale.payments.*.auth" => "numero de autorización",
         ];
     }
-    public function messages()
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
     {
         return [
-            "items.array" => "Los campos de productos no es valido",
+            "items.array" => "Los campos de productos no son válidos",
             "items.required" => "El campo de productos 'items' es requerido",
             "session.required" => "El campo session es un valor requerido",
-            "session.unique" => "La session ya se encuentra registrada"
+            "session.unique" => "La session ya se encuentra registrada",
         ];
     }
 }

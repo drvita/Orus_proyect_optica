@@ -18,11 +18,12 @@ use Illuminate\Support\Facades\Log;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Observers\ContactObserver;
+use App\Traits\Auditable;
 
 #[ObservedBy([ContactObserver::class])]
 class Contact extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, Auditable;
     protected $table = "contacts";
     protected $fillable = [
         "name",
@@ -78,10 +79,6 @@ class Contact extends Model
     public function brands()
     {
         return $this->hasMany(Brand::class, 'contact_id', 'id')->orderBy('updated_at', 'DESC');
-    }
-    public function metas()
-    {
-        return $this->morphMany(Meta::class, 'metable');
     }
     public function phones()
     {
@@ -185,15 +182,6 @@ class Contact extends Model
             'user_updated',
             'phones'
         );
-    }
-
-    /**
-     * @deprecated This scope is deprecated and will be removed in future versions.
-     * Use SoftDeletes global scope instead.
-     */
-    public function scopePublish($query)
-    {
-        $query->whereNull('deleted_at');
     }
 
     // Other functions

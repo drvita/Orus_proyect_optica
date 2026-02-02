@@ -22,7 +22,7 @@ class ExamController extends Controller
         $this->middleware('can:exam.show')->only('show');
         $this->middleware('can:exam.add')->only('store');
         $this->middleware('can:exam.edit')->only('update');
-        $this->middleware('can:exam.delete')->only('destroy');
+        // $this->middleware('can:exam.delete')->only('destroy');
         $this->exam = $exam;
     }
     /**
@@ -53,7 +53,7 @@ class ExamController extends Controller
                     'message' => 'Branch not found',
                 ], 404);
             }
-            Log::info("[ExamController] Filter by branch: " . $branch_id);
+            Log::info("[ExamController] Filter exams by branch: " . $branch_id);
         }
 
         if ($patient_id) {
@@ -63,16 +63,15 @@ class ExamController extends Controller
                     'message' => 'Patient not found',
                 ], 404);
             }
-            Log::info("[ExamController] Filter by patient: " . $patient_id);
+            Log::info("[ExamController] Filter exams by patient: " . $patient_id);
         }
 
         $exams = $this->exam
             ->orderBy($orderby, $order)
-            ->Paciente($request->search)
-            ->ExamsByPaciente($patient_id)
+            ->search($request->search)
+            ->byPatient($patient_id)
             ->Date($date)
-            ->Status($status)
-            ->publish()
+            ->status($status)
             ->withRelation()
             ->branch($branch_id)
             ->paginate($page);
@@ -88,11 +87,11 @@ class ExamController extends Controller
     public function store(ExamRequests $request)
     {
         if ($request->has('age') && $request->age) {
-            Log::info("[ExamController] Set manual age: " . $request['age']);
             $request["edad"] = $request['age'];
+            Log::info("[ExamController] Set manual age: " . $request['age']);
         } else {
-            Log::info("[ExamController] Set age from patient");
             $request["edad"] = $this->handleRequestToAge($request);
+            Log::info("[ExamController] Set age from patient");
         }
 
         $exam = $this->exam->create($request->all());
@@ -114,13 +113,14 @@ class ExamController extends Controller
         $exam = $this->exam::where('id', $id)
             ->withRelation($request->input('version', 1))
             ->first();
-        if ($exam->status == 0 && !$exam->started_at) {
+        $user = $request->user();
+
+        if ($exam->status == 0 && $user->hasRole("doctor")) {
+            $exam->startExam();
             Log::info("[ExamController] exam started: " . $exam->id);
-            $exam->update([
-                "started_at" => now()
-            ]);
         }
 
+        Log::info("[ExamController] exam show: " . $exam->id);
         return new ExamResources($exam);
     }
 
@@ -205,7 +205,7 @@ class ExamController extends Controller
 
     public function handleRequestToAge(ExamRequests $request)
     {
-        $patient = Contact::find($request->contact_id);
+        $patient = Contact::find($request->contact_id ?? $request->patient_id);
         return $patient ? $patient->age : 0;
     }
 

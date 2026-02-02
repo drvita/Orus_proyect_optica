@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Exam;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -18,6 +19,15 @@ class ExamObserver
             $user = Auth::user();
             $exam->user_id = $user->id;
             $exam->branch_id = $user->branch_id;
+
+            if (!$user->hasRole("doctor")) {
+                $doctor_assigned = User::where("branch_id", $user->branch_id)
+                    ->role("doctor")
+                    ->first();
+                if ($doctor_assigned) {
+                    $exam->user_id = $doctor_assigned->id;
+                }
+            }
         }
         $exam->status = 0;
     }
@@ -36,45 +46,19 @@ class ExamObserver
             /** @var \App\Models\User $user */
             $user = Auth::user();
             $exam->updated_id = $user->id;
-            Log::info("[ExamObserver] with user auth: ", [
-                "user_id" => $user->id,
-                "user_role" => $user->roles->first()?->name,
-            ]);
 
-            if ($user->hasRole("doctor") && $exam->category_id && $exam->status == 0) {
-                Log::info("[ExamObserver] exam end status: " . $exam->id);
-                $exam->status = 1;
+            if ($user->hasRole("doctor")) {
+                if ($exam->category_id && $exam->status == 0) {
+                    Log::info("[ExamObserver] exam end status: " . $exam->id);
+                    $exam->status = 1;
+                }
+
+                if ($exam->isDirty('status') && $exam->status == 1 && !$exam->ended_at) {
+                    Log::info("[ExamObserver] exam end time: " . $exam->id);
+                    $exam->ended_at = now();
+                    $exam->user_id = $user->id;
+                }
             }
-
-            if ($exam->isDirty('status') && $exam->status == 1 && !$exam->ended_at) {
-                Log::info("[ExamObserver] exam end time: " . $exam->id);
-                $exam->ended_at = now();
-            }
-        }
-    }
-
-    /**
-     * Handle the Exam "updated" event.
-     */
-    public function updated(Exam $exam): void
-    {
-        $type = "";
-        $changes = $exam->getChanges();
-        unset($changes['updated_at']);
-        unset($changes['updated_id']);
-
-        if (count($changes) > 0) {
-            $data = ["user_id" => $exam->updated_id, "inputs" => $changes];
-
-            if (is_null($exam->deleted_at)) {
-                $data['datetime'] = $exam->updated_at;
-                $type = "updated";
-            } else {
-                $data['datetime'] = $exam->deleted_at;
-                $type = "deleted";
-            }
-
-            $exam->metas()->create(["key" => $type, "value" => $data]);
         }
     }
 }

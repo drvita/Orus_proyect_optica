@@ -11,10 +11,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Observers\ExamObserver;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Auditable;
 
 #[ObservedBy([ExamObserver::class])]
 class Exam extends Model
 {
+    use SoftDeletes, Auditable;
+
     protected $table = "exams";
     protected $fillable = [
         "edad",
@@ -134,10 +138,6 @@ class Exam extends Model
     {
         return $this->belongsTo(Config::class, 'branch_id', 'id');
     }
-    public function metas()
-    {
-        return $this->morphMany(Meta::class, 'metable');
-    }
     public function lifestyle()
     {
         return $this->hasOne(ExamLifestyle::class, 'exam_id');
@@ -150,26 +150,8 @@ class Exam extends Model
     {
         return $this->hasOne(ExamFunctions::class, 'exam_id');
     }
-    // Attributes
-    public function getActivityAttribute()
-    {
-        $activity = $this->metas()
-            ->where("key", ["updated", "deleted", "created"])
-            ->orderBy("id", "desc")->get();
 
-        $obj = [
-            'id' => 0,
-            'key' => 'created',
-            'value' => json_encode([
-                "datetime" => $this->created_at,
-                "created_id" => $this->user_id
-            ])
-        ];
-        $obj = json_decode(json_encode($obj), false);
-        $obj->value = json_decode($obj->value, true);
-        $activity->push($obj);
-        return $activity;
-    }
+    // Attributes
     public function getDurationAttribute()
     {
         $start = $this->started_at;
@@ -196,19 +178,21 @@ class Exam extends Model
             ->orderBy("id", "desc")
             ->first();
     }
+
     //Scopes
-    public function scopePaciente($query, $name)
+    public function scopeSearch($query, string | null $search)
     {
-        if (trim($name) != "") {
-            $query->whereHas('paciente', function ($query) use ($name) {
-                $query->where('name', "LIKE", "%$name%");
-            });
+        if (!is_null($search) && !empty($search)) {
+            $query->whereHas('paciente', function ($query) use ($search) {
+                $query->where('name', "LIKE", "%$search%");
+            })
+                ->orWhere('id', $search);
         }
     }
-    public function scopeExamsByPaciente($query, $search)
+    public function scopeByPatient($query, int | null $patient_id)
     {
-        if (trim($search) != "") {
-            $query->where("contact_id", $search);
+        if (!is_null($patient_id)) {
+            $query->where("contact_id", $patient_id);
         }
     }
     public function scopeDate($query, $search)
@@ -220,7 +204,7 @@ class Exam extends Model
     public function scopeStatus($query, $search)
     {
         if (trim($search) != "") {
-            $query->orWhere("status", $search);
+            $query->where("status", $search);
         }
     }
     public function scopeWithRelation($query, int $version = 1)
@@ -252,14 +236,24 @@ class Exam extends Model
             ]);
         }
     }
-    public function scopePublish($query)
+    public function scopeBranch($query, null | int $branch_id)
     {
-        $query->whereNull('deleted_at');
-    }
-    public function scopeBranch($query, $search)
-    {
-        if (trim($search) != "") {
-            $query->where("branch_id", $search);
+        if (!is_null($branch_id)) {
+            $query->where("branch_id", $branch_id);
         }
+    }
+
+    // Functions
+    public function startExam()
+    {
+        $this->update([
+            "started_at" => now(),
+        ]);
+    }
+    public function endExam()
+    {
+        $this->update([
+            "ended_at" => now(),
+        ]);
     }
 }

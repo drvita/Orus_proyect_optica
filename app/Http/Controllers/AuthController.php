@@ -81,9 +81,8 @@ class AuthController extends Controller
         $user = $request->user();
 
         if ($user) {
-            // Revoke all tokens...
             $user->tokens()->delete();
-
+            $user->registerLogout();
             return response()->json(['message' => 'Logged out successfully'], 200);
         }
 

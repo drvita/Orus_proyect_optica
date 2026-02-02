@@ -24,18 +24,6 @@ class ContactObserver
     public function created(Contact $contact): void
     {
         $this->syncPhones($contact);
-        if (Auth::check()) {
-            $user = Auth::user();
-            Log::info("[ContactObserver] Contact created", [
-                "contact" => $contact->name,
-                "branch" => $user->branch_id,
-                "created_by_id" => $contact->user_id,
-            ]);
-            $contact->metas()->create([
-                'key' => 'branch_created',
-                'value' => $user->branch_id,
-            ]);
-        }
     }
 
     /**
@@ -54,17 +42,6 @@ class ContactObserver
     public function updated(Contact $contact): void
     {
         $this->syncPhones($contact);
-    }
-
-    /**
-     * Handle the Contact "deleted" event.
-     */
-    public function deleted(Contact $contact): void
-    {
-        Log::info("[ContactObserver] Contact deleted", [
-            "contact" => $contact->name,
-            "id" => $contact->id,
-        ]);
     }
 
     /**

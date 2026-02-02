@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Meta extends Model
 {
@@ -38,9 +39,16 @@ class Meta extends Model
         if (is_string($decoded)) {
             $secondDecoded = json_decode($decoded, true);
             if (!is_null($secondDecoded)) {
-                return $secondDecoded;
+                $decoded = $secondDecoded;
+            } else {
+                Log::error("[Meta] Value decoded", [
+                    "value" => $value,
+                    "decoded" => $decoded,
+                    "secondDecoded" => $secondDecoded
+                ]);
             }
         }
+
         return $decoded;
     }
 }

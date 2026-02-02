@@ -11,10 +11,19 @@ use App\Models\Sale;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Observers\OrderObserver;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Auditable;
 
+#[ObservedBy([OrderObserver::class])]
 class Order extends Model
 {
+    use SoftDeletes;
+    use Auditable;
+
     protected $table = "orders";
+    protected $auditActivities = ["updated", "deleted", "created", "restored"];
     protected $fillable = [
         "contact_id",
         "exam_id",
@@ -34,6 +43,7 @@ class Order extends Model
         'created_at',
         'deleted_at'
     ];
+
     //Relationships
     public function examen()
     {
@@ -67,89 +77,38 @@ class Order extends Model
     {
         return $this->belongsTo(Config::class, 'branch_id', 'id');
     }
-    public function metas()
-    {
-        return $this->morphMany(Meta::class, 'metable');
-    }
+
     //Scopes
-    public function scopePaciente($query, $name)
+    public function scopePatient($query, null | int $id)
     {
-        $name = preg_replace('/\d+/', "", $name);
-        if (trim($name) != "" && is_string($name)) {
-            $query->whereHas('paciente', function ($query) use ($name) {
-                $query->where('name', "LIKE", "%$name%");
-            });
+        if (!is_null($id)) {
+            $query->where("contact_id", $id);
         }
     }
-    public function scopeSearchId($query, $search)
+    public function scopeSearch($query, string | null $search)
     {
-        if (trim($search) != "") {
-            $search = (int) $search;
-            if (is_numeric($search) && $search > 0) {
-                $query->Where("id", $search);
-            }
+        if (!is_null($search) && !empty($search)) {
+            $search = trim($search);
+            $query->whereHas('paciente', function ($query) use ($search) {
+                $query->where('name', "LIKE", "%$search%");
+            })
+                ->orWhere("id", $search);
         }
     }
-    public function scopeEstado($query, $search)
+    public function scopeStatus($query, null | int $state)
     {
-        if (trim($search) != "") {
-            $query->where("status", $search);
+        if (!is_null($state)) {
+            $query->where("status", $state);
         }
     }
     public function scopeWithRelation($query)
     {
         $query->with('examen', 'paciente.phones', 'laboratorio', 'user', 'nota', 'items');
     }
-    public function scopePublish($query)
+    public function scopeBranch($query, null | int $branch_id)
     {
-        $query->whereNull('deleted_at');
-    }
-    public function scopeBranch($query, $search)
-    {
-        if (trim($search) != "") {
-            $query->where("branch_id", $search);
+        if (!is_null($branch_id)) {
+            $query->where("branch_id", $branch_id);
         }
-    }
-
-    // Listerning 
-    protected static function booted()
-    {
-        parent::boot();
-        static::creating(function ($order) {
-            /** @var \App\Models\User $user */
-            $user = Auth::user();
-            $order->user_id = $user->id;
-            $order->branch_id = $user->branch_id;
-            $order->status = 0;
-        });
-
-        static::created(function ($order) {
-            /** @var \App\Models\User $user */
-            $user = Auth::user();
-            Log::info("Order created: " . json_encode($order));
-            Log::info("User data: $user->id, branch: $user->branch_id");
-        });
-
-        static::updated(function ($order) {
-            $type = "";
-            $auth = Auth::user();
-            $dirty = $order->getDirty();
-            unset($dirty['updated_at']);
-            unset($dirty['updated_id']);
-            unset($dirty['user_id']);
-            $data = ["user_id" => $auth->id, "inputs" => $dirty];
-
-            if (!$dirty || !count($dirty)) return;
-
-            if (is_null($order->deleted_at)) {
-                $data['datetime'] = Carbon::now();
-                $type = "updated";
-            } else {
-                $data['datetime'] = Carbon::now();
-                $type = "deleted";
-            }
-
-            $order->metas()->create(["key" => $type, "value" => $data]);
-        });
     }
 }
