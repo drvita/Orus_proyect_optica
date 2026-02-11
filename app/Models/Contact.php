@@ -74,7 +74,7 @@ class Contact extends Model
     }
     public function exams()
     {
-        return $this->hasMany(Exam::class, 'contact_id', 'id')->orderBy('updated_at', 'DESC');
+        return $this->hasMany(Exam::class, 'contact_id', 'id')->orderBy('created_at', 'DESC');
     }
     public function brands()
     {

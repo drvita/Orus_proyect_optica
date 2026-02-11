@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\Config as ResourcesConfig;
 use App\Http\Resources\BranchesStore;
+use App\Http\Resources\BankStore;
 use App\Models\Config;
 use Illuminate\Http\Request;
 
@@ -108,5 +109,14 @@ class ConfigController extends Controller
     {
         $branches = $this->config->where('name', 'branches')->get();
         return BranchesStore::collection($branches);
+    }
+
+    /**
+     * Devuelve solo los bancos
+     */
+    public function banks()
+    {
+        $banks = $this->config->where('name', 'bank')->get();
+        return BankStore::collection($banks);
     }
 }

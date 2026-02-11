@@ -11,7 +11,7 @@ class StoreItem extends JsonResource
     public function toArray($request)
     {
         $return = [];
-        $user = Auth::user();
+        $user = $request->user();
 
         if (isset($this->id)) {
             $cantAll = 0;
@@ -19,28 +19,31 @@ class StoreItem extends JsonResource
             $price = 0;
             $from = 0;
 
+            if ($this->resource->relationLoaded('inBranch')) {
+                $preferredId = $this->branch_default ?: $user->branch_id;
+                $preferredRecord = null;
+                $fallbackRecord = null;
 
-            if ($this->inBranch) {
-                $branches = $this->inBranch->toArray();
+                foreach ($this->inBranch as $item) {
+                    $cantAll += $item->cant;
 
-                if ($this->branch_default) {
-                    foreach ($branches as $item) {
-                        $cantAll += $item['cant'];
-                        if ($this->branch_default === $item['branch_id']) {
-                            $price = $item['price'];
-                            $cantBranch = $item['cant'];
-                            $from = $this->branch_default;
-                        }
+                    if ($item->branch_id === $preferredId) {
+                        $preferredRecord = $item;
                     }
-                } else {
-                    foreach ($branches as $item) {
-                        $cantAll += $item['cant'];
-                        if ($user->branch_id === $item['branch_id']) {
-                            $price = $item['price'];
-                            $cantBranch = $item['cant'];
-                            $from = $user->branch_id;
-                        }
+
+                    if ($item->cant > 0 && !$fallbackRecord) {
+                        $fallbackRecord = $item;
                     }
+                }
+
+                $active = ($preferredRecord && $preferredRecord->cant > 0)
+                    ? $preferredRecord
+                    : ($fallbackRecord ?: $preferredRecord);
+
+                if ($active) {
+                    $price = $active->price;
+                    $cantBranch = $active->cant;
+                    $from = $active->branch_id;
                 }
             }
 
@@ -56,7 +59,7 @@ class StoreItem extends JsonResource
             $return['from'] = $from;
             $return['branch_default'] = $this->branch_default;
             $return['brand'] = new BrandShort($this->brand);
-            $return['branches'] = StoreBranch::collection($this->inBranch);
+            $return['branches'] = StoreBranch::collection($this->whenLoaded('inBranch'));
             $return['category'] = new CategorySimple($this->categoria);
             $return['supplier'] = new ContactStore($this->supplier);
             $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;

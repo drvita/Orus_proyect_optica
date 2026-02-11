@@ -21,6 +21,7 @@ class ContactList extends JsonResource
             $return['business'] = $this->business;
             $return['enUso'] = $this->en_uso;
 
+
             $return['phones'] = $this->whenLoaded('phones', function () {
                 return new PhoneNumberCollection($this->phones);
             });

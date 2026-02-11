@@ -2,9 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\ContactShort;
-use App\Http\Resources\ExamShort;
-use App\Http\Resources\SaleItemShort;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class OrderActivity extends JsonResource
@@ -13,22 +10,10 @@ class OrderActivity extends JsonResource
     public function toArray($request)
     {
         $return = [];
+        $version = $request->input("version", 1);
 
         if ($this->id) {
-            $items = is_string($this->items) ? json_decode($this->items, true) : $this->items;
-            $activity = $this->metas()->whereIn("key", ["updated", "deleted", "created", "created branch"])->orderBy("id", "desc")->get();
-
-            $obj = [
-                'id' => 0,
-                'key' => 'created',
-                'value' => json_encode([
-                    "datetime" => $this->created_at,
-                    "user_id" => $this->user->id
-                ])
-            ];
-            $obj = json_decode(json_encode($obj), false);
-            $obj->value = json_decode($obj->value, true);
-            $activity->push($obj);
+            $activity = $this->activity;
 
             $return['id'] = $this->id;
             $return['session'] = $this->session;
@@ -37,13 +22,19 @@ class OrderActivity extends JsonResource
             $return['bi_details'] = $this->observaciones;
             $return['status'] = $this->status;
 
-            $return['paciente'] = new ContactSimple($this->paciente);
-            $return['exam'] = new ExamShort($this->examen);
-            $return['items'] = SaleItemShort::collection($items);
-            $return['lab'] = new ContactShort($this->laboratorio);
-            $return['sale'] = new SaleShort($this->nota);
-            $return['branch'] = new ConfigBranch($this->branch);
+            $return['paciente'] = $this->whenLoaded('paciente', new ContactSimple($this->paciente));
+            $return['exam'] = $this->whenLoaded('examen', new ExamShort($this->examen));
+            $return['items'] = $this->whenLoaded('items', SaleItemShort::collection($this->items));
+            $return['lab'] = $this->whenLoaded('laboratorio', new ContactShort($this->laboratorio));
+            $return['sale'] = $this->whenLoaded('nota', new SaleShort($this->nota));
+            $return['branch'] = $this->whenLoaded('branch', new ConfigBranch($this->branch));
             $return['activity'] = MetasDetails::collection($activity);
+
+            if ($version == 2) {
+                $return['lab_complete'] = $this->whenLoaded('items', function () {
+                    return $this->is_lab_complete;
+                });
+            }
 
             $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
             $return['updated_at'] = $this->updated_at ? $this->updated_at->format('Y-m-d H:i') : null;

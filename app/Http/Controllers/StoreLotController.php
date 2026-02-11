@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\StoreLot as StoreResources;
 use App\Http\Requests\StoreLot as StoreRequests;
+use App\Models\Config;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class StoreLotController extends Controller
 {
@@ -29,29 +31,36 @@ class StoreLotController extends Controller
     public function index(Request $request)
     {
         $page = $request->itemsPage ? $request->itemsPage : 50;
-        $rol = Auth::user()->rol;
+        $branch_id = $request->input("branch_id", null);
+        $item_id = $request->input("store_items_id", null) ?? $request->input("item_id", null) ?? $request->input("id", null);
 
-        //Validation for branchs to admins
-        if (!$rol) {
-            if (!isset($request->branch)) $branch = Auth::user()->branch_id;
-            else {
-                if ($request->branch === "all") $branch = null;
-                else $branch = $request->branch;
+        if ($branch_id === "all" || !is_numeric($branch_id)) {
+            $branch_id = null;
+        }
+
+        if ($branch_id) {
+            $branchExists = Config::where('name', "branches")
+                ->where('id', $branch_id)
+                ->exists();
+
+            if (!$branchExists) {
+                return response()->json([
+                    'message' => 'Branch not found',
+                ], 404);
             }
-        } else {
-            $branch = Auth::user()->branch_id;
+            Log::info("[StoreLotController] Filter store lots by branch: " . $branch_id);
         }
 
-        if ($request->store_items_id) {
-            $items = $this->item
-                ->where('store_items_id', $request->store_items_id)
-                ->branch($branch)
-                ->paginate($page);
-        } else {
-            $items = $this->item->branch($branch)->paginate($page);
+        $items = $this->item;
+
+        if ($item_id) {
+            $items = $items->where('store_items_id', $item_id);
         }
 
-        return StoreResources::collection($items);
+        return StoreResources::collection(
+            $items->branch($branch_id)
+                ->paginate($page)
+        );
     }
 
     /**

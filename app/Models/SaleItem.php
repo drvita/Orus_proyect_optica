@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\StoreItem;
 use App\Notifications\ErrorStoreNotification;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Observers\SaleItemObserver;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
 
+#[ObservedBy([SaleItemObserver::class])]
 class SaleItem extends Model
 {
     protected $table = "sales_items";
@@ -32,6 +33,7 @@ class SaleItem extends Model
         'updated_at',
         'created_at'
     ];
+
     //Relationship
     public function user()
     {
@@ -57,10 +59,15 @@ class SaleItem extends Model
     {
         return $this->hasOne(StoreBranch::class, 'id', 'store_branch_id');
     }
-    // public function lot()
-    // {
-    //     return $this->hasOne(StoreLot::class, 'id', 'store_lot_id');
-    // }
+    public function lot()
+    {
+        return $this->hasOne(StoreLot::class, 'id', 'store_lot_id');
+    }
+    public function batch()
+    {
+        return $this->hasOne(StoreLot::class, 'id', 'store_lot_id');
+    }
+
     //Scopes
     public function scopeStock($query, $search)
     {
@@ -86,6 +93,7 @@ class SaleItem extends Model
     {
         $query->with('user', 'item', 'order', 'saleDetails', 'branch');
     }
+
     // Other functions
     public function sendErrorNotification($sale, $item)
     {
@@ -96,91 +104,95 @@ class SaleItem extends Model
                 $user->notify(new ErrorStoreNotification($sale, $item));
             });
     }
-    public function processInStoreItem($saleitem, $type = "created")
+    /**
+     * Inventory write-off process for a sale item.
+     * 
+     * This method attempts to deduct the requested quantity from inventory following this priority:
+     * 1. Deduct from the same branch (branch_id) associated with the sale item.
+     * 2. If insufficient, search and deduct the remaining balance from other branches with available stock.
+     * 3. If stock is still missing, record the deficit in the 'out' field and set 'inStorage' to 0.
+     * 
+     * The 'store_branch_id' field is updated to reference the last branch from which stock was taken.
+     *
+     * @return void
+     */
+    public function writeOffProcess()
     {
-        $item = StoreItem::where("id", $saleitem->store_items_id)->with('inBranch')->first();
-        $auth = Auth::user();
-        $branch = $saleitem->branchItem;
-
-        if ($branch) {
-            $lot = $saleitem->lot;
-            $cant = $saleitem->cant;
-            $lot_selected = null;
-            $typeSale = "";
-
-            if ($type === "created") {
-                $branch->cant -= $cant;
-                $typeSale = "created item";
-
-                if ($lot) {
-                    $lot->cant -= $cant;
-                    $lot->save();
-                    $lot_selected = $lot->id;
-                }
-            } else {
-                $branch->cant += $cant;
-                $typeSale = "deleted item";
-
-                if ($lot) {
-                    $lot->cant += $cant;
-                    $lot->save();
-                    $lot_selected = $lot->id;
-                }
-            }
-
-            if ($branch->cant < 0) {
-                $branch->cant = 0;
-            }
-
-            $branch->updated_at = Carbon::now();
-            $branch->updated_id = $auth->id;
-            $branch->save();
-
-            $sale = Sale::where("session", $saleitem->session)->first();
-            if ($sale) {
-                $dataSale = ["user_id" => $auth->id, "datetime" => Carbon::now()];
-                $dataSale["inputs"] = [
-                    "cant" => $saleitem->cant,
-                    "branch_id" => $saleitem->branch_id,
-                    "name" => $item->name,
-                    "lot" => $lot_selected ?? "--",
-                ];
-                $sale->metas()->create(["key" => $typeSale, "value" => $dataSale]);
-            }
-
-            return [
-                "saleID" => $saleitem->id,
-                "itemId" => $item->id,
-                "name" => $item->name,
-                "code" => $item->code,
-                "branch" => $branch->id,
-                "cant" => $saleitem->cant,
-                "status" => "ok",
-            ];
-        } else {
-            Log::error("The item $item->code doesn't have branches");
-            return [
-                "saleID" => $saleitem->id,
-                "itemId" => $item->id,
-                "name" => $item->name,
-                "code" => $item->code,
-                "branch" => $saleitem->branch_id,
-                "cant" => $saleitem->cant,
-                "status" => "failer",
-                "message" => "Item not have branches"
-            ];
+        $branchId = $this->branch_id;
+        if (!$branchId) {
+            Log::error("[SaleItem::writeOffProcess] Branch ID not found for sale item: " . $this->id);
+            return;
         }
-    }
-    //Listerner
-    protected static function booted()
-    {
-        parent::boot();
 
-        static::created(function (Saleitem $saleitem) {
-            $saleitem->processInStoreItem($saleitem, "created");
-        });
-        static::deleted(function (Saleitem $saleitem) {
-            $saleitem->processInStoreItem($saleitem, "deleted");
-        });
+        $item = $this->item;
+        if (!$item) {
+            Log::error("[SaleItem::writeOffProcess] Item not found for sale item: " . $this->id);
+            return;
+        }
+
+        $needed = $this->cant;
+        $totalProcessed = 0;
+        $lastStoreBranchId = $branchId;
+
+        // 1. Prioridad: Misma sucursal (Local)
+        $localStoreBranch = $item->inBranch()->where('branch_id', $branchId)->first();
+        if ($localStoreBranch && $localStoreBranch->cant > 0) {
+            $toTake = min($localStoreBranch->cant, $needed);
+            $localStoreBranch->decrement('cant', $toTake);
+
+            // Descontar de lotes si existen
+            $lot = $localStoreBranch->updateBatchesDecrement($toTake);
+            if ($lot) {
+                $this->store_lot_id = $lot->id;
+                if ($lot->num_invoice) {
+                    $this->descripcion = ($this->descripcion ? $this->descripcion . " | " : "") . "Fact: " . $lot->num_invoice;
+                }
+            }
+
+            $totalProcessed += $toTake;
+            $lastStoreBranchId = $localStoreBranch->id;
+        }
+
+        // 2. Fallback: Otras sucursales
+        if ($totalProcessed < $needed) {
+            $otherStoreBranches = $item->inBranch()
+                ->where('branch_id', '!=', $branchId)
+                ->where('cant', '>', 0)
+                ->get();
+
+            foreach ($otherStoreBranches as $otherStoreBranch) {
+                $remains = $needed - $totalProcessed;
+                $toTake = min($otherStoreBranch->cant, $remains);
+                $otherStoreBranch->decrement('cant', $toTake);
+
+                // Descontar de lotes si existen
+                $lot = $otherStoreBranch->updateBatchesDecrement($toTake);
+                if ($lot) {
+                    $this->store_lot_id = $lot->id;
+                    if ($lot->num_invoice) {
+                        $this->descripcion = ($this->descripcion ? $this->descripcion . " | " : "") . "Fact: " . $lot->num_invoice;
+                    }
+                }
+
+                $totalProcessed += $toTake;
+                $lastStoreBranchId = $otherStoreBranch->id;
+
+                if ($totalProcessed >= $needed) break;
+            }
+        }
+
+        // 3. Resultado y Faltantes
+        $missing = $needed - $totalProcessed;
+        $this->out = $missing;
+        $this->inStorage = ($missing == 0) ? 1 : 0;
+        $this->store_branch_id = $lastStoreBranchId;
+
+        if ($this->isDirty(['out', 'inStorage', 'store_branch_id', 'store_lot_id', 'descripcion'])) {
+            $this->save();
+        }
+
+        if ($missing > 0) {
+            Log::warning("[SaleItem::writeOffProcess] Stock insuficiente para item {$item->code}. Faltaron {$missing}");
+        }
     }
 }

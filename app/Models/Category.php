@@ -19,6 +19,7 @@ class Category extends Model
         'updated_at',
         'created_at'
     ];
+    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -39,6 +40,13 @@ class Category extends Model
     {
         return $this->hasMany(StoreItem::class, 'category_id', 'id');
     }
+
+    // Attributes
+    public function getRootAttribute()
+    {
+        return getRootCategory($this);
+    }
+
     // scopes
     public function scopeCategoryId($query, $search)
     {
@@ -60,6 +68,7 @@ class Category extends Model
             $query->Where("name", "like", "$search%");
         }
     }
+
     // Other functions
     public function getCode()
     {
@@ -71,18 +80,6 @@ class Category extends Model
     }
     public function getMainCategory()
     {
-        $main = $this;
-
-        if ($this->parent) {
-            $main = $this->parent;
-            if ($main->parent) {
-                $main = $main->parent;
-                if ($main->parent) {
-                    $main = $main->parent;
-                }
-            }
-        }
-
-        return $main;
+        return getRootCategory($this, false) ?? $this;
     }
 }

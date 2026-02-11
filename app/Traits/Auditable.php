@@ -92,6 +92,7 @@ trait Auditable
         return $this->metas()
             ->whereIn("key", $keys)
             ->orderBy("id", "desc")
+            ->take(25)
             ->get();
     }
 

@@ -3,17 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Models\Category;
-use App\Models\Contact;
-use App\Models\StoreLot;
-use App\Models\Brand;
-use App\Models\StoreBranch;
-use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Auditable;
 
 class StoreItem extends Model
 {
+    use SoftDeletes, Auditable;
     protected $table = "store_items";
     protected $fillable = [
         "code",
@@ -36,6 +31,7 @@ class StoreItem extends Model
         'created_at',
         'deleted_at'
     ];
+
     //RelationsShip
     public function user()
     {
@@ -49,6 +45,10 @@ class StoreItem extends Model
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
     public function supplier()
     {
         return $this->belongsTo(Contact::class, 'contact_id');
@@ -57,9 +57,13 @@ class StoreItem extends Model
     {
         return $this->hasMany(StoreLot::class, 'store_items_id');
     }
+    public function batches()
+    {
+        return $this->hasMany(StoreLot::class, 'store_items_id');
+    }
     public function salesItems()
     {
-        return $this->belongsTo(SalesItems::class, 'store_items_id');
+        return $this->belongsTo(SaleItem::class, 'store_items_id');
     }
     public function brand()
     {
@@ -69,53 +73,44 @@ class StoreItem extends Model
     {
         return $this->hasMany(StoreBranch::class, 'store_item_id', 'id');
     }
-    public function metas()
-    {
-        return $this->morphMany(Meta::class, 'metable');
-    }
 
     // Scopes
     public function scopeSearchItem($query, $search)
     {
         if (trim($search) != "") {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', "LIKE", "%$search%")
-                    ->orWhere('code', "LIKE", "$search%")
-                    ->orWhere("codebar", "LIKE", $search);
-            });
+            $query->where('name', "LIKE", "%$search%")
+                ->orWhere('code', "LIKE", "$search%")
+                ->orWhere("codebar", "LIKE", $search);
         }
     }
     public function scopeZero($query, $search)
     {
-        if ($search == "true") {
+        if (!is_null($search) && $search == "true") {
             $query->whereHas('inBranch', function ($query) {
                 $query->where('cant', "<=", 0);
             });
         }
     }
-    public function scopeCategory($query, $val)
+    public function scopeCategory($query, $id)
     {
-        if ($val > 0) {
-            $query->where("category_id", $val);
+        if (!is_null($id) && is_numeric($id) && $id) {
+            $query->where("category_id", $id);
         }
     }
-    public function scopeSearchCode($query, $search, $id = 0)
+    public function scopeSearchCode($query, $search, int | null $id = 0)
     {
         if (trim($search) != "") {
-            $query->where("code", "LIKE", $search);
+            $query->where("code", "LIKE", $search)
+                ->orWhere("codebar", "LIKE", $search);
 
-            if ($id) $query->where("id", "!=", $id);
-        }
-    }
-    public function scopeSearchCodeBar($query, $search)
-    {
-        if (trim($search) != "") {
-            $query->where("codebar", "LIKE", $search);
+            if ($id) {
+                $query->where("id", "!=", $id);
+            }
         }
     }
     public function scopeSearchSupplier($query, $search)
     {
-        if (trim($search) != "") {
+        if (!is_null($search) && trim($search) != "") {
             $contact_id = 0;
             preg_match_all('!\d+!', $search, $matches);
             if (count($matches[0])) {
@@ -133,7 +128,7 @@ class StoreItem extends Model
     }
     public function scopeSearchBrand($query, $search)
     {
-        if (trim($search) != "") {
+        if (!is_null($search) && trim($search) != "") {
             $brand_id = 0;
             preg_match_all('!\d+!', $search, $matches);
             if (count($matches[0])) {
@@ -149,54 +144,22 @@ class StoreItem extends Model
             }
         }
     }
-    public function scopeFilterBranch($query, $search)
+    public function scopeFilterBranch($query, int | null $id)
     {
-        if (trim($search) != "") {
-            $query->whereHas('inBranch', function ($query) use ($search) {
-                $query->where('branch_id', "=", (int) $search);
+        if (!is_null($id) && is_numeric($id)) {
+            $query->whereHas('inBranch', function ($query) use ($id) {
+                $query->where('branch_id', $id);
             });
         }
     }
-    public function scopePublish($query)
+    public function scopeWithRelations($query)
     {
-        $query->whereNull('deleted_at');
-    }
-    public function scopeWithRelation($query)
-    {
-        $query->with('user', 'user_updated', 'categoria', 'supplier', 'brand', 'inBranch', 'metas');
+        $query->with('user', 'user_updated', 'categoria', 'supplier', 'brand', 'inBranch.lots', 'metas');
     }
     public function scopeUpdateDate($query, $search)
     {
-        if (trim($search) != "") {
+        if (!is_null($search) && trim($search) != "") {
             $query->whereDate('updated_at', "=", $search);
         }
-    }
-
-    // Listerning 
-    protected static function booted()
-    {
-        parent::boot();
-
-        static::updated(function ($item) {
-            $type = "";
-            $auth = Auth::user();
-            $dirty = $item->getDirty();
-            unset($dirty['updated_at']);
-            unset($dirty['updated_id']);
-            unset($dirty['user_id']);
-            $data = ["user_id" => $auth->id, "inputs" => $dirty];
-
-            if (!$dirty || !count($dirty)) return;
-
-            if (is_null($item->deleted_at)) {
-                $data['datetime'] = Carbon::now();
-                $type = "updated";
-            } else {
-                $data['datetime'] = Carbon::now();
-                $type = "deleted";
-            }
-
-            $item->metas()->create(["key" => $type, "value" => $data]);
-        });
     }
 }

@@ -18,9 +18,11 @@ class ContactSimple extends JsonResource
             $return['email'] = $this->email;
             $return['type'] = $this->type;
             $return['age'] = $this->age;
+            $return['created'] = $this->whenLoaded('user', new UserSimple($this->user));
+            $return['updated'] = $this->whenLoaded('user_updated', new UserSimple($this->user_updated));
             $return['birthday'] = $this->age > 0 ? $this->birthday->format('Y-m-d') : null;
             $return['phones'] = $this->whenLoaded('phones', new PhoneNumberCollection($this->phones));
-            $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
+            $return['created_at'] = $this->created_at?->format('Y-m-d H:i');
         }
 
         return $return;

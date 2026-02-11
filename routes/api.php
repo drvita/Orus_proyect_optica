@@ -48,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Config & Branches
     Route::get('/config/branches', [ConfigController::class, 'branches']);
+    Route::get('/config/banks', [ConfigController::class, 'banks']);
     Route::apiResource('config', ConfigController::class);
 
     // Store & Items

@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Order as OrderResources;
 use App\Http\Requests\Order as OrderRequests;
-use App\Events\OrderSave;
 use App\Http\Resources\OrderActivity;
 use App\Models\Config;
 use App\Models\Contact;
@@ -89,22 +88,15 @@ class OrderController extends Controller
     {
         $order = $this->order->create($request->all());
 
-        if ($request->has(['items', 'sale'])) {
-            if ($request->has("items")) {
-                $currentUser = Auth::user();
-                $order->items = getItemsRequest($request->items, $currentUser->branch_id);
-            }
-
-            if ($request->has("sale")) {
-                $order->sale = $request->sale;
-            }
-
-            if (count($order->items)) {
-                event(new OrderSave($order, false));
-            }
+        if ($request->has("items")) {
+            \App\Jobs\ProcessOrderItems::dispatchSync($order, $request->items, $request->user());
+        }
+        if ($request->has("sale")) {
+            \App\Jobs\ProcessOrderSale::dispatchSync($order, $request->sale, $request->user());
         }
 
-        Log::info("[OrderController] Order created: " . $order->id);
+        $order->refresh();
+
         return new OrderActivity($order);
     }
 
@@ -115,7 +107,15 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $order->load(['examen', 'paciente.phones', 'laboratorio', 'user', 'nota', 'items']);
+        $order->load([
+            'examen',
+            'paciente.phones',
+            'laboratorio',
+            'user',
+            'nota',
+            'items.lot',
+            'items.item.categoria.parent.parent.parent.parent.parent'
+        ]);
         return new OrderActivity($order);
     }
 
@@ -129,19 +129,47 @@ class OrderController extends Controller
     {
         $auth = Auth::user();
         $request['updated_id'] = $auth->id;
-        $data = ["status" => $request->status];
+        $currentStatus = $order->status ?? 0;
+        $data = ["status" => $request->status ?? $currentStatus];
+        $version = $request->input("version", 1);
+        $currentItems = $order->items;
 
         if ($request->status == 1) {
             $data["lab_id"] = $request->lab_id;
-            $data["npedidolab"] = $request->lab_order;
+            $data["npedidolab"] = $request->lab_order ?? $request->npedidolab;
+            Log::info("[OrderController.update] Update data to lab: " . $order->id, $request->all());
         } else if ($request->status == 2) {
             $data["ncaja"] = $request->bi_box;
             $data["observaciones"] = $request->bi_details;
+            Log::info("[OrderController.update] Update data to bi: " . $order->id);
+        }
+        $order->update($data);
+
+        if ($version == 2) {
+            if ($request->has("items") && ($currentStatus == 0 || !$currentItems->count())) {
+                Log::info("[OrderController.update] Order processing items: " . $order->id);
+                \App\Jobs\ProcessOrderItems::dispatchSync($order, $request->items, $request->user());
+            }
+            if ($request->has("sale") && $currentStatus == 0) {
+                Log::info("[OrderController.update] Order processing sale: " . $order->id);
+                \App\Jobs\ProcessOrderSale::dispatchSync($order, $request->sale, $request->user());
+            }
+            if ($request->has("items") && $currentStatus == 1) {
+                Log::info("[OrderController.update] Order updating items: " . $order->id);
+                \App\Jobs\ProcessOrderItemsUpdate::dispatchSync($order, $request->items, $request->user());
+            }
+
+            $order->refresh();
         }
 
-        $order->update($data);
-        Log::info("[OrderController] Order updated: " . $order->id);
-        return new OrderActivity($order);
+        return new OrderActivity($order->load([
+            'items',
+            'paciente',
+            'examen',
+            'laboratorio',
+            'nota',
+            'branch'
+        ]));
     }
 
     /**

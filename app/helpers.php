@@ -321,3 +321,32 @@ if (!function_exists('getShortNameCat')) {
         }
     }
 }
+
+if (!function_exists('getRootCategory')) {
+    /**
+     * Get the root category for a given category.
+     * @param \App\Models\Category|null $category
+     * @param bool $asArray
+     * @return array|\App\Models\Category|null
+     */
+    function getRootCategory($category, $asArray = true)
+    {
+        if (!$category instanceof \App\Models\Category) {
+            return null;
+        }
+
+        $root = $category;
+        while ($root->relationLoaded('parent') && $root->parent) {
+            $root = $root->parent;
+        }
+
+        if (!$asArray) {
+            return $root;
+        }
+
+        return [
+            "id" => $root->id,
+            "name" => $root->name
+        ];
+    }
+}

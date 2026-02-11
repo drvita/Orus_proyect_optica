@@ -8,13 +8,11 @@ use App\Models\Exam;
 use App\Models\Contact;
 use App\Models\User;
 use App\Models\Sale;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Observers\OrderObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\Auditable;
+use Illuminate\Support\Facades\Log;
 
 #[ObservedBy([OrderObserver::class])]
 class Order extends Model
@@ -35,14 +33,22 @@ class Order extends Model
         "session",
         "status",
         "branch_id",
-        "updated_id"
+        "updated_id",
+        "delivered_at"
     ];
     protected $hidden = [];
     protected $dates = [
         'updated_at',
         'created_at',
-        'deleted_at'
+        'deleted_at',
+        'delivered_at'
     ];
+    const STATUS_PENDING = 0;
+    const STATUS_LABORATORY = 1;
+    const STATUS_BOX = 2;
+    const STATUS_COMPLETED = 3;
+    const STATUS_DELIVERED = 4;
+    const STATUS_CANCELLED = 5;
 
     //Relationships
     public function examen()
@@ -68,6 +74,10 @@ class Order extends Model
     public function nota()
     {
         return $this->belongsTo(Sale::class, 'id', 'order_id');
+    }
+    public function sale()
+    {
+        return $this->hasOne(Sale::class, 'order_id', 'id');
     }
     public function items()
     {
@@ -103,12 +113,57 @@ class Order extends Model
     }
     public function scopeWithRelation($query)
     {
-        $query->with('examen', 'paciente.phones', 'laboratorio', 'user', 'nota', 'items');
+        $query->with([
+            'examen',
+            'paciente.phones',
+            'paciente.user',
+            'paciente.user_updated',
+            'laboratorio',
+            'user',
+            'nota',
+            'items'
+        ]);
     }
     public function scopeBranch($query, null | int $branch_id)
     {
         if (!is_null($branch_id)) {
             $query->where("branch_id", $branch_id);
         }
+    }
+
+    // Functions
+    public function createSale(array | object | null $data = null)
+    {
+        try {
+            return $this->sale()->create([
+                "session" => $this->session,
+                "subtotal" => $data['subtotal'] ?? 0,
+                "descuento" => $data['descuento'] ?? 0,
+                "total" => $data['total'] ?? 0,
+                "pagado" => $data['pagado'] ?? 0,
+                "contact_id" => $this->contact_id,
+                "order_id" => $this->id,
+                "user_id" => $this->user_id,
+                "branch_id" => $this->branch_id,
+            ]);
+        } catch (\Throwable $th) {
+            Log::error("[Order.createSale] Error creating sale: " . $th->getMessage());
+            return null;
+        }
+    }
+
+    // Accessors
+    public function getIsLabCompleteAttribute()
+    {
+        $allItemsAssigned = false;
+        $items = $this->items;
+
+        if ($items && $items->count() > 0) {
+            $allItemsAssigned = $items->every(function ($item) {
+                return ($item->out ?? 0) > 0 || ($item->inStorage ?? 0) > 0;
+            });
+        }
+
+        return (!empty($this->npedidolab) && !empty($this->lab_id)) || $allItemsAssigned;
     }
 }

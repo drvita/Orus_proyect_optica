@@ -44,60 +44,44 @@ class ContactObserver
         $this->syncPhones($contact);
     }
 
-    /**
-     * Synchronize phone numbers from the telnumbers array to the phone_numbers table.
-     */
     private function syncPhones(Contact $contact): void
     {
         $telnumbers = $contact->telnumbers;
 
+        // If not an array or null, delete existing phones and return
         if (!is_array($telnumbers)) {
+            $contact->phones()->delete();
             return;
         }
 
         $normalizedData = [];
         foreach ($telnumbers as $key => $number) {
+            $number = is_string($number) ? trim($number) : $number;
             if (empty($number)) {
                 continue;
             }
 
-            // Clean type key: remove t_, lowercase
-            $type = str_replace('t_', '', strtolower($key));
+            // Normalizar llave (e.g., "t_movil" -> "movil")
+            $type = str_replace('t_', '', strtolower(trim($key)));
 
-            // Normalize cell/mobil to movil
+            // Normalización específica de tipos conocidos
             if ($type === 'cell' || $type === 'mobil') {
                 $type = 'movil';
             }
 
+            // El último número para un mismo tipo gana (evita duplicados en el array)
             $normalizedData[$type] = $number;
         }
 
-        // Get existing phone numbers for this contact
-        $existingPhones = $contact->phones()->get();
+        // Estrategia: Eliminar todo y re-crear
+        $contact->phones()->delete();
 
         foreach ($normalizedData as $type => $number) {
-            $phone = $existingPhones->where('type', $type)->first();
-
-            if ($phone) {
-                // Update if number changed
-                if ($phone->number !== $number) {
-                    $phone->update(['number' => $number]);
-                }
-            } else {
-                // Create new
-                $contact->phones()->create([
-                    'type' => $type,
-                    'number' => $number,
-                    'country_code' => '+52'
-                ]);
-            }
-        }
-
-        // Delete ones that are no longer in telnumbers
-        foreach ($existingPhones as $phone) {
-            if (!isset($normalizedData[$phone->type])) {
-                $phone->delete();
-            }
+            $contact->phones()->create([
+                'type' => $type,
+                'number' => $number,
+                'country_code' => '+52'
+            ]);
         }
     }
 }

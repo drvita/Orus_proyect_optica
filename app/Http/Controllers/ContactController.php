@@ -127,11 +127,11 @@ class ContactController extends Controller
             $contact->loadCount(['buys', 'brands', 'exams', 'supplier', 'orders', 'phones']);
 
             // Manual pagination for Resource
-            $contact->setRelation('exams', $contact->exams()->with('user')->paginate($perPage, ['*'], 'exam_page'));
-            $contact->setRelation('supplier', $contact->supplier()->paginate($perPage, ['*'], 'suppliers_page'));
-            $contact->setRelation('brands', $contact->brands()->paginate($perPage, ['*'], 'brands_page'));
-            $contact->setRelation('buys', $contact->buys()->paginate($perPage, ['*'], 'purchases_page'));
-            $contact->setRelation('orders', $contact->orders()->paginate($perPage, ['*'], 'orders_page'));
+            $contact->setRelation('exams', $contact->exams()->with('user')->reorder('created_at', 'desc')->paginate($perPage, ['*'], 'exam_page'));
+            $contact->setRelation('supplier', $contact->supplier()->reorder('created_at', 'desc')->paginate($perPage, ['*'], 'suppliers_page'));
+            $contact->setRelation('brands', $contact->brands()->reorder('created_at', 'desc')->paginate($perPage, ['*'], 'brands_page'));
+            $contact->setRelation('buys', $contact->buys()->reorder('created_at', 'desc')->paginate($perPage, ['*'], 'purchases_page'));
+            $contact->setRelation('orders', $contact->orders()->reorder('created_at', 'desc')->paginate($perPage, ['*'], 'orders_page'));
 
             // Filtered metas
             $contact->setRelation('metas', $contact->metas()

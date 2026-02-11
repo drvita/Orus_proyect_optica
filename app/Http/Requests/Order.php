@@ -46,21 +46,21 @@ class Order extends FormRequest
             'items.*.store_items_id' => [
                 'required',
                 'numeric',
-                Rule::exists("store_items", "id")->whereNull('deleted_at'),
+                Rule::exists("store_items", "id"),
             ],
             'items.*.cant' => ['required', 'numeric', 'min:1'],
             'items.*.price' => ['required', 'numeric', 'min:1'],
         ];
 
-        if ($this->has('sale') || $isVersion2) {
+        if ($this->has('sale') || !$isVersion2) {
             $rules['sale.discount'] = [$presence, 'numeric'];
 
             if ($this->has('sale.payments') || $isVersion2) {
                 $rules['sale.payments'] = [$presence, 'array'];
                 $rules['sale.payments.*.metodopago'] = ['required', 'numeric', 'between:0,6'];
                 $rules['sale.payments.*.total'] = ['required', 'numeric', 'min:1'];
-                $rules['sale.payments.*.bank_id'] = ['required_unless:sale.payments.*.metodopago,1,4'];
-                $rules['sale.payments.*.auth'] = ['required_unless:sale.payments.*.metodopago,1'];
+                $rules['sale.payments.*.bank_id'] = ['required_unless:sale.payments.*.metodopago,0,1,4'];
+                $rules['sale.payments.*.auth'] = ['required_unless:sale.payments.*.metodopago,0,1'];
             }
         }
 
@@ -72,25 +72,43 @@ class Order extends FormRequest
      */
     protected function onUpdate(): array
     {
+        $version = (int) $this->input('version', 1);
+        $isVersion2 = $version >= 2;
         $rules = [
             'status' => ['required', 'numeric', 'between:0,4'],
         ];
 
         $status = (int) $this->input('status');
 
-        if ($status === 1) {
+        if ($status === 1 && !$isVersion2) {
             $rules['lab_id'] = [
-                'sometimes',
+                'nullable',
                 'numeric',
                 Rule::exists("contacts", "id")
-                    ->whereNull('deleted_at')
                     ->where('type', 1)
                     ->where('business', 1),
             ];
-            $rules['lab_order'] = ['required', 'string', 'between:1,100'];
-        } elseif ($status === 2) {
-            $rules['bi_box'] = ['sometimes', 'numeric', 'min:1'];
-            $rules['bi_details'] = ['sometimes', 'string'];
+            $rules['lab_order'] = ['nullable', 'string', 'between:1,100'];
+        } elseif ($status === 2 && !$isVersion2) {
+            $rules['bi_box'] = ['nullable', 'numeric', 'min:1'];
+            $rules['bi_details'] = ['nullable', 'string'];
+        }
+
+        if ($isVersion2) {
+            $rules['items'] = ['nullable', 'array'];
+            $rules['items.*.store_items_id'] = [
+                'required',
+                'numeric',
+                Rule::exists("store_items", "id"),
+            ];
+            $rules['items.*.cant'] = ['required', 'numeric', 'min:1'];
+            $rules['items.*.price'] = ['required', 'numeric', 'min:1'];
+            $rules['sale.discount'] = ['nullable', 'numeric'];
+            $rules['sale.payments'] = ['nullable', 'array'];
+            $rules['sale.payments.*.metodopago'] = ['required', 'numeric', 'between:0,6'];
+            $rules['sale.payments.*.total'] = ['required', 'numeric', 'min:1'];
+            $rules['sale.payments.*.bank_id'] = ['required_unless:sale.payments.*.metodopago,0,1,4'];
+            $rules['sale.payments.*.auth'] = ['required_unless:sale.payments.*.metodopago,0,1'];
         }
 
         return $rules;

@@ -13,39 +13,65 @@ class Exam extends JsonResource
     {
         $return = [];
         if (isset($this->id)) {
-            $activity = $this->activity;
-
             $return['id'] = $this->id;
             $return['age'] = $this->edad ? $this->edad : 0;
-            $return['keratometriaoi'] = $this->keratometriaoi ? $this->keratometriaoi : '';
-            $return['keratometriaod'] = $this->keratometriaod ? $this->keratometriaod : '';
-            $return['pantalleooi'] = $this->pantalleooi ? $this->pantalleooi : '';
-            $return['pantalleood'] = $this->pantalleood ? $this->pantalleood : '';
-            $return['interrogatorio'] = $this->interrogatorio ? $this->interrogatorio : '';
-            $return['cefalea'] = $this->cefalea ? true : false;
-            $return['c_frecuencia'] = $this->c_frecuencia ? $this->c_frecuencia : '';
-            $return['c_intensidad'] = $this->c_intensidad ? $this->c_intensidad : 0;
-            $return['frontal'] = $this->frontal ? true : false;
-            $return['temporal'] = $this->temporal ? true : false;
-            $return['occipital'] = $this->occipital ? true : false;
-            $return['generality'] = $this->generality ? true : false;
-            $return['temporaoi'] = $this->temporaoi ? true : false;
-            $return['temporaod'] = $this->temporaod ? true : false;
-            $return['coa'] = $this->coa ? $this->coa : "";
-            $return['aopp'] = $this->aopp ? $this->aopp : "";
-            $return['aopf'] = $this->aopf ? $this->aopf : "";
-            $return['avsloi'] = $this->avsloi ? $this->avsloi : "";
-            $return['avslod'] = $this->avslod ? $this->avslod : "";
-            $return['avcgaoi'] = $this->avcgaoi ? $this->avcgaoi : "";
-            $return['avcgaod'] = $this->avcgaod ? $this->avcgaod : "";
-            $return['cvoi'] = $this->cvoi ? $this->cvoi : "";
-            $return['cvod'] = $this->cvod ? $this->cvod : "";
-            $return['oftalmoscopia'] = $this->oftalmoscopia ? $this->oftalmoscopia : "";
-            $return['rsoi'] = $this->rsoi ? $this->rsoi : "";
-            $return['rsod'] = $this->rsod ? $this->rsod : "";
-            $return['diagnostico'] = $this->diagnostico ? $this->diagnostico : "Hemetrope";
-            $return['presbicie'] = $this->presbicie ? true : false;
-            $return['txoftalmico'] = $this->txoftalmico ? $this->txoftalmico : "";
+
+            if ($request->input('version', 1) == 1) {
+                $return['keratometriaoi'] = $this->keratometriaoi ? $this->keratometriaoi : '';
+                $return['keratometriaod'] = $this->keratometriaod ? $this->keratometriaod : '';
+                $return['pantalleooi'] = $this->pantalleooi ? $this->pantalleooi : '';
+                $return['pantalleood'] = $this->pantalleood ? $this->pantalleood : '';
+                $return['interrogatorio'] = $this->interrogatorio ? $this->interrogatorio : '';
+                $return['cefalea'] = $this->cefalea ? true : false;
+                $return['c_frecuencia'] = $this->c_frecuencia ? $this->c_frecuencia : '';
+                $return['c_intensidad'] = $this->c_intensidad ? $this->c_intensidad : 0;
+                $return['frontal'] = $this->frontal ? true : false;
+                $return['temporal'] = $this->temporal ? true : false;
+                $return['occipital'] = $this->occipital ? true : false;
+                $return['generality'] = $this->generality ? true : false;
+                $return['temporaoi'] = $this->temporaoi ? true : false;
+                $return['temporaod'] = $this->temporaod ? true : false;
+                $return['coa'] = $this->coa ? $this->coa : "";
+                $return['aopp'] = $this->aopp ? $this->aopp : "";
+                $return['aopf'] = $this->aopf ? $this->aopf : "";
+                $return['avsloi'] = $this->avsloi ? $this->avsloi : "";
+                $return['avslod'] = $this->avslod ? $this->avslod : "";
+                $return['avcgaoi'] = $this->avcgaoi ? $this->avcgaoi : "";
+                $return['avcgaod'] = $this->avcgaod ? $this->avcgaod : "";
+                $return['cvoi'] = $this->cvoi ? $this->cvoi : "";
+                $return['cvod'] = $this->cvod ? $this->cvod : "";
+                $return['oftalmoscopia'] = $this->oftalmoscopia ? $this->oftalmoscopia : "";
+                $return['rsoi'] = $this->rsoi ? $this->rsoi : "";
+                $return['rsod'] = $this->rsod ? $this->rsod : "";
+                $return['diagnostico'] = $this->diagnostico ? $this->diagnostico : "Hemetrope";
+                $return['presbicie'] = $this->presbicie ? true : false;
+                $return['txoftalmico'] = $this->txoftalmico ? $this->txoftalmico : "";
+                $return['observaciones'] = $this->observaciones ? $this->observaciones : "";
+                $return['pc'] = $this->pc ? true : false;
+                $return['tablet'] = $this->tablet ? true : false;
+                $return['movil'] = $this->movil ? true : false;
+                $return['lap'] = $this->lap ? true : false;
+                $return['lap_time'] = $this->lap_time ? $this->lap_time : "00:00";
+                $return['pc_time'] = $this->pc_time ? $this->pc_time : "00:00";
+                $return['tablet_time'] = $this->tablet_time ? $this->tablet_time : "00:00";
+                $return['movil_time'] = $this->movil_time ? $this->movil_time : "00:00";
+                $return['d_time'] = $this->d_time ? $this->d_time : "00:00";
+                $return['d_media'] = $this->d_media ? $this->d_media : "";
+                $return['d_test'] = $this->d_test ? $this->d_test : "";
+                $return['d_fclod'] = $this->d_fclod ? true : false;
+                $return['d_fcloi'] = $this->d_fcloi ? true : false;
+                $return['d_fclod_time'] = $this->d_fclod_time ? $this->d_fclod_time : "00:00";
+                $return['d_fcloi_time'] = $this->d_fcloi_time ? $this->d_fcloi_time : "00:00";
+
+                $return['customer'] = new ContactSimple($this->whenLoaded('paciente'));
+                $return['paciente'] = $return['customer'];
+                $return['contact'] = $return['customer'];
+            } else {
+                $return['patient'] = $this->whenLoaded('paciente');
+                $return['before_graduation'] = $this->before_graduation_meta ? $this->before_graduation_meta->value : null;
+            }
+
+            $activity = $this->activity;
             $return['esferaoi'] = $this->esferaoi ? $this->esferaoi : 0;
             $return['esferaod'] = $this->esferaod ? $this->esferaod : 0;
             $return['cilindroi'] = $this->cilindroi ? $this->cilindroi : 0;
@@ -69,35 +95,10 @@ class Exam extends JsonResource
             $return['alturaod'] = $this->alturaod ? $this->alturaod : 0;
             $return['pioi'] = $this->pioi ? $this->pioi : 0;
             $return['piod'] = $this->piod ? $this->piod : 0;
-            $return['observaciones'] = $this->observaciones ? $this->observaciones : "";
-            $return['pc'] = $this->pc ? true : false;
-            $return['tablet'] = $this->tablet ? true : false;
-            $return['movil'] = $this->movil ? true : false;
-            $return['lap'] = $this->lap ? true : false;
-            $return['lap_time'] = $this->lap_time ? $this->lap_time : "00:00";
-            $return['pc_time'] = $this->pc_time ? $this->pc_time : "00:00";
-            $return['tablet_time'] = $this->tablet_time ? $this->tablet_time : "00:00";
-            $return['movil_time'] = $this->movil_time ? $this->movil_time : "00:00";
-            $return['d_time'] = $this->d_time ? $this->d_time : "00:00";
-            $return['d_media'] = $this->d_media ? $this->d_media : "";
-            $return['d_test'] = $this->d_test ? $this->d_test : "";
-            $return['d_fclod'] = $this->d_fclod ? true : false;
-            $return['d_fcloi'] = $this->d_fcloi ? true : false;
-            $return['d_fclod_time'] = $this->d_fclod_time ? $this->d_fclod_time : "00:00";
-            $return['d_fcloi_time'] = $this->d_fcloi_time ? $this->d_fcloi_time : "00:00";
             $return['duration'] = $this->duration;
-
             $return['status'] = $this->status;
             $return['category_id'] = new CategoryHierarchyResource($this->whenLoaded('categoryPrimary'));
             $return['category_ii'] = new CategoryHierarchyResource($this->whenLoaded('categorySecondary'));
-            if ($request->input('version', 1) == 1) {
-                $return['customer'] = new ContactSimple($this->whenLoaded('paciente'));
-                $return['paciente'] = $return['customer'];
-                $return['contact'] = $return['customer'];
-            } else {
-                $return['patient'] = $this->whenLoaded('paciente');
-                $return['before_graduation'] = $this->before_graduation_meta ? $this->before_graduation_meta->value : null;
-            }
             $return['orders'] = OrderResource::collection($this->whenLoaded('orders'));
             $return['branch'] = new ConfigBranch($this->whenLoaded('branch'));
             $return['lifestyle'] = new ExamLifestyleSimple($this->whenLoaded('lifestyle'));

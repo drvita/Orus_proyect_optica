@@ -9,9 +9,12 @@ use App\Models\Config;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends Model
 {
+    use SoftDeletes;
+
     protected $table = "payments";
     protected $fillable = [
         "metodopago",

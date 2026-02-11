@@ -58,7 +58,9 @@ class SaleController extends Controller
             ->branch($branch)
             ->paginate($page);
 
-        return SaleResources::collection($sale);
+        return SaleResources::collection(
+            $sale->load('items.item')
+        );
     }
 
     /**
@@ -78,7 +80,7 @@ class SaleController extends Controller
             $request['subtotal'] += $item['cant'] * $item['price'];
         }
 
-        $request['total'] = $request['subtotal'] - $request['descuento'];
+        // Total calculation removed, handled by SaleObserver
 
         $sale = $this->sale->create($request->all());
         $sale->items = getItemsRequest($request->items, $sale->branch_id);
@@ -124,7 +126,7 @@ class SaleController extends Controller
                 $request['subtotal'] += $item['cant'] * $item['price'];
             }
 
-            $request['total'] = $request['subtotal'] - $request['descuento'];
+            // Total calculation removed, handled by SaleObserver
         }
 
         $sale->update($request->all());
@@ -150,14 +152,9 @@ class SaleController extends Controller
      * @param  $sale identificador de la venta
      * @return null 204
      */
-    public function destroy($id)
+    public function destroy(Sale $sale)
     {
-        $sale = $this->sale::where('id', $id)->first();
-
-        $sale->deleted_at = Carbon::now();
-        $sale->updated_id = Auth::user()->id;
-        $sale->save();
-        //$sale->delete();
+        $sale->delete();
         return response()->json(null, 204);
     }
 }

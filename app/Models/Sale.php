@@ -8,12 +8,20 @@ use App\Models\Contact;
 use App\Models\Order;
 use App\Models\SaleItem;
 use App\Models\Payment;
-use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Auditable;
 
+use App\Observers\SaleObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+
+#[ObservedBy([SaleObserver::class])]
 class Sale extends Model
 {
+    use SoftDeletes;
+    use Auditable;
+
     protected $table = "sales";
+    protected $auditActivities = ["updated", "deleted", "created", "restored"];
     protected $fillable = [
         "subtotal",
         "descuento",
@@ -65,6 +73,7 @@ class Sale extends Model
     {
         return $this->morphMany(Meta::class, 'metable');
     }
+
     //Scopes
     public function scopeRelations($query)
     {
@@ -113,40 +122,5 @@ class Sale extends Model
         if (trim($search) != "") {
             $query->where("branch_id", $search);
         }
-    }
-    //Listener
-    protected static function booted()
-    {
-        parent::boot();
-
-        static::created(function ($sale) {
-            // dd("Listener model", $sale);
-        });
-        static::deleted(function ($sale) {
-            // $sale->processInStorageItem($sale, "deleted");
-        });
-        static::updated(function (Sale $sale) {
-            $type = "";
-            $auth = Auth::user();
-            //delete
-            if (!$auth) {
-                $auth = User::where("id", 2)->first();
-            }
-
-            $dirty = $sale->getDirty();
-            unset($dirty['updated_at']);
-            unset($dirty['updated_id']);
-            $data = ["user_id" => $auth->id, "inputs" => $dirty];
-
-            if (is_null($sale->deleted_at)) {
-                $data['datetime'] = Carbon::now();
-                $type = "updated";
-            } else {
-                $data['datetime'] = Carbon::now();
-                $type = "deleted";
-            }
-
-            $sale->metas()->create(["key" => $type, "value" => $data]);
-        });
     }
 }

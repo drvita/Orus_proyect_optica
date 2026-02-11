@@ -10,7 +10,6 @@ use App\Http\Resources\StoreItemActivity;
 use App\Http\Requests\StoreItem as StoreRequests;
 use App\Http\Requests\StoreItemByList;
 use App\Http\Requests\StoreItemSetCant;
-use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class StoreItemController extends Controller
@@ -31,29 +30,26 @@ class StoreItemController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-
-
-
     public function index(Request $request)
     {
-        $orderby = $request->orderby ? $request->orderby : "created_at";
-        $order = $request->order == "asc" ? "asc" : "desc";
-        $responseType = $request->responseType ? $request->responseType : "json";
-        $page = $request->itemsPage ? $request->itemsPage : 50;
+        $orderby = $request->input("orderby", "created_at");
+        $order = $request->input("order", "desc");
+        $responseType = $request->input("responseType", "json");
+        $page = $request->input("itemsPage", 50);
+        $code = $request->input("code", null) ?? $request->input("codebar", null);
 
         $store = $this->store
-            ->withoutRelations()
             ->orderBy($orderby, $order)
-            ->searchItem((string) $request->search)
-            ->searchCode((string) $request->code, $request->id ?? 0)
-            ->searchCodeBar((string) $request->codebar)
-            ->zero($request->zero)
-            ->category(intval($request->cat))
-            ->searchSupplier($request->supplier)
-            ->publish()
-            ->searchBrand($request->brand)
-            ->filterBranch($request->branch)
-            ->updateDate($request->update);
+            ->withRelations()
+            ->searchItem((string) $request->input("search", ''))
+            ->searchCode((string) $code, $request->input("id", null))
+            ->zero($request->input("zero", "false"))
+            ->category(intval($request->input("cat", null)))
+            ->searchSupplier($request->input("supplier", null))
+            ->searchBrand($request->input("brand", null))
+            ->filterBranch($request->input("branch", null))
+            ->updateDate($request->input("update", null));
+        // dd(self::getEloquentSqlWithBindings($store));
 
         if ($responseType === "csv") {
             $fileName = 'storeItems.csv';
@@ -145,10 +141,9 @@ class StoreItemController extends Controller
      */
     public function destroy(StoreItem $store)
     {
-        $store->deleted_at = Carbon::now();
         $store->updated_id = Auth::user()->id;
         $store->save();
-        //$store->delete();
+        $store->delete();
         return response()->json(null, 204);
     }
     /**

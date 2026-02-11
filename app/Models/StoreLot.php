@@ -24,6 +24,7 @@ class StoreLot extends Model
         'updated_at',
         'created_at'
     ];
+
     //Relationship
     public function user()
     {
@@ -41,13 +42,15 @@ class StoreLot extends Model
     {
         return $this->belongsTo(StoreBranch::class, 'store_branch_id');
     }
+
     //Scopes
-    public function scopeBranch($query, $search)
+    public function scopeBranch($query, int | null $branch_id)
     {
-        if (trim($search) != "") {
-            $query->where("branch_id", $search);
+        if ($branch_id) {
+            $query->where("branch_id", $branch_id);
         }
     }
+
     //Functions
     protected static function booted()
     {

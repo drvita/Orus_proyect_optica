@@ -5,9 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Observers\StoreBranchObserver;
+use App\Traits\Auditable;
 
+#[ObservedBy([StoreBranchObserver::class])]
 class StoreBranch extends Model
 {
+    use Auditable;
     protected $table = 'store_branches';
     protected $fillable = ["cant", "price", "store_item_id", "branch_id", "user_id", "updated_id"];
     protected $dates = [
@@ -15,6 +20,7 @@ class StoreBranch extends Model
         'created_at',
         'deleted_at'
     ];
+
     // Relationship
     public function itemData()
     {
@@ -28,48 +34,38 @@ class StoreBranch extends Model
     {
         return $this->hasMany(StoreLot::class, 'store_branch_id', 'id')->where("cant", ">", 0);
     }
+    public function batches()
+    {
+        return $this->hasMany(StoreLot::class, 'store_branch_id', 'id');
+    }
+
     //Scopes
     public function scopePublish($query)
     {
         $query->whereNull('deleted_at');
     }
-    // Listerning 
-    protected static function booted()
+
+    // Functions
+    public function updateBatchesDecrement(int $cant): ?StoreLot
     {
-        parent::boot();
+        if ($cant <= 0) return null;
 
-        static::created(function (StoreBranch $branch) {
-            $auth = Auth::user();
-            $data = [
-                "user_id" => $auth->id,
-                "inputs" => [
-                    "branch_id" => $branch->branch_id,
-                    "cant" => $branch->cant,
-                    "price" => $branch->price,
-                ],
-                "datetime" => Carbon::now(),
-            ];
+        $batches = $this->batches()
+            ->where("cant", ">", 0)
+            ->orderBy("created_at", "asc")
+            ->get();
 
-            $item = StoreItem::where("id", $branch->store_item_id)->with("metas")->first();
-            $item->metas()->create(["key" => "created branch", "value" => $data]);
-        });
+        $lastBatch = null;
 
-        static::updated(function (StoreBranch $branch) {
-            $auth = Auth::user();
-            $dirty = $branch->getDirty();
-            unset($dirty['updated_at']);
-            unset($dirty['updated_id']);
+        foreach ($batches as $batch) {
+            if ($cant <= 0) break;
 
-            if (!$dirty || !count($dirty)) return;
+            $toTake = min($batch->cant, $cant);
+            $batch->decrement('cant', $toTake);
+            $cant -= $toTake;
+            $lastBatch = $batch;
+        }
 
-            $data = [
-                "user_id" => $auth->id,
-                "inputs" => $dirty,
-                "datetime" => Carbon::now(),
-            ];
-
-            $item = StoreItem::where("id", $branch->store_item_id)->with("metas")->first();
-            $item->metas()->create(["key" => "updated", "value" => $data]);
-        });
+        return $lastBatch;
     }
 }
