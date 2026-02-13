@@ -20,6 +20,7 @@ class OrderActivity extends JsonResource
             $return['bi_box'] = $this->ncaja;
             $return['lab_order'] = $this->npedidolab;
             $return['bi_details'] = $this->observaciones;
+            $return['observaciones'] = $this->observaciones;
             $return['status'] = $this->status;
 
             $return['paciente'] = $this->whenLoaded('paciente', new ContactSimple($this->paciente));
@@ -34,10 +35,13 @@ class OrderActivity extends JsonResource
                 $return['lab_complete'] = $this->whenLoaded('items', function () {
                     return $this->is_lab_complete;
                 });
+                $return['time_process'] = $this->time_process;
             }
 
             $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
             $return['updated_at'] = $this->updated_at ? $this->updated_at->format('Y-m-d H:i') : null;
+            $return['created_by'] = $this->whenLoaded('user', new UserSimple($this->user));
+            $return['updated_by'] = $this->whenLoaded('user_updated', new UserSimple($this->user_updated));
         }
 
         return $return;

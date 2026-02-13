@@ -39,6 +39,9 @@ class OrderController extends Controller
         $currentUser = $request->user();
         $branch_id = $request->input("branch_id", $currentUser->branch_id);
         $patient_id = $request->paciente ?? $request->patient_id ?? $request->contact_id ?? null;
+        $status = $request->status ?? null;
+        $examStatus = $request->exam_status ?? null;
+        $patientName = $request->patient_name ?? null;
 
         if ($branch_id === "all" || !is_numeric($branch_id)) {
             $branch_id = null;
@@ -70,10 +73,12 @@ class OrderController extends Controller
         $orderdb = $this->order
             ->withRelation()
             ->orderBy($orderby, $order)
-            ->status($request->status)
+            ->status($status)
             ->patient($patient_id)
+            ->patientName($patientName)
             ->search($request->search)
             ->branch($branch_id)
+            ->examStatus($examStatus)
             ->paginate($page);
 
         return OrderResources::collection($orderdb);
@@ -112,6 +117,7 @@ class OrderController extends Controller
             'paciente.phones',
             'laboratorio',
             'user',
+            'user_updated',
             'nota',
             'items.lot',
             'items.item.categoria.parent.parent.parent.parent.parent'
@@ -130,6 +136,11 @@ class OrderController extends Controller
         $auth = Auth::user();
         $request['updated_id'] = $auth->id;
         $currentStatus = $order->status ?? 0;
+
+        if ($currentStatus == Order::STATUS_DELIVERED || $currentStatus == Order::STATUS_CANCELLED) {
+            return response()->json(['message' => 'No se puede editar una orden con este estatus'], 400);
+        }
+
         $data = ["status" => $request->status ?? $currentStatus];
         $version = $request->input("version", 1);
         $currentItems = $order->items;
@@ -142,6 +153,14 @@ class OrderController extends Controller
             $data["ncaja"] = $request->bi_box;
             $data["observaciones"] = $request->bi_details;
             Log::info("[OrderController.update] Update data to bi: " . $order->id);
+        } else if ($request->status == 5) {
+            $obs = $request->observaciones;
+            if (!empty($order->observaciones)) {
+                $data["observaciones"] = $order->observaciones . "\nmotivo de cancelacion: " . $obs;
+            } else {
+                $data["observaciones"] = $obs;
+            }
+            Log::info("[OrderController.update] Order cancelled: " . $order->id, ["reason" => $obs]);
         }
         $order->update($data);
 
@@ -150,7 +169,7 @@ class OrderController extends Controller
                 Log::info("[OrderController.update] Order processing items: " . $order->id);
                 \App\Jobs\ProcessOrderItems::dispatchSync($order, $request->items, $request->user());
             }
-            if ($request->has("sale") && $currentStatus == 0) {
+            if ($request->has("sale") && in_array($currentStatus, [0, 3])) {
                 Log::info("[OrderController.update] Order processing sale: " . $order->id);
                 \App\Jobs\ProcessOrderSale::dispatchSync($order, $request->sale, $request->user());
             }

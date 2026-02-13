@@ -38,6 +38,12 @@ class OrderObserver
      */
     public function updating(Order $order): void
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            $order->updated_id = $user->id;
+        } else {
+            $order->updated_id = 1;
+        }
         if ($order->isDirty('status') && $order->status == Order::STATUS_DELIVERED) {
             $order->delivered_at = now();
         }

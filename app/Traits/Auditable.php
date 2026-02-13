@@ -13,7 +13,11 @@ trait Auditable
     public static function bootAuditable()
     {
         static::created(function (Model $model) {
-            $user_id = Auth::id() ?? $model->user_id ?? null;
+            $user_id = $model->user_id ?? null;
+            if (Auth::check()) {
+                $user = Auth::user();
+                $user_id = $user->id ?? $model->user_id ?? null;
+            }
             $model->metas()->create([
                 "key" => "created",
                 "value" => [
@@ -43,8 +47,13 @@ trait Auditable
             }
 
             if (count($changes) > 0) {
+                $user_id = $model->user_id ?? null;
+                if (Auth::check()) {
+                    $user = Auth::user();
+                    $user_id = $user->id ?? $model->user_id ?? null;
+                }
                 $data = [
-                    "user_id" => $model->updated_id ?? Auth::id() ?? $model->user_id,
+                    "user_id" => $user_id,
                     "inputs" => $changes,
                     "datetime" => $model->updated_at,
                     "session" => [
@@ -67,10 +76,15 @@ trait Auditable
 
         if (method_exists(static::class, 'restored')) {
             static::restored(function (Model $model) {
+                $user_id = $model->user_id ?? null;
+                if (Auth::check()) {
+                    $user = Auth::user();
+                    $user_id = $user->id ?? $model->user_id ?? null;
+                }
                 $model->metas()->create([
                     "key" => "restored",
                     "value" => [
-                        "user_id" => Auth::id(),
+                        "user_id" => $user_id,
                         "datetime" => now(),
                         "session" => [
                             "ip" => request()->ip(),

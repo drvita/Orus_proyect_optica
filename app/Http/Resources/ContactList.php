@@ -14,8 +14,8 @@ class ContactList extends JsonResource
         $return = [];
         if (isset($this->id)) {
             $return['id'] = $this->id;
-            $return['name'] = $this->name;
-            $return['email'] = $this->email;
+            $return['name'] = strtolower($this->name);
+            $return['email'] = strtolower($this->email);
             $return['type'] = $this->type;
             $return['age'] = $this->age;
             $return['business'] = $this->business;

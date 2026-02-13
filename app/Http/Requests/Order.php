@@ -75,7 +75,7 @@ class Order extends FormRequest
         $version = (int) $this->input('version', 1);
         $isVersion2 = $version >= 2;
         $rules = [
-            'status' => ['required', 'numeric', 'between:0,4'],
+            'status' => ['required', 'numeric', 'between:0,5'],
         ];
 
         $status = (int) $this->input('status');
@@ -92,6 +92,8 @@ class Order extends FormRequest
         } elseif ($status === 2 && !$isVersion2) {
             $rules['bi_box'] = ['nullable', 'numeric', 'min:1'];
             $rules['bi_details'] = ['nullable', 'string'];
+        } elseif ($status === 5) {
+            $rules['observaciones'] = ['required', 'string', 'min:3'];
         }
 
         if ($isVersion2) {

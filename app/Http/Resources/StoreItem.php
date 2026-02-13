@@ -48,9 +48,9 @@ class StoreItem extends JsonResource
             }
 
             $return['id'] = $this->id;
-            $return['name'] = $this->name;
-            $return['code'] = $this->code ? $this->code : "";
-            $return['barcode'] = $this->codebar ? $this->codebar : "";
+            $return['name'] = strtolower($this->name);
+            $return['code'] = strtolower($this->code ? $this->code : "");
+            $return['barcode'] = strtolower($this->codebar ? $this->codebar : "");
             $return['grad'] = $this->grad ? $this->grad : "+000000";
             $return['und'] = $this->unit;
             $return['cant_total'] = $cantAll;

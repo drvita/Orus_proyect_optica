@@ -95,6 +95,14 @@ class Order extends Model
             $query->where("contact_id", $id);
         }
     }
+    public function scopePatientName($query, string | null $name)
+    {
+        if (!is_null($name)) {
+            $query->whereHas('paciente', function ($query) use ($name) {
+                $query->where('name', "LIKE", "%{$name}%");
+            });
+        }
+    }
     public function scopeSearch($query, string | null $search)
     {
         if (!is_null($search) && !empty($search)) {
@@ -128,6 +136,14 @@ class Order extends Model
     {
         if (!is_null($branch_id)) {
             $query->where("branch_id", $branch_id);
+        }
+    }
+    public function scopeExamStatus($query, null | int $state)
+    {
+        if (!is_null($state)) {
+            $query->whereHas('examen', function ($q) use ($state) {
+                $q->where("status", $state);
+            });
         }
     }
 
@@ -165,5 +181,15 @@ class Order extends Model
         }
 
         return (!empty($this->npedidolab) && !empty($this->lab_id)) || $allItemsAssigned;
+    }
+    public function getTimeProcessAttribute()
+    {
+        if (!$this->delivered_at) {
+            return null;
+        }
+
+        $diffDays = $this->created_at->floatDiffInDays($this->delivered_at);
+
+        return $diffDays < 1 ? 1 : round($diffDays, 2);
     }
 }

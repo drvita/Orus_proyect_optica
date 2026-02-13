@@ -13,7 +13,7 @@ class BrandShort extends JsonResource
 
         if (isset($this->id)) {
             $return['id'] = $this->id;
-            $return['name'] = $this->name;
+            $return['name'] = strtolower($this->name);
         }
 
 
