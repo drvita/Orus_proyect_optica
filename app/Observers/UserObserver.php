@@ -56,7 +56,12 @@ class UserObserver
             return;
         }
 
-        $data = ["user_id" => Auth::id() ?? 1, "inputs" => $dirty];
+        $user_id = 1;
+        if (Auth::check()) {
+            $user_id = Auth::user()->id;
+        }
+
+        $data = ["user_id" => $user_id, "inputs" => $dirty];
         if (is_null($user->deleted_at)) {
             $data['datetime'] = Carbon::now();
             $type = "updated";

@@ -166,7 +166,7 @@ class ContactController extends Controller
         Log::info("[contact.update] Update contact: " . $contact->id, $request->all());
         $contact->update($request->all());
         $contact->saveMetas($request);
-        return new ContactResource($contact);
+        return new ContactShowV2($contact->load(['phones']));
     }
 
     /**

@@ -113,10 +113,11 @@ class Order extends Model
                 ->orWhere("id", $search);
         }
     }
-    public function scopeStatus($query, null | int $state)
+    public function scopeStatus($query, null | string $state)
     {
-        if (!is_null($state)) {
-            $query->where("status", $state);
+        if (!is_null($state) && trim($state) !== '') {
+            $states = explode(',', $state);
+            $query->whereIn("status", $states);
         }
     }
     public function scopeWithRelation($query)

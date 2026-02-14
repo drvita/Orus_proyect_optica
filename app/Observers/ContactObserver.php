@@ -32,7 +32,8 @@ class ContactObserver
     public function updating(Contact $contact): void
     {
         if (Auth::check()) {
-            $contact->updated_id = Auth::id();
+            $user = Auth::user();
+            $contact->updated_id = $user->id;
         }
     }
 

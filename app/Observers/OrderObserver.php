@@ -48,4 +48,18 @@ class OrderObserver
             $order->delivered_at = now();
         }
     }
+
+    /**
+     * Handle the Order "updated" event.
+     */
+    public function updated(Order $order): void
+    {
+        if ($order->wasChanged('status') && $order->status == Order::STATUS_CANCELLED) {
+            $exam = $order->examen;
+
+            if ($exam?->status === 0 && $exam?->created_at->isSameDay($order->created_at)) {
+                $exam->delete();
+            }
+        }
+    }
 }

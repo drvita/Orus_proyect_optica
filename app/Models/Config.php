@@ -26,6 +26,10 @@ class Config extends Model
                 if (is_null($test)) {
                     return $value;
                 }
+                if (is_string($test) && (str_starts_with($test, '{') || str_starts_with($test, '['))) {
+                    $test2 = json_decode($test, true);
+                    return json_last_error() === JSON_ERROR_NONE ? $test2 : $test;
+                }
                 return $test;
             }
             return $value;
