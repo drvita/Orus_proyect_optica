@@ -10,10 +10,11 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Auditable;
 
 class Payment extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Auditable;
 
     protected $table = "payments";
     protected $fillable = [
@@ -54,10 +55,6 @@ class Payment extends Model
     public function branch()
     {
         return $this->belongsTo(Config::class, 'branch_id', 'id');
-    }
-    public function metas()
-    {
-        return $this->morphMany(Meta::class, 'metable');
     }
     //Scopes
     public function scopeSale($query, $search)

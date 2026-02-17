@@ -14,6 +14,7 @@ class ExamObserver
      */
     public function creating(Exam $exam): void
     {
+        $exam->status = 0;
         if (Auth::check()) {
             /** @var \App\Models\User $user */
             $user = Auth::user();
@@ -27,9 +28,31 @@ class ExamObserver
                 if ($doctor_assigned) {
                     $exam->user_id = $doctor_assigned->id;
                 }
+
+                $graduationFields = [
+                    'esferaoi',
+                    'esferaod',
+                    'cilindroi',
+                    'cilindrod',
+                    'ejeoi',
+                    'ejeod',
+                    'adicioni',
+                    'adiciond',
+                    'dpoi',
+                    'dpod',
+                    'avfod',
+                    'avfoi',
+                    'avf2o'
+                ];
+
+                foreach ($graduationFields as $field) {
+                    if ($exam->$field !== null && $exam->$field != 0 && $exam->$field !== '') {
+                        $exam->status = 1;
+                        break;
+                    }
+                }
             }
         }
-        $exam->status = 0;
     }
 
     /**

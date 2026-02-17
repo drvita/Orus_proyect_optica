@@ -107,10 +107,11 @@ class Order extends FormRequest
             $rules['items.*.price'] = ['required', 'numeric', 'min:1'];
             $rules['sale.discount'] = ['nullable', 'numeric'];
             $rules['sale.payments'] = ['nullable', 'array'];
-            $rules['sale.payments.*.metodopago'] = ['required', 'numeric', 'between:0,6'];
+            $rules['sale.payments.*.metodopago'] = ['required', 'numeric', 'between:0,7'];
             $rules['sale.payments.*.total'] = ['required', 'numeric', 'min:1'];
             $rules['sale.payments.*.bank_id'] = ['required_unless:sale.payments.*.metodopago,0,1,4'];
             $rules['sale.payments.*.auth'] = ['required_unless:sale.payments.*.metodopago,0,1'];
+            $rules['sale.payments.*.details'] = ['nullable', 'string', 'max:100'];
         }
 
         return $rules;
