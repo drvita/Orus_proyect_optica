@@ -30,44 +30,81 @@ class AuthController extends Controller
      */
     public function login(AuthRequest $request): JsonResponse
     {
-        // Find the user by email
-        /** @var User $user */
-        $user = $this->user->userEmail($request->email)->first();
-        $version = $request->input('version', 'v1');
+        Log::debug('Login attempt started', ['email' => $request->email]);
+        try {
+            // Find the user by email
+            /** @var User $user */
+            $user = $this->user->userEmail($request->email)->first();
+            $version = $request->input('version', 'v1');
 
-        // Check if user exists and password is correct
-        if ($user && Hash::check($request->password, $user->password)) {
-            // Register logins
-            $user->registerLogin();
-            // Create a token with Sanctum
-            $token = $user->createToken('api-token')->plainTextToken;
-            // Update or create session record
-            Session::updateOrCreate(
-                ['session_id' => $user->id],
-                [
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                    'last_activity' => now(),
-                    'user_data' => $version === 'v1' ? $token : "{$user->username}::{$user->email}::{$user->roles->first()->name}"
-                ]
-            );
+            Log::debug('User lookup completed', [
+                'user_found' => (bool)$user,
+                'version' => $version
+            ]);
 
-            $user->load(['metas', 'branch', 'session']);
+            // Check if user exists and password is correct
+            if ($user && Hash::check($request->password, $user->password)) {
+                Log::debug('Password check successful');
 
-            return response()->json([
-                'status' => true,
-                'data' => new UserResource($user),
-                'token' => $token,
-                'version' => $version,
-            ], 200);
-        } else {
-            // Authentication failed
-            $errorMessage = $user ? 'La contraseña es incorrecta' : 'Las credenciales del usuario no son correctas';
+                // Register logins
+                $user->registerLogin();
+                Log::debug('Login registered');
+
+                // Create a token with Sanctum
+                $token = $user->createToken('api-token')->plainTextToken;
+                Log::debug('Token created');
+
+                // Update or create session record
+                Log::debug('Updating session', [
+                    'user_id' => $user->id,
+                    'ip' => $request->ip()
+                ]);
+
+                // Possible crash point: $user->roles->first()->name
+                $userData = $version === 'v1' ? $token : "{$user->username}::{$user->email}::" . ($user->roles->first() ? $user->roles->first()->name : 'no-role');
+
+                Session::updateOrCreate(
+                    ['session_id' => $user->id],
+                    [
+                        'ip_address' => $request->ip(),
+                        'user_agent' => $request->userAgent(),
+                        'last_activity' => now(),
+                        'user_data' => $userData
+                    ]
+                );
+                Log::debug('Session updated');
+
+                $user->load(['metas', 'branch', 'session']);
+                Log::debug('User relations loaded');
+
+                return response()->json([
+                    'status' => true,
+                    'data' => new UserResource($user),
+                    'token' => $token,
+                    'version' => $version,
+                ], 200);
+            } else {
+                Log::debug('Authentication failed: user not found or password incorrect');
+                // Authentication failed
+                $errorMessage = $user ? 'La contraseña es incorrecta' : 'Las credenciales del usuario no son correctas';
+
+                return response()->json([
+                    'status' => false,
+                    'message' => $errorMessage,
+                ], 401);
+            }
+        } catch (\Exception $e) {
+            Log::error('Login Server Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return response()->json([
                 'status' => false,
-                'message' => $errorMessage,
-            ], 401);
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+            ], 500);
         }
     }
     /**
