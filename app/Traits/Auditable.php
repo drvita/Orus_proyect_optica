@@ -30,6 +30,7 @@ trait Auditable
                 ]
             ]);
             Log::info("[Auditable] " . class_basename($model) . " created: " . $model->id);
+            static::generateSystemMessage($model, 'created');
         });
 
         static::updated(function (Model $model) {
@@ -72,6 +73,11 @@ trait Auditable
                 ]);
             }
             Log::info("[Auditable] " . class_basename($model) . " updated: " . $model->id);
+            static::generateSystemMessage($model, $type);
+        });
+
+        static::deleted(function (Model $model) {
+            static::generateSystemMessage($model, 'deleted');
         });
 
         if (method_exists(static::class, 'restored')) {
@@ -142,5 +148,55 @@ trait Auditable
             ]
         ]);
         Log::info("[Auditable] " . class_basename($this) . " logged out: " . ($this->email ?? $this->id));
+    }
+
+
+    /**
+     * Generate system message for specific models
+     */
+    protected static function generateSystemMessage(Model $model, string $event)
+    {
+        $class = get_class($model);
+
+        // Validation: Only specific models
+        if (!array_key_exists($class, \App\Models\Message::SYSTEM_MESSAGES)) {
+            return;
+        }
+
+        // Validation: Check Contact ID
+        $contactId = null;
+        if ($model instanceof \App\Models\Contact) {
+            $contactId = $model->id;
+        } elseif (!empty($model->contact_id)) {
+            $contactId = $model->contact_id;
+        }
+
+        if (!$contactId) {
+            return;
+        }
+
+        // Get Random Message
+        $messages = \App\Models\Message::SYSTEM_MESSAGES[$class][$event] ?? [];
+        if (empty($messages)) {
+            return;
+        }
+        $template = $messages[array_rand($messages)];
+
+        // Replace placeholders
+        $messageBody = str_replace(
+            ['{name}', '{id}'],
+            [$model->name ?? '', $model->id],
+            $template
+        );
+
+        // Create Message
+        \App\Models\Message::create([
+            'user_id' => 1,
+            'message' => $messageBody,
+            'messagable_type' => 'App\Models\Contact',
+            'messagable_id' => $contactId,
+        ]);
+
+        Log::info("[Auditable] System message created for $class {$model->id} ($event)");
     }
 }

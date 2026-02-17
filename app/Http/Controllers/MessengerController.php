@@ -12,12 +12,6 @@ class MessengerController extends Controller
 {
     protected $message;
 
-    const TABLE_MAP = [
-        'orders' => 'App\Models\Order',
-        'contacts' => 'App\Models\Contact',
-        'exams' => 'App\Models\Exam',
-    ];
-
     public function __construct(\App\Models\Message $message)
     {
         $this->middleware('can:messenger.list')->only('index');
@@ -47,11 +41,11 @@ class MessengerController extends Controller
                 return response()->json(['error' => 'idRow is required for version 2'], 422);
             }
 
-            if (!array_key_exists($table, self::TABLE_MAP)) {
+            if (!array_key_exists($table, \App\Models\Message::TABLE_MAP)) {
                 return response()->json(['error' => 'tabla no valida'], 400);
             }
 
-            $type = self::TABLE_MAP[$table];
+            $type = \App\Models\Message::TABLE_MAP[$table];
             $query->where('messagable_type', $type)->where('messagable_id', $idRow);
         } else {
             // Version 1: Translate legacy fields to polymorphic
@@ -67,8 +61,8 @@ class MessengerController extends Controller
                     } else {
                         return response()->json(['error' => 'Order not found'], 404);
                     }
-                } elseif (array_key_exists($table, self::TABLE_MAP)) {
-                    $query->where('messagable_type', self::TABLE_MAP[$table])
+                } elseif (array_key_exists($table, \App\Models\Message::TABLE_MAP)) {
+                    $query->where('messagable_type', \App\Models\Message::TABLE_MAP[$table])
                         ->where('messagable_id', $idRow);
                 }
             }
@@ -93,11 +87,11 @@ class MessengerController extends Controller
             $table = $request->input('table', 'contacts');
             $idRow = $request->idRow;
 
-            if (!array_key_exists($table, self::TABLE_MAP)) {
+            if (!array_key_exists($table, \App\Models\Message::TABLE_MAP)) {
                 return response()->json(['error' => 'tabla no valida'], 400);
             }
 
-            $data['messagable_type'] = self::TABLE_MAP[$table];
+            $data['messagable_type'] = \App\Models\Message::TABLE_MAP[$table];
             $data['messagable_id'] = $idRow;
         } else {
             // Version 1: Translate legacy fields to polymorphic
@@ -113,8 +107,8 @@ class MessengerController extends Controller
                     } else {
                         return response()->json(['error' => 'Order not found'], 404);
                     }
-                } elseif (array_key_exists($table, self::TABLE_MAP)) {
-                    $data['messagable_type'] = self::TABLE_MAP[$table];
+                } elseif (array_key_exists($table, \App\Models\Message::TABLE_MAP)) {
+                    $data['messagable_type'] = \App\Models\Message::TABLE_MAP[$table];
                     $data['messagable_id'] = $idRow;
                 }
             }
