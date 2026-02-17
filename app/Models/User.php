@@ -81,6 +81,10 @@ class User extends Authenticatable
     {
         return $this->metas()->whereIn("key", $this::SOCIAL_CHANNELS)->get();
     }
+    public function getRoleAttribute()
+    {
+        return $this->roles->first();
+    }
 
     // Scopes
     public function scopeSearch($query, $search)

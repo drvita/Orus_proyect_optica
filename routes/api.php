@@ -73,4 +73,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('atms', AtmController::class);
     Route::apiResource('brands', BrandController::class);
     Route::apiResource('messengers', MessengerController::class);
+    Route::apiResource('messages', MessengerController::class);
 });

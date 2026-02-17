@@ -24,7 +24,7 @@ class Messenger extends FormRequest
     public function rules()
     {
         return [
-            "table" => "required",
+            "table" => "nullable",
             "idRow" => "required",
             "message" => "required"
         ];
