@@ -7,6 +7,7 @@ use App\Http\Resources\Messenger as MessengerResource;
 use App\Http\Requests\Messenger as MessengerRequests;
 use App\Models\Messenger;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class MessengerController extends Controller
 {
@@ -74,7 +75,8 @@ class MessengerController extends Controller
             }
         }
 
-        $messages = $query->paginate($request->input('itemsPage', 50));
+        $messages = $query->where('created_at', '>=', Carbon::now()->subYear())
+            ->paginate($request->input('itemsPage', 50));
         return MessengerResource::collection($messages);
     }
 
