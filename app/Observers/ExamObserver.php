@@ -20,6 +20,7 @@ class ExamObserver
             $user = Auth::user();
             $exam->user_id = $user->id;
             $exam->branch_id = $user->branch_id;
+            $exam->observaciones = $exam->observaciones ? strtolower($exam->observaciones) : "";
 
             if (!$user->hasRole("doctor")) {
                 $doctor_assigned = User::where("branch_id", $user->branch_id)
@@ -48,6 +49,7 @@ class ExamObserver
                 foreach ($graduationFields as $field) {
                     if ($exam->$field !== null && $exam->$field != 0 && $exam->$field !== '') {
                         $exam->status = 1;
+                        $exam->observaciones = "examen externo";
                         break;
                     }
                 }

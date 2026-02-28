@@ -33,6 +33,12 @@ class MessengerController extends Controller
 
         $query = $this->message->orderBy($orderby, $order);
 
+        // Filter out bot messages (user_id 1) for ventas and doctor roles
+        $user = $request->user();
+        if ($user && ($user->hasRole('ventas') || $user->hasRole('doctor'))) {
+            $query->where('user_id', '!=', 1);
+        }
+
         if ($version == 2) {
             $table = $request->query('table', 'contacts');
             $idRow = $request->query('idRow');

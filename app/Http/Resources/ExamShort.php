@@ -30,6 +30,7 @@ class ExamShort extends JsonResource
             $return['alturaoi'] = $this->alturaoi ?? 0;
             $return['lcgod'] = $this->lcgod ?? 0;
             $return['lcgoi'] = $this->lcgoi ?? 0;
+            $return['observaciones'] = $this->observaciones ?? null;
             $return['category_ii'] = $this->category_ii ?? null;
             $return['category_id'] = $this->category_id ?? null;
 
