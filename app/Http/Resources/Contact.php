@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Carbon\Carbon;
 use App\Http\Resources\ExamShort as ExamResource;
 use App\Http\Resources\BrandShort as BrandResource;
 use App\Http\Resources\OrderInExam as OrderResource;
@@ -14,6 +13,7 @@ class Contact extends JsonResource
     public function toArray($request)
     {
         $return = [];
+        $version = $request->input('version', 'v1');
 
         if (isset($this->id)) {
             $exams = $this->whenLoaded('exams');
@@ -53,16 +53,20 @@ class Contact extends JsonResource
             $return['business'] = $this->business;
             $return['age'] = $this->age;
 
-            $return['phones'] = $this->whenLoaded('phones', function () {
-                $allPhones = $this->phones;
-                $movil = $allPhones->whereIn('type', ['whatsapp', 'movil'])->first();
-                $others = $allPhones->whereNotIn('type', ['whatsapp', 'movil'])->first();
+            $return['phones'] = $this->whenLoaded('phones', function () use ($version) {
+                if ($version == 'v1') {
+                    $allPhones = $this->phones;
+                    $movil = $allPhones->whereIn('type', ['whatsapp', 'movil'])->first();
+                    $others = $allPhones->whereNotIn('type', ['whatsapp', 'movil'])->first();
 
-                return [
-                    'cell' => $movil?->number ?? '',
-                    'office' => $others?->number ?? '',
-                    'notices' => ''
-                ];
+                    return [
+                        'cell' => $movil?->number ?? '',
+                        'office' => $others?->number ?? '',
+                        'notices' => ''
+                    ];
+                } else {
+                    return new PhoneNumberCollection($this->phones);
+                }
             });
             $return['address'] = new ContactAddress($this->domicilio);
 

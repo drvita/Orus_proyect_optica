@@ -49,7 +49,7 @@ class ExamObserver
                 foreach ($graduationFields as $field) {
                     if ($exam->$field !== null && $exam->$field != 0 && $exam->$field !== '') {
                         $exam->status = 1;
-                        $exam->observaciones = "examen externo";
+                        // $exam->observaciones = "examen externo";
                         break;
                     }
                 }
