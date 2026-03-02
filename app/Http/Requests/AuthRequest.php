@@ -26,7 +26,7 @@ class AuthRequest extends FormRequest
         return [
             'email' => 'required|email',
             'password' => 'required|min:8',
-            'branch_id' => 'required|exists:config,id,name,branches'
+            'branch_id' => 'nullable|exists:config,id,name,branches'
         ];
     }
 }
