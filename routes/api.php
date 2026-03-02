@@ -23,6 +23,8 @@ Route::post('user/login', [AuthController::class, 'login'])->name('user.login');
 Route::post('auth/validate-password-token', [AuthController::class, 'validateResetToken'])->name('auth.validateToken');
 Route::post('auth/reset-password', [AuthController::class, 'resetPassword'])->name('auth.resetPassword');
 Route::post('auth/request-reset-by-email', [AuthController::class, 'publicRequestPasswordReset'])->name('auth.requestResetEmail');
+//Config: Branches
+Route::get('/config/branches', [ConfigController::class, 'branches']);
 
 Route::middleware('auth:sanctum')->group(function () {
     // Current User Actions
@@ -46,8 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/categories/setprice/{category}', [CategoryController::class, 'setPriceByCategory']);
     Route::apiResource('categories', CategoryController::class);
 
-    // Config & Branches
-    Route::get('/config/branches', [ConfigController::class, 'branches']);
+    // Config
     Route::get('/config/banks', [ConfigController::class, 'banks']);
     Route::apiResource('config', ConfigController::class);
 

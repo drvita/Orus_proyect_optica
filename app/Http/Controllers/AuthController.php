@@ -9,6 +9,7 @@ use App\Models\Session;
 use App\Http\Resources\UserNoty;
 use App\Http\Resources\User as UserResource;
 use App\Http\Requests\AuthRequest;
+use App\Models\Config;
 use Illuminate\Http\JsonResponse;
 use App\Services\PasswordResetService;
 use Illuminate\Support\Facades\Log;
@@ -30,36 +31,19 @@ class AuthController extends Controller
      */
     public function login(AuthRequest $request): JsonResponse
     {
-        Log::debug('Login attempt started', ['email' => $request->email]);
+        Log::info('[Auth] Login attempt', ['email' => $request->email]);
         try {
             // Find the user by email
             /** @var User $user */
             $user = $this->user->userEmail($request->email)->first();
             $version = $request->input('version', 'v1');
 
-            Log::debug('User lookup completed', [
-                'user_found' => (bool)$user,
-                'version' => $version
-            ]);
-
             // Check if user exists and password is correct
             if ($user && Hash::check($request->password, $user->password)) {
-                Log::debug('Password check successful');
-
                 // Register logins
                 $user->registerLogin();
-                Log::debug('Login registered');
-
                 // Create a token with Sanctum
                 $token = $user->createToken('api-token')->plainTextToken;
-                Log::debug('Token created');
-
-                // Update or create session record
-                Log::debug('Updating session', [
-                    'user_id' => $user->id,
-                    'ip' => $request->ip()
-                ]);
-
                 // Possible crash point: $user->roles->first()->name
                 $userData = $version === 'v1' ? $token : "{$user->username}::{$user->email}::" . ($user->roles->first() ? $user->roles->first()->name : 'no-role');
 
@@ -72,11 +56,17 @@ class AuthController extends Controller
                         'user_data' => $userData
                     ]
                 );
-                Log::debug('Session updated');
+
+                if ($version === '2' && $request->has('branch_id')) {
+                    if ($request->branch_id !== $user->branch_id) {
+                        $user->branch_id = $request->branch_id;
+                        $user->save();
+                        Log::info('[Auth] Branch ID updated', ['email' => $user->email, 'branch_id' => $request->branch_id]);
+                    }
+                }
 
                 $user->load(['metas', 'branch', 'session']);
-                Log::debug('User relations loaded');
-
+                Log::info('[Auth] Login success', ['email' => $user->email, 'branch_id' => $user->branch_id, 'version' => $version]);
                 return response()->json([
                     'status' => true,
                     'data' => new UserResource($user),
@@ -84,7 +74,7 @@ class AuthController extends Controller
                     'version' => $version,
                 ], 200);
             } else {
-                Log::debug('Authentication failed: user not found or password incorrect');
+                Log::info('[Auth] Authentication failed: user not found or password incorrect', ['email' => $request->email]);
                 // Authentication failed
                 $errorMessage = $user ? 'La contraseña es incorrecta' : 'Las credenciales del usuario no son correctas';
 
@@ -94,7 +84,7 @@ class AuthController extends Controller
                 ], 401);
             }
         } catch (\Exception $e) {
-            Log::error('Login Server Error', [
+            Log::error('[Auth] Login Server Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
