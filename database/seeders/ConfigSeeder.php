@@ -6,7 +6,7 @@ use App\Models\Config;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
-class BankSeeder extends Seeder
+class ConfigSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -57,7 +57,7 @@ class BankSeeder extends Seeder
                     return false;
                 }
 
-                $normalizedVal = $this->normalize((string)$val);
+                $normalizedVal = $this->normalize($val);
                 $normalizedBankName = $this->normalize($bankName);
 
                 // Direct match
@@ -129,6 +129,46 @@ class BankSeeder extends Seeder
                 Config::create([
                     'name' => 'branches',
                     'value' => json_encode($branch)
+                ]);
+            }
+        }
+
+        $partners = [
+            'CFE Transmisión',
+            'CFE Generación',
+            'CFE Termo',
+            'CFE Capacitación',
+            'CFE SLP',
+            'CFE Morelia',
+            'CFE Coquimatlán',
+            'Banorte',
+            'Santander',
+            'Colegio Anáhuac Primaria',
+            'Colegio Anáhuac Secundaria',
+            'Colegio Anáhuac Prepa',
+            'Holcim-Apasco',
+            'Geocycle',
+        ];
+
+        $existingPartners = Config::where('name', 'partner')->get();
+
+        foreach ($partners as $partnerName) {
+            $existing = $existingPartners->first(function ($config) use ($partnerName) {
+                $val = $config->value;
+                if (is_array($val) || is_object($val)) {
+                    return false;
+                }
+                return $this->normalize($val) === $this->normalize($partnerName);
+            });
+
+            if ($existing) {
+                if ($existing->value !== $partnerName) {
+                    $existing->update(['value' => $partnerName]);
+                }
+            } else {
+                Config::create([
+                    'name' => 'partner',
+                    'value' => $partnerName
                 ]);
             }
         }

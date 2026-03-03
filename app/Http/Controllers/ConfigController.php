@@ -7,6 +7,7 @@ use App\Http\Resources\BranchesStore;
 use App\Http\Resources\BankStore;
 use App\Models\Config;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ConfigController extends Controller
 {
@@ -16,9 +17,9 @@ class ConfigController extends Controller
     {
         $this->middleware('can:config.list')->only('index');
         $this->middleware('can:config.show')->only('show');
-        $this->middleware('can:config.add')->only('store');
-        $this->middleware('can:config.edit')->only('update');
-        $this->middleware('can:config.delete')->only('destroy');
+        // $this->middleware('can:config.add')->only('store');
+        // $this->middleware('can:config.edit')->only('update');
+        // $this->middleware('can:config.delete')->only('destroy');
         $this->config = $config;
     }
     /**
@@ -30,12 +31,18 @@ class ConfigController extends Controller
     {
         $orderby = $request->orderby ? $request->orderby : "value";
         $order = $request->order == "desc" ? "desc" : "asc";
-        $page = $request->itemsPage ? $request->itemsPage : 50;
-
-        $config = $this->config
+        $query = $this->config
             ->orderBy($orderby, $order)
-            ->name($request->name)
-            ->paginate($page);
+            ->name($request->name);
+
+        if ($request->has('itemsPage') && ($request->itemsPage === 0 || $request->itemsPage === '0')) {
+            $limit = $request->input('limit', 100);
+            $config = $query->limit($limit)->get();
+        } else {
+            $page = $request->input('itemsPage', 50);
+            $config = $query->paginate($page);
+        }
+
         return ResourcesConfig::collection($config);
     }
 
@@ -47,17 +54,19 @@ class ConfigController extends Controller
      */
     public function store(Request $request)
     {
+        // Log::debug("[ConfigController] Store request: ", $request->all());
         if (is_string($request->value)) {
             $value = $request->value;
         } else {
             $value = json_encode($request->value);
         }
 
-        $category = Config::create([
+        $config = Config::create([
             'name' => $request->input('name'),
             'value' => $value,
         ]);
-        return new ResourcesConfig($category);
+        Log::info("[ConfigController] Store: " . $config->name);
+        return new ResourcesConfig($config);
     }
 
     /**
@@ -87,6 +96,7 @@ class ConfigController extends Controller
         }
 
         $config->update($data);
+        Log::info("[ConfigController] Update: " . $config->name);
         return new ResourcesConfig($config);
     }
 
@@ -99,7 +109,7 @@ class ConfigController extends Controller
     public function destroy(Config $config)
     {
         $config->delete();
-        return response()->json(null, 204);
+        return response()->json($config, 204);
     }
 
     /**
@@ -116,7 +126,22 @@ class ConfigController extends Controller
      */
     public function banks()
     {
-        $banks = $this->config->where('name', 'bank')->get();
+        $banks = $this->config
+            ->where('name', 'bank')
+            ->orderBy('value', 'asc')
+            ->get();
         return BankStore::collection($banks);
+    }
+
+    /**
+     * Devuelve solo los partners
+     */
+    public function partners()
+    {
+        $partners = $this->config
+            ->where('name', 'partner')
+            ->orderBy('value', 'asc')
+            ->get();
+        return BankStore::collection($partners);
     }
 }

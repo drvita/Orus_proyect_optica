@@ -48,8 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/categories/setprice/{category}', [CategoryController::class, 'setPriceByCategory']);
     Route::apiResource('categories', CategoryController::class);
 
-    // Config
+    // Configs: banks, partners, all
     Route::get('/config/banks', [ConfigController::class, 'banks']);
+    Route::get('/config/partners', [ConfigController::class, 'partners']);
     Route::apiResource('config', ConfigController::class);
 
     // Store & Items

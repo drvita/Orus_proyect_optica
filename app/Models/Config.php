@@ -40,8 +40,14 @@ class Config extends Model
 
     public function scopeName($query, $search)
     {
-        if (trim($search) === "") {
-            $query->where("name", "LIKE", $search);
+        if (!empty($search)) {
+            if (is_array($search)) {
+                $query->whereIn("name", $search);
+            } elseif (str_contains($search, ',')) {
+                $query->whereIn("name", explode(',', $search));
+            } else {
+                $query->where("name", "LIKE", "%" . trim($search) . "%");
+            }
         }
     }
 }
