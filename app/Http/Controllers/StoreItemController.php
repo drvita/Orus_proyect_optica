@@ -11,6 +11,8 @@ use App\Http\Requests\StoreItem as StoreRequests;
 use App\Http\Requests\StoreItemByList;
 use App\Http\Requests\StoreItemSetCant;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class StoreItemController extends Controller
 {
@@ -187,84 +189,100 @@ class StoreItemController extends Controller
     public function storeList(StoreItemByList $request)
     {
         $auth = $request->user();
+        DB::beginTransaction();
 
-        foreach ($request->items as $row) {
-            $item = StoreItem::where("code", $row['code'])->first();
-            if (!$item && isset($row['codebar']) && $row['codebar']) {
-                $item = StoreItem::where("codebar", $row['codebar'])->first();
-            }
+        try {
+            foreach ($request->items as $row) {
+                $item = StoreItem::withTrashed()->where("code", $row['code'])->first();
+                if (!$item && isset($row['codebar']) && $row['codebar']) {
+                    $item = StoreItem::withTrashed()->where("codebar", $row['codebar'])->first();
+                }
 
-            if (!$item) {
-                do {
-                    if ($this->validateNameStore($row['name'])) {
-                        break;
-                    }
-                    $row['name'] .= " - " . Str::random(6);
-                } while (false);
+                if ($item && $item->trashed()) {
+                    $item->restore();
+                }
 
-                $row['contact_id'] = $row['supplier_id'];
-                $row['unit'] = "pz";
-                $row['user_id'] = $auth->id;
-                try {
+                if (!$item) {
+                    do {
+                        if ($this->validateNameStore($row['name'])) {
+                            break;
+                        }
+                        $row['name'] .= " - " . Str::random(6);
+                    } while (false);
+
+                    $row['contact_id'] = $row['supplier_id'];
+                    $row['unit'] = "pz";
+                    $row['user_id'] = $auth->id;
                     $item = StoreItem::create($row);
-                } catch (\Throwable $th) {
-                    throw $th;
+                }
+
+                $branch_id = $item->branch_default ? $item->branch_default : $row['branch_id'];
+                $branch = $item->inBranch()->where("branch_id", $branch_id)->first();
+                if (!$branch) {
+                    $branch = $item->inBranch()->create([
+                        "user_id" => $auth->id,
+                        "store_item_id" => $item->id,
+                        "branch_id" => $branch_id,
+                        "cant" => $row['cant'],
+                        "price" => $row['price'],
+                    ]);
+                } else {
+                    if ($branch->cant < 0) {
+                        $branch->cant = 0;
+                    }
+
+                    if (isset($row['price'])) {
+                        $branch->price = (float) $row['price'];
+                    }
+
+                    $branch->cant += (int) $row['cant'];
+                    $branch->updated_id = $auth->id;
+                    $branch->save();
+                }
+
+                if ($item->cant < 0) {
+                    $item->cant = 0;
+                }
+
+                $item->cant += (int) $row['cant'];
+                $item->updated_id = $auth->id;
+                $item->price = (float) $row['price'];
+                $item->cant += (int) $row['cant'];
+                $item->save();
+
+                $lot = $branch->lots()->where("num_invoice", $row['invoice'])->first();
+                $row['cost'] = isset($row['cost']) ? $row['cost'] : 0;
+                if (!$lot) {
+                    $lot = $branch->lots()->create([
+                        "user_id" => $auth->id,
+                        "store_items_id" => $item->id,
+                        "store_branch_id" => $branch->id,
+                        "cost" => $row['cost'],
+                        "price" => $row['price'],
+                        "num_invoice" => $row['invoice'],
+                        "cant" => (int) $row['cant'],
+                    ]);
+                } else {
+                    $lot->cant += (int) $row['cant'];
+                    $lot->save();
                 }
             }
 
-            $branch_id = $item->branch_default ? $item->branch_default : $row['branch_id'];
-            $branch = $item->inBranch()->where("branch_id", $branch_id)->first();
-            if (!$branch) {
-                $branch = $item->inBranch()->create([
-                    "user_id" => $auth->id,
-                    "store_item_id" => $item->id,
-                    "branch_id" => $branch_id,
-                    "cant" => $row['cant'],
-                    "price" => $row['price'],
-                ]);
-            } else {
-                if ($branch->cant < 0) {
-                    $branch->cant = 0;
-                }
+            DB::commit();
+            return ["status" => "ok"];
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            Log::error("Error en storeList: " . $th->getMessage(), [
+                'exception' => $th,
+                'user_id' => $auth->id ?? null,
+                'request_data' => $request->items ?? null
+            ]);
 
-                if (isset($row['price'])) {
-                    $branch->price = (float) $row['price'];
-                }
-
-                $branch->cant += (int) $row['cant'];
-                $branch->updated_id = $auth->id;
-                $branch->save();
-            }
-
-            if ($item->cant < 0) {
-                $item->cant = 0;
-            }
-
-            $item->cant += (int) $row['cant'];
-            $item->updated_id = $auth->id;
-            $item->price = (float) $row['price'];
-            $item->cant += (int) $row['cant'];
-            $item->save();
-
-            $lot = $branch->lots()->where("num_invoice", $row['invoice'])->first();
-            $row['cost'] = isset($row['cost']) ? $row['cost'] : 0;
-            if (!$lot) {
-                $lot = $branch->lots()->create([
-                    "user_id" => $auth->id,
-                    "store_items_id" => $item->id,
-                    "store_branch_id" => $branch->id,
-                    "cost" => $row['cost'],
-                    "price" => $row['price'],
-                    "num_invoice" => $row['invoice'],
-                    "cant" => (int) $row['cant'],
-                ]);
-            } else {
-                $lot->cant += (int) $row['cant'];
-                $lot->save();
-            }
+            return response()->json([
+                "status" => "error",
+                "message" => "Ocurrió un error al procesar la lista: " . $th->getMessage()
+            ], 500);
         }
-
-        return ["status" => "ok"];
     }
 
     /**
