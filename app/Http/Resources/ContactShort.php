@@ -11,9 +11,9 @@ class ContactShort extends JsonResource
     public function toArray($request)
     {
         $return['id'] = $this->id;
-        $return['nombre'] = $this->name;
+        $return['nombre'] = strtolower($this->name);
         $return['rfc'] = $this->rfc;
-        $return['email'] = $this->email;
+        $return['email'] = strtolower($this->email);
         return $return;
     }
 }

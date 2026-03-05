@@ -20,10 +20,8 @@ class Order extends JsonResource
             $return['exam'] = new ExamOrder($this->examen);
             $return['paciente'] = new ContactSimple($this->paciente);
             $return['session'] = $this->session;
-            $return['ncaja'] = $this->ncaja;
             $return['npedidolab'] = $this->npedidolab;
             $return['lab'] = new ContactShort($this->laboratorio);
-            $return['observaciones'] = $this->observaciones;
             $return['status'] = $this->status;
             $return['sale'] = new SaleShort($this->nota);
             $return['branch'] = new ConfigBranch($this->branch);
@@ -31,6 +29,11 @@ class Order extends JsonResource
                 $return['lab_complete'] = $this->whenLoaded('items', function () {
                     return $this->is_lab_complete;
                 });
+                $return['bi_box'] = $this->ncaja;
+                $return['bi_details'] = $this->observaciones;
+            } else {
+                $return['ncaja'] = $this->ncaja;
+                $return['observaciones'] = $this->observaciones;
             }
 
             $return['created_at'] = $this->created_at ? $this->created_at->format('Y-m-d H:i') : null;
