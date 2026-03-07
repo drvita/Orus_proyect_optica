@@ -126,6 +126,10 @@ if (!function_exists('getPaymentName')) {
                 return "cheque";
             case 6:
                 return "transferencia";
+            case 7:
+                return "nota de credito";
+            case 8:
+                return "credito propio";
             default:
                 return "otro";
         }
