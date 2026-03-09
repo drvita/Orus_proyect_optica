@@ -79,6 +79,7 @@ class OrderController extends Controller
             ->search($request->search)
             ->branch($branch_id)
             ->examStatus($examStatus)
+            ->date($request->date)
             ->paginate($page);
 
         return OrderResources::collection($orderdb);

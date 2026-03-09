@@ -147,6 +147,12 @@ class Order extends Model
             });
         }
     }
+    public function scopeDate($query, $search)
+    {
+        if (trim($search) != "") {
+            $query->WhereDate("created_at", $search);
+        }
+    }
 
     // Functions
     public function createSale(array | object | null $data = null)
