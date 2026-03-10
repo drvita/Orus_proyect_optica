@@ -43,7 +43,8 @@ class ExamObserver
                     'dpod',
                     'avfod',
                     'avfoi',
-                    'avf2o'
+                    'avf2o',
+                    'observaciones'
                 ];
 
                 foreach ($graduationFields as $field) {
