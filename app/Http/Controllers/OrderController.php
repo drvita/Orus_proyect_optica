@@ -36,8 +36,7 @@ class OrderController extends Controller
         $orderby = $request->input("orderby", "created_at");
         $order = $request->input("order", "desc");
         $page = $request->input("itemsPage", 20);
-        $currentUser = $request->user();
-        $branch_id = $request->input("branch_id", $currentUser->branch_id);
+        $branch_id = $request->input("branch_id", "all");
         $patient_id = $request->paciente ?? $request->patient_id ?? $request->contact_id ?? null;
         $status = $request->status ?? null;
         $examStatus = $request->exam_status ?? null;
