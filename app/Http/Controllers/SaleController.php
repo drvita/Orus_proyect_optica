@@ -103,7 +103,7 @@ class SaleController extends Controller
      */
     public function show(Sale $sale)
     {
-        return new SaleResources($sale);
+        return new SaleResources($sale->load('items.item'));
     }
 
     /**
