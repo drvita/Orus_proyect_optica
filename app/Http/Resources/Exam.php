@@ -43,7 +43,6 @@ class Exam extends JsonResource
                 $return['oftalmoscopia'] = $this->oftalmoscopia ? $this->oftalmoscopia : "";
                 $return['rsoi'] = $this->rsoi ? $this->rsoi : "";
                 $return['rsod'] = $this->rsod ? $this->rsod : "";
-                $return['presbicie'] = $this->presbicie ? true : false;
                 $return['txoftalmico'] = $this->txoftalmico ? $this->txoftalmico : "";
                 $return['pc'] = $this->pc ? true : false;
                 $return['tablet'] = $this->tablet ? true : false;
@@ -97,6 +96,7 @@ class Exam extends JsonResource
             $return['status'] = $this->status;
             $return['observaciones'] = $this->observaciones ? $this->observaciones : "";
             $return['diagnostico'] = $this->diagnostico ? $this->diagnostico : "Hemetrope";
+            $return['presbicie'] = $this->presbicie ? true : false;
 
             $return['category_id'] = new CategoryHierarchyResource($this->whenLoaded('categoryPrimary'));
             $return['category_ii'] = new CategoryHierarchyResource($this->whenLoaded('categorySecondary'));
